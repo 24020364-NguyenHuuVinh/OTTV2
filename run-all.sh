@@ -14,6 +14,14 @@ echo "=== 1.5. Cập nhật và cài đặt Engine ==="
 echo "=== 2. Khởi động API Backend (Spring Boot) ==="
 ./mvnw -pl api spring-boot:run > api.log 2>&1 &
 
+echo -n "⏳ Đang chờ Backend khởi động (khoảng 10-15s)..."
+# Vòng lặp chờ: Cứ 1 giây lại ngó vào api.log xem có chữ "Started" chưa
+while ! grep -q "Started " api.log; do
+  sleep 1
+  echo -n "."
+done
+echo -e "\n✅ Backend đã mở cửa!"
+
 echo "=== 3. Khởi động Compile Worker ==="
 sudo ./mvnw -pl worker exec:java -Dexec.mainClass="ottv2.worker.compile.CompileWorkerCommand" > compile_worker.log 2>&1 &
 

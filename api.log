@@ -12,22 +12,13 @@
 [INFO] Copying 20 resources from src/main/resources to target/classes
 [INFO] 
 [INFO] --- compiler:3.15.0:compile (default-compile) @ api ---
-[INFO] Recompiling the module because of added or removed source files.
-[INFO] Compiling 61 source files with javac [debug parameters release 21] to target/classes
-[INFO] /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/src/main/java/ottv2/api/submission/SubmissionService.java: /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/src/main/java/ottv2/api/submission/SubmissionService.java uses or overrides a deprecated API.
-[INFO] /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/src/main/java/ottv2/api/submission/SubmissionService.java: Recompile with -Xlint:deprecation for details.
+[INFO] Nothing to compile - all classes are up to date.
 [INFO] 
 [INFO] --- resources:3.5.0:testResources (default-testResources) @ api ---
 [INFO] skip non existing resourceDirectory /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/src/test/resources
 [INFO] 
 [INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ api ---
-[INFO] Recompiling the module because of changed dependency.
-[INFO] Compiling 23 source files with javac [debug parameters release 21] to target/test-classes
-[WARNING] /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/src/test/java/ottv2/api/room/RoomWebSocketIntegrationTest.java:[62,21] org.springframework.messaging.converter.MappingJackson2MessageConverter in org.springframework.messaging.converter has been deprecated and marked for removal
-[INFO] /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/src/test/java/ottv2/api/submission/SubmissionServiceTest.java: /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/src/test/java/ottv2/api/submission/SubmissionServiceTest.java uses or overrides a deprecated API.
-[INFO] /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/src/test/java/ottv2/api/submission/SubmissionServiceTest.java: Recompile with -Xlint:deprecation for details.
-[INFO] /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/src/test/java/ottv2/api/ladder/LadderRatingServiceTest.java: Some input files use unchecked or unsafe operations.
-[INFO] /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/src/test/java/ottv2/api/ladder/LadderRatingServiceTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] Nothing to compile - all classes are up to date.
 [INFO] 
 [INFO] <<< spring-boot:4.1.1:run (default-cli) < test-compile @ api <<<
 [INFO] 
@@ -44,31 +35,31 @@
 
  :: Spring Boot ::                (v4.1.1)
 
-2026-10-21T19:00:56.765+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Starting ApiApplication using Java 21.0.12.1 with PID 1469 (/mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/target/classes started by thinkbook in /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api)
-2026-10-21T19:00:56.773+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : No active profile set, falling back to 1 default profile: "default"
-2026-10-21T19:00:56.895+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
-2026-10-21T19:00:56.895+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
-2026-10-21T19:01:03.283+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
-2026-10-21T19:01:03.293+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-10-21T19:01:03.564+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 239 ms. Found 0 JPA repository interfaces.
-2026-10-21T19:01:03.771+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
-2026-10-21T19:01:03.775+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
-2026-10-21T19:01:03.970+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 160 ms. Found 0 Redis repository interfaces.
-2026-10-21T19:01:06.946+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
-2026-10-21T19:01:06.992+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-10-21T19:01:06.994+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
-2026-10-21T19:01:07.096+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 10129 ms
-2026-10-21T19:01:08.297+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-10-21T19:01:08.701+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@67ea313
-2026-10-21T19:01:08.707+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-10-21T19:01:08.755+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/ottv2 (PostgreSQL 16.15)
-2026-10-21T19:01:09.280+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 19 migrations (execution time 00:00.316s)
-2026-10-21T19:01:09.305+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 19
-2026-10-21T19:01:09.309+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
-2026-10-21T19:01:09.812+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
-2026-10-21T19:01:10.165+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
-2026-10-21T19:01:13.041+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-10-21T19:01:13.551+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+2026-10-21T20:55:06.486+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Starting ApiApplication using Java 21.0.12.1 with PID 6668 (/mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/target/classes started by thinkbook in /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api)
+2026-10-21T20:55:06.495+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : No active profile set, falling back to 1 default profile: "default"
+2026-10-21T20:55:06.617+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-10-21T20:55:06.618+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-10-21T20:55:12.980+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-10-21T20:55:12.988+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-21T20:55:13.262+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 246 ms. Found 0 JPA repository interfaces.
+2026-10-21T20:55:13.442+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-10-21T20:55:13.447+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-10-21T20:55:13.641+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 165 ms. Found 0 Redis repository interfaces.
+2026-10-21T20:55:16.473+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-10-21T20:55:16.511+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-21T20:55:16.513+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-21T20:55:16.618+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 9934 ms
+2026-10-21T20:55:17.963+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-10-21T20:55:18.353+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@2a4cee3f
+2026-10-21T20:55:18.359+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-10-21T20:55:18.409+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/ottv2 (PostgreSQL 16.15)
+2026-10-21T20:55:18.942+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 19 migrations (execution time 00:00.320s)
+2026-10-21T20:55:18.968+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 19
+2026-10-21T20:55:18.973+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-10-21T20:55:19.484+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-21T20:55:19.835+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
+2026-10-21T20:55:23.061+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-21T20:55:23.463+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
 	Database JDBC URL [jdbc:postgresql://localhost:5432/ottv2]
 	Database driver: PostgreSQL JDBC Driver
 	Database dialect: PostgreSQLDialect
@@ -80,73 +71,28 @@
 	Pool: DataSourceConnectionProvider
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2026-10-21T19:01:15.959+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-10-21T19:01:16.016+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-10-21T19:01:16.381+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name databaseUserDetailsService
-2026-10-21T19:01:20.959+07:00  WARN 1469 --- [ottv2-api] [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-10-21T19:01:26.610+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
-2026-10-21T19:01:26.611+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@46a7b87d]]
-2026-10-21T19:01:26.613+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
-2026-10-21T19:01:26.644+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
-2026-10-21T19:01:26.879+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8081 (http)
-2026-10-21T19:01:26.881+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-10-21T19:01:26.881+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
-2026-10-21T19:01:26.898+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 243 ms
-2026-10-21T19:01:26.915+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
-2026-10-21T19:01:26.957+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8081 (http) with context path '/'
-2026-10-21T19:01:26.964+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
-2026-10-21T19:01:27.067+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#4962ddd6:0/SimpleConnection@4a99d5ea [delegate=amqp://ottv2@127.0.0.1:5672/, localPort=44884]
-2026-10-21T19:01:27.141+07:00  INFO 1469 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Started ApiApplication in 31.775 seconds (process running for 33.058)
-2026-10-21T19:01:27.897+07:00  INFO 1469 --- [ottv2-api] [MessageBroker-2] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot gpt vs Bot bot4, Series=96, MatchId=256
-2026-10-21T19:01:27.910+07:00  INFO 1469 --- [ottv2-api] [MessageBroker-2] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot test vs Bot botga, Series=97, MatchId=258
-2026-10-21T19:01:27.923+07:00  INFO 1469 --- [ottv2-api] [MessageBroker-2] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot nhh vs Bot gemini_v2, Series=98, MatchId=260
-2026-10-21T19:01:29.380+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #257 completed: Bot A (ID=26) ELO 1245 -> 1260, Bot B (ID=33) ELO 1216 -> 1201
-2026-10-21T19:01:30.286+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #259 completed: Bot A (ID=28) ELO 1171 -> 1188, Bot B (ID=32) ELO 1184 -> 1167
-2026-10-21T19:01:31.187+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #261 completed: Bot A (ID=29) ELO 1182 -> 1167, Bot B (ID=31) ELO 1202 -> 1217
-2026-10-21T19:02:26.506+07:00  INFO 1469 --- [ottv2-api] [essageBroker-12] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 4, completed tasks = 161]
-2026-10-21T19:02:28.113+07:00  INFO 1469 --- [ottv2-api] [MessageBroker-1] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot gpt vs Bot nhh, Series=99, MatchId=264
-2026-10-21T19:02:28.125+07:00  INFO 1469 --- [ottv2-api] [MessageBroker-1] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot test vs Bot bot4, Series=100, MatchId=266
-2026-10-21T19:02:28.137+07:00  INFO 1469 --- [ottv2-api] [MessageBroker-1] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot gemini_v2 vs Bot botga, Series=101, MatchId=268
-2026-10-21T19:02:28.412+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #265 completed: Bot A (ID=26) ELO 1260 -> 1272, Bot B (ID=29) ELO 1167 -> 1155
-2026-10-21T19:02:41.799+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #267 completed: Bot A (ID=28) ELO 1188 -> 1189, Bot B (ID=33) ELO 1201 -> 1200
-2026-10-21T19:02:42.720+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #269 completed: Bot A (ID=31) ELO 1217 -> 1231, Bot B (ID=32) ELO 1167 -> 1153
-2026-10-21T19:03:28.316+07:00  INFO 1469 --- [ottv2-api] [essageBroker-14] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot gpt vs Bot test, Series=102, MatchId=271
-2026-10-21T19:03:28.328+07:00  INFO 1469 --- [ottv2-api] [essageBroker-14] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot nhh vs Bot botga, Series=103, MatchId=273
-2026-10-21T19:03:28.338+07:00  INFO 1469 --- [ottv2-api] [essageBroker-14] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot gemini_v2 vs Bot bot4, Series=104, MatchId=275
-2026-10-21T19:03:29.752+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #272 completed: Bot A (ID=26) ELO 1272 -> 1284, Bot B (ID=28) ELO 1189 -> 1177
-2026-10-21T19:03:29.976+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #274 completed: Bot A (ID=29) ELO 1155 -> 1155, Bot B (ID=32) ELO 1153 -> 1153
-2026-10-21T19:03:43.402+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #276 completed: Bot A (ID=31) ELO 1231 -> 1230, Bot B (ID=33) ELO 1200 -> 1201
-2026-10-21T19:04:28.504+07:00  INFO 1469 --- [ottv2-api] [essageBroker-16] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot gpt vs Bot gemini_v2, Series=105, MatchId=277
-2026-10-21T19:04:28.514+07:00  INFO 1469 --- [ottv2-api] [essageBroker-16] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot test vs Bot nhh, Series=106, MatchId=279
-2026-10-21T19:04:28.526+07:00  INFO 1469 --- [ottv2-api] [essageBroker-16] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot botga vs Bot bot4, Series=107, MatchId=281
-2026-10-21T19:04:29.963+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #278 completed: Bot A (ID=26) ELO 1284 -> 1298, Bot B (ID=31) ELO 1230 -> 1216
-2026-10-21T19:04:30.865+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #280 completed: Bot A (ID=28) ELO 1177 -> 1192, Bot B (ID=29) ELO 1155 -> 1140
-2026-10-21T19:04:31.780+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #282 completed: Bot A (ID=32) ELO 1153 -> 1139, Bot B (ID=33) ELO 1201 -> 1215
-2026-10-21T19:05:28.698+07:00  INFO 1469 --- [ottv2-api] [MessageBroker-3] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot gpt vs Bot bot4, Series=108, MatchId=283
-2026-10-21T19:05:28.706+07:00  INFO 1469 --- [ottv2-api] [MessageBroker-3] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot test vs Bot gemini_v2, Series=109, MatchId=285
-2026-10-21T19:05:30.079+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #284 completed: Bot A (ID=26) ELO 1298 -> 1310, Bot B (ID=33) ELO 1215 -> 1203
-2026-10-21T19:05:43.160+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #286 completed: Bot A (ID=28) ELO 1192 -> 1193, Bot B (ID=31) ELO 1216 -> 1215
-2026-10-21T19:06:28.911+07:00  INFO 1469 --- [ottv2-api] [essageBroker-12] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot test vs Bot bot4, Series=110, MatchId=287
-2026-10-21T19:06:28.920+07:00  INFO 1469 --- [ottv2-api] [essageBroker-12] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot nhh vs Bot gemini_v2, Series=111, MatchId=289
-2026-10-21T19:06:41.864+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #288 completed: Bot A (ID=28) ELO 1193 -> 1193, Bot B (ID=33) ELO 1203 -> 1203
-2026-10-21T19:06:42.755+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #290 completed: Bot A (ID=29) ELO 1140 -> 1127, Bot B (ID=31) ELO 1215 -> 1228
-2026-10-21T19:07:29.134+07:00  INFO 1469 --- [ottv2-api] [MessageBroker-3] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot test vs Bot botga, Series=112, MatchId=291
-2026-10-21T19:07:29.142+07:00  INFO 1469 --- [ottv2-api] [MessageBroker-3] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot nhh vs Bot bot4, Series=113, MatchId=293
-2026-10-21T19:07:30.295+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #292 completed: Bot A (ID=28) ELO 1193 -> 1207, Bot B (ID=32) ELO 1139 -> 1125
-2026-10-21T19:07:31.215+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #294 completed: Bot A (ID=29) ELO 1127 -> 1114, Bot B (ID=33) ELO 1203 -> 1216
-2026-10-21T19:08:29.344+07:00  INFO 1469 --- [ottv2-api] [MessageBroker-6] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot gemini_v2 vs Bot bot4, Series=114, MatchId=295
-2026-10-21T19:08:42.310+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #296 completed: Bot A (ID=31) ELO 1228 -> 1227, Bot B (ID=33) ELO 1216 -> 1217
-2026-10-21T19:09:29.561+07:00  INFO 1469 --- [ottv2-api] [essageBroker-11] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot gemini_v2 vs Bot botga, Series=115, MatchId=297
-2026-10-21T19:09:31.072+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #298 completed: Bot A (ID=31) ELO 1227 -> 1238, Bot B (ID=32) ELO 1125 -> 1114
-2026-10-21T19:10:29.785+07:00  INFO 1469 --- [ottv2-api] [essageBroker-15] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot nhh vs Bot botga, Series=116, MatchId=299
-2026-10-21T19:10:30.258+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #300 completed: Bot A (ID=29) ELO 1114 -> 1114, Bot B (ID=32) ELO 1114 -> 1114
-2026-10-21T19:11:30.009+07:00  INFO 1469 --- [ottv2-api] [essageBroker-15] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot test vs Bot nhh, Series=117, MatchId=301
-2026-10-21T19:11:30.016+07:00  INFO 1469 --- [ottv2-api] [essageBroker-15] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot botga vs Bot bot4, Series=118, MatchId=303
-2026-10-21T19:11:30.936+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #302 completed: Bot A (ID=28) ELO 1207 -> 1219, Bot B (ID=29) ELO 1114 -> 1102
-2026-10-21T19:11:31.828+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #304 completed: Bot A (ID=32) ELO 1114 -> 1103, Bot B (ID=33) ELO 1217 -> 1228
-2026-10-21T19:12:30.230+07:00  INFO 1469 --- [ottv2-api] [MessageBroker-7] ottv2.api.ladder.LadderScheduler         : Ladder MATCH_FOUND broadcasted: Bot test vs Bot gemini_v2, Series=119, MatchId=305
-2026-10-21T19:28:49.570+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #306 completed: Bot A (ID=28) ELO 1219 -> 1220, Bot B (ID=31) ELO 1238 -> 1237
-2026-10-21T19:29:01.847+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #308 completed: Bot A (ID=28) ELO 1220 -> 1220, Bot B (ID=33) ELO 1228 -> 1228
-2026-10-21T19:29:02.728+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #310 completed: Bot A (ID=29) ELO 1102 -> 1092, Bot B (ID=31) ELO 1237 -> 1247
-2026-10-21T19:29:43.348+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #312 completed: Bot A (ID=28) ELO 1220 -> 1231, Bot B (ID=32) ELO 1103 -> 1092
-2026-10-21T19:29:44.236+07:00  INFO 1469 --- [ottv2-api] [ntContainer#0-1] ottv2.api.ladder.LadderRatingService     : Ranked Bot Match #314 completed: Bot A (ID=29) ELO 1092 -> 1082, Bot B (ID=33) ELO 1228 -> 1238
+2026-10-21T20:55:25.831+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-21T20:55:25.887+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-21T20:55:26.251+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name databaseUserDetailsService
+2026-10-21T20:55:30.547+07:00  WARN 6668 --- [ottv2-api] [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-10-21T20:55:36.485+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-10-21T20:55:36.486+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@b105fba]]
+2026-10-21T20:55:36.487+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-10-21T20:55:36.521+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-10-21T20:55:36.769+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8081 (http)
+2026-10-21T20:55:36.771+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-21T20:55:36.771+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-21T20:55:36.786+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 252 ms
+2026-10-21T20:55:36.804+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-21T20:55:36.867+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8081 (http) with context path '/'
+2026-10-21T20:55:36.876+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2026-10-21T20:55:37.001+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#4e353fc8:0/SimpleConnection@62791950 [delegate=amqp://ottv2@127.0.0.1:5672/, localPort=48664]
+2026-10-21T20:55:37.084+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Started ApiApplication in 31.952 seconds (process running for 33.234)
+2026-10-21T20:55:40.500+07:00  INFO 6668 --- [ottv2-api] [nio-8080-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-21T20:55:40.503+07:00  INFO 6668 --- [ottv2-api] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-21T20:55:40.510+07:00  INFO 6668 --- [ottv2-api] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 6 ms
+2026-10-21T20:55:43.795+07:00  INFO 6668 --- [ottv2-api] [0.0-8081-exec-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServletRegistration'
+2026-10-21T20:55:43.796+07:00  INFO 6668 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServletRegistration'
+2026-10-21T20:55:43.797+07:00  INFO 6668 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2026-10-21T20:56:36.377+07:00  INFO 6668 --- [ottv2-api] [essageBroker-10] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 21, active threads = 0, queued tasks = 0, completed tasks = 21], outboundChannel[pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 4], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 7, completed tasks = 177]
+2026-10-21T20:59:00.931+07:00  WARN 6668 --- [ottv2-api] [nio-8080-exec-7] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [org.springframework.web.bind.MethodArgumentNotValidException: Validation failed for argument [1] in public ottv2.api.profile.ProfileDtos$ProfileResponse ottv2.api.profile.ProfileController.recordMatch(ottv2.api.security.ApiPrincipal,ottv2.api.profile.ProfileDtos$RecordMatchRequest): [Field error in object 'recordMatchRequest' on field 'winner': rejected value [null]; codes [NotBlank.recordMatchRequest.winner,NotBlank.winner,NotBlank.java.lang.String,NotBlank]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [recordMatchRequest.winner,winner]; arguments []; default message [winner]]; default message [must not be blank]] ]
