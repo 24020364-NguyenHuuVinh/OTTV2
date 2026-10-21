@@ -41,8 +41,18 @@ public class MatchmakingQueueService {
             String avatar,
             Instant enqueuedAt,
             String queueMode,
-            String timeControlKey
-    ) {}
+            String timeControlKey,
+            Instant lastSeenAt
+    ) {
+        public PvpQueueEntry(long userId, String username, String studentCode, String email, String displayName,
+                             int elo, String avatar, Instant enqueuedAt, String queueMode, String timeControlKey) {
+            this(userId, username, studentCode, email, displayName, elo, avatar, enqueuedAt, queueMode, timeControlKey, enqueuedAt);
+        }
+
+        public PvpQueueEntry withLastSeen(Instant now) {
+            return new PvpQueueEntry(userId, username, studentCode, email, displayName, elo, avatar, enqueuedAt, queueMode, timeControlKey, now);
+        }
+    }
 
     public record BotQueueEntry(
             long botId,
@@ -154,6 +164,15 @@ public class MatchmakingQueueService {
     }
 
     /**
+     * Cập nhật tín hiệu sống (heartbeat) định kỳ của người chơi trong hàng đợi.
+     * Lưu ý: Không in log ở đây để tránh làm tràn (spam) log console/file.
+     */
+    public boolean heartbeat(long userId) {
+        Instant now = Instant.now();
+        return pvpQueue.computeIfPresent(userId, (id, entry) -> entry.withLastSeen(now)) != null;
+    }
+
+    /**
      * Kiểm tra trạng thái hàng đợi hiện tại của user
      */
     public Map<String, Object> getStatus(long userId) {
@@ -257,7 +276,8 @@ public class MatchmakingQueueService {
         String finalDisplayName = (dName != null && !dName.isBlank()) ? dName : (displayName != null ? displayName : finalUsername);
         String avatar = "https://api.dicebear.com/7.x/bottts/svg?seed=" + finalDisplayName;
 
-        PvpQueueEntry self = new PvpQueueEntry(userId, finalUsername, sCode, em, finalDisplayName, elo, avatar, Instant.now(), mode, cleanTcKey);
+        Instant now = Instant.now();
+        PvpQueueEntry self = new PvpQueueEntry(userId, finalUsername, sCode, em, finalDisplayName, elo, avatar, now, mode, cleanTcKey, now);
         pvpQueue.put(userId, self);
         log.info("User {} (ID={}, ELO={}, Mode={}, TC={}) đã vào hàng đợi PvP", finalUsername, userId, elo, mode, cleanTcKey);
 
@@ -304,6 +324,12 @@ public class MatchmakingQueueService {
 
         for (PvpQueueEntry candidate : pvpQueue.values()) {
             if (candidate.userId() == self.userId()) continue;
+
+            // Kiểm tra tính tươi mới của đối thủ: Nếu quá 10s không có heartbeat thì xóa bỏ, không ghép
+            if (Duration.between(candidate.lastSeenAt(), Instant.now()).toSeconds() > 10) {
+                pvpQueue.remove(candidate.userId());
+                continue;
+            }
 
             // Kiểm tra thể thức thời gian: Không được ghép chéo 3m với 5m hay 1m
             String selfTc = self.timeControlKey() != null ? self.timeControlKey() : "blitz_3_2";
@@ -657,8 +683,40 @@ public class MatchmakingQueueService {
     // PERIODIC MATCHMAKING TICK (Every 2s)
     // ==========================================
 
+    /**
+     * Dọn dẹp các "bóng ma" trong hàng đợi PvP:
+     * 1. Quá 10 giây không có tín hiệu heartbeat (mất mạng, đóng tab, crash).
+     * 2. Thời gian chờ vượt quá TTL 180 giây (3 phút timeout).
+     */
+    public void cleanupStalePvpEntries() {
+        if (pvpQueue.isEmpty()) return;
+        Instant now = Instant.now();
+        for (Map.Entry<Long, PvpQueueEntry> entry : pvpQueue.entrySet()) {
+            PvpQueueEntry pvp = entry.getValue();
+            long lastSeenAgeSeconds = Duration.between(pvp.lastSeenAt(), now).toSeconds();
+            long waitAgeSeconds = Duration.between(pvp.enqueuedAt(), now).toSeconds();
+
+            if (lastSeenAgeSeconds > 10) {
+                if (pvpQueue.remove(entry.getKey(), pvp)) {
+                    log.info("Kick 'bóng ma' PvP khỏi hàng đợi: user={} (ID={}), mất tín hiệu heartbeat {}s",
+                            pvp.username(), pvp.userId(), lastSeenAgeSeconds);
+                }
+                continue;
+            }
+
+            if (waitAgeSeconds >= 180) {
+                if (pvpQueue.remove(entry.getKey(), pvp)) {
+                    log.info("Hết hạn chờ hàng đợi PvP (TTL 180s): user={} (ID={})",
+                            pvp.username(), pvp.userId());
+                }
+            }
+        }
+    }
+
     @Scheduled(fixedDelay = 2000)
     public void processQueues() {
+        cleanupStalePvpEntries();
+
         if (!pvpQueue.isEmpty()) {
             List<PvpQueueEntry> candidates = new ArrayList<>(pvpQueue.values());
             for (PvpQueueEntry entry : candidates) {

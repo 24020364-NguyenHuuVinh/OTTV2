@@ -317,4 +317,69 @@ class MatchmakingQueueAndSparringIntegrityTest {
         assertNotNull(matchedTc);
         assertEquals("3+2", matchedTc.get("id"), "Khi ghép Auto với người chọn 3+2, thể thức trận đấu phải là 3+2");
     }
+
+    // =========================================================================
+    // 6. Chống "Bóng ma" trong hàng đợi PvP (Heartbeat & Queue TTL 180s)
+    // =========================================================================
+    @Test
+    @DisplayName("Heartbeat & Queue TTL: Tự động loại bỏ bóng ma mất mạng (>10s) và timeout hàng đợi (>=180s)")
+    void testGhostEvictionAndQueueTtl() throws Exception {
+        RoomService roomService = new RoomService();
+        MatchmakingQueueService queueService = new MatchmakingQueueService(
+                jdbc, transaction, redis, messagingTemplate, roomService, mapper
+        );
+
+        when(jdbc.queryForMap(contains("SELECT student_code"), eq(201L))).thenReturn(Map.of(
+                "student_code", "ghost_user", "email", "ghost@test.com", "display_name", "Ghost", "pvp_elo", 1200
+        ));
+        when(jdbc.queryForMap(contains("SELECT student_code"), eq(202L))).thenReturn(Map.of(
+                "student_code", "timeout_user", "email", "timeout@test.com", "display_name", "Timeout", "pvp_elo", 1200
+        ));
+        when(jdbc.queryForMap(contains("SELECT student_code"), eq(203L))).thenReturn(Map.of(
+                "student_code", "active_user", "email", "active@test.com", "display_name", "Active", "pvp_elo", 1200
+        ));
+
+        // 1. Cả 3 người tham gia hàng đợi
+        queueService.join(201L, "ghost_user", "Ghost", "PVP", null);
+        queueService.join(202L, "timeout_user", "Timeout", "PVP", null, "rapid_5_3"); // khác TC để không tự ghép
+        queueService.join(203L, "active_user", "Active", "PVP", null, "bullet_1_1");
+
+        assertTrue((Boolean) queueService.getStatus(201L).get("inPvpQueue"));
+        assertTrue((Boolean) queueService.getStatus(202L).get("inPvpQueue"));
+        assertTrue((Boolean) queueService.getStatus(203L).get("inPvpQueue"));
+
+        // 2. Kiểm tra heartbeat update
+        boolean hbResult = queueService.heartbeat(203L);
+        assertTrue(hbResult, "Heartbeat cho user đang ở trong hàng đợi phải trả về true");
+
+        // 3. Giả lập: User 201 bị mất mạng (lastSeenAt cách đây 15 giây > 10s)
+        java.lang.reflect.Field pvpQueueField = MatchmakingQueueService.class.getDeclaredField("pvpQueue");
+        pvpQueueField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<Long, MatchmakingQueueService.PvpQueueEntry> pvpQueue = (Map<Long, MatchmakingQueueService.PvpQueueEntry>) pvpQueueField.get(queueService);
+
+        pvpQueue.computeIfPresent(201L, (id, e) -> new MatchmakingQueueService.PvpQueueEntry(
+                e.userId(), e.username(), e.studentCode(), e.email(), e.displayName(),
+                e.elo(), e.avatar(), e.enqueuedAt(), e.queueMode(), e.timeControlKey(),
+                Instant.now().minusSeconds(15)
+        ));
+
+        // 4. Giả lập: User 202 bị timeout chờ quá lâu (enqueuedAt cách đây 200 giây >= 180s)
+        pvpQueue.computeIfPresent(202L, (id, e) -> new MatchmakingQueueService.PvpQueueEntry(
+                e.userId(), e.username(), e.studentCode(), e.email(), e.displayName(),
+                e.elo(), e.avatar(), Instant.now().minusSeconds(200), e.queueMode(), e.timeControlKey(),
+                Instant.now()
+        ));
+
+        // 5. Chạy hàm dọn dẹp stale entries
+        queueService.cleanupStalePvpEntries();
+
+        // 6. Kiểm tra kết quả:
+        // - Ghost user 201 phải bị xóa khỏi RAM
+        assertFalse((Boolean) queueService.getStatus(201L).get("inPvpQueue"), "User mất mạng >10s phải bị xóa khỏi pvpQueue");
+        // - Timeout user 202 phải bị xóa khỏi RAM
+        assertFalse((Boolean) queueService.getStatus(202L).get("inPvpQueue"), "User chờ quá 180s phải bị xóa do timeout");
+        // - Active user 203 vẫn phải còn trong hàng đợi
+        assertTrue((Boolean) queueService.getStatus(203L).get("inPvpQueue"), "User có heartbeat bình thường phải được giữ lại");
+    }
 }

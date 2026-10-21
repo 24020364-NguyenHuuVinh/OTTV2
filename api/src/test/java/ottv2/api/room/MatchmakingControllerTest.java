@@ -87,4 +87,26 @@ class MatchmakingControllerTest {
         ResponseEntity<?> response = controller.randomMatchmaking(null, body);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
+
+    @Test
+    void heartbeat_callsQueueServiceAndReturnsStatus() {
+        ottv2.api.ladder.MatchmakingQueueService mockQueue = mock(ottv2.api.ladder.MatchmakingQueueService.class);
+        MatchmakingController ctrl = new MatchmakingController(roomService, messagingTemplate, null, mockQueue);
+
+        ApiPrincipal principal = new ApiPrincipal(10L, "B22DCCN010", "u10@ptit.edu.vn", "hash", "STUDENT");
+
+        when(mockQueue.heartbeat(10L)).thenReturn(true);
+        when(mockQueue.getStatus(10L)).thenReturn(Map.of("inQueue", true));
+
+        ResponseEntity<?> res = ctrl.heartbeat(principal, Map.of());
+        assertEquals(HttpStatus.OK, res.getStatusCode());
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) res.getBody();
+        assertNotNull(body);
+        assertTrue((Boolean) body.get("heartbeat"));
+        assertTrue((Boolean) body.get("inQueue"));
+
+        verify(mockQueue).heartbeat(10L);
+    }
 }

@@ -406,4 +406,32 @@ public class MatchmakingController {
         }
         return ResponseEntity.ok(queueService.getStatus(userId));
     }
+
+    /**
+     * Endpoint heartbeat / ping định kỳ khi đang tìm trận để chống "bóng ma" hàng đợi.
+     * Tuyệt đối không log console tại đây để tránh spam.
+     * POST /api/matchmaking/heartbeat
+     */
+    @PostMapping("/api/matchmaking/heartbeat")
+    public ResponseEntity<?> heartbeat(
+            @AuthenticationPrincipal ApiPrincipal principal,
+            @RequestBody(required = false) Map<String, Object> body) {
+        long userId = principal != null ? principal.id() : -1L;
+        if (userId <= 0 && body != null && body.get("userId") != null) {
+            try {
+                userId = Long.parseLong(String.valueOf(body.get("userId")));
+            } catch (Exception ignored) {}
+        }
+        if (userId <= 0) {
+            return ResponseEntity.ok(Map.of("inQueue", false, "heartbeat", false));
+        }
+
+        if (queueService != null) {
+            boolean alive = queueService.heartbeat(userId);
+            Map<String, Object> status = new HashMap<>(queueService.getStatus(userId));
+            status.put("heartbeat", alive);
+            return ResponseEntity.ok(status);
+        }
+        return ResponseEntity.ok(Map.of("inQueue", false, "heartbeat", false));
+    }
 }
