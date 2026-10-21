@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { api, csrfHeaders, DEFAULT_HEADERS } from '../../utils/api.js';
+import { api, csrfHeaders, DEFAULT_HEADERS, fetchWithTimeout } from '../../utils/api.js';
 
 export default function SignIn({
   onSignedIn,
@@ -12,7 +12,33 @@ export default function SignIn({
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const setErrorMessage = setError;
   const [busy, setBusy] = useState(false);
+
+  const OFFLINE_MESSAGE =
+    'Không thể kết nối đến máy chủ Backend (Hệ thống đang ngoại tuyến). Bạn có thể bật máy chủ hoặc tiếp tục bằng chế độ Ngoại Tuyến bên dưới.';
+
+  function filterErrorMessage(raw) {
+    if (!raw || typeof raw !== 'string') {
+      return OFFLINE_MESSAGE;
+    }
+    const trimmed = raw.trim();
+    if (
+      trimmed.startsWith('<!DOCTYPE') ||
+      trimmed.startsWith('<html') ||
+      trimmed.includes('<html') ||
+      trimmed.includes('<!DOCTYPE') ||
+      trimmed.includes('<div') ||
+      trimmed.includes('ERR_NGROK') ||
+      trimmed.includes('Whitelabel Error') ||
+      trimmed.includes('Failed to fetch') ||
+      trimmed.includes('NetworkError') ||
+      trimmed.includes('Backend 8080')
+    ) {
+      return OFFLINE_MESSAGE;
+    }
+    return trimmed.slice(0, 150);
+  }
 
   const cachedUser = (() => {
     try {
@@ -25,33 +51,90 @@ export default function SignIn({
 
   async function submit(event) {
     event.preventDefault();
-    setError('');
+    setErrorMessage('');
     setBusy(true);
     try {
       const csrfH = await csrfHeaders();
-      const res = await api('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          ...DEFAULT_HEADERS,
-          ...csrfH,
+      const res = await fetchWithTimeout(
+        '/api/auth/login',
+        {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            ...DEFAULT_HEADERS,
+            ...csrfH,
+          },
+          body: JSON.stringify({ email, password }),
         },
-        body: JSON.stringify({ email, password }),
-      });
-      if (res) {
+        8000
+      );
+
+      if (!res || !res.ok) {
+        let errorText = 'Đăng nhập thất bại. Vui lòng thử lại.';
+        if (!res) {
+          setErrorMessage(OFFLINE_MESSAGE);
+          return;
+        }
+
         try {
           const contentType = res.headers?.get('content-type') || '';
           if (contentType.includes('application/json')) {
-            const u = await res.json();
-            if (u && u.email) {
-              localStorage.setItem('ottv2_last_active_user', JSON.stringify(u));
-              localStorage.setItem(`ottv2_user_${u.email}`, JSON.stringify(u));
+            const data = await res.json();
+            errorText = data.message || data.error || errorText;
+          } else {
+            const rawText = await res.text();
+            if (
+              rawText.includes('<!DOCTYPE') ||
+              rawText.includes('<html') ||
+              rawText.includes('<div') ||
+              rawText.includes('ERR_NGROK') ||
+              res.status === 502 ||
+              res.status === 504
+            ) {
+              errorText = OFFLINE_MESSAGE;
+            } else {
+              errorText = rawText.slice(0, 100);
             }
           }
-        } catch {}
+        } catch {
+          try {
+            const rawText = await res.text();
+            if (
+              rawText.includes('<!DOCTYPE') ||
+              rawText.includes('<html') ||
+              rawText.includes('<div') ||
+              rawText.includes('ERR_NGROK') ||
+              res.status === 502 ||
+              res.status === 504
+            ) {
+              errorText = OFFLINE_MESSAGE;
+            } else {
+              errorText = rawText ? rawText.slice(0, 100) : OFFLINE_MESSAGE;
+            }
+          } catch {
+            errorText = OFFLINE_MESSAGE;
+          }
+        }
+
+        setErrorMessage(filterErrorMessage(errorText));
+        return;
       }
+
+      // Xử lý khi đăng nhập thành công (res.ok)
+      try {
+        const contentType = res.headers?.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const u = await res.json();
+          if (u && u.email) {
+            localStorage.setItem('ottv2_last_active_user', JSON.stringify(u));
+            localStorage.setItem(`ottv2_user_${u.email}`, JSON.stringify(u));
+          }
+        }
+      } catch {}
+
       onSignedIn();
     } catch (failure) {
-      setError(failure.message);
+      setErrorMessage(filterErrorMessage(failure?.message));
     } finally {
       setBusy(false);
     }
@@ -113,7 +196,11 @@ export default function SignIn({
             />
           </div>
 
-          {error && <p className="text-rose-400 text-xs font-semibold">{error}</p>}
+          {error && (
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs font-medium leading-relaxed text-center break-words">
+              {error}
+            </div>
+          )}
 
           <button
             disabled={busy}

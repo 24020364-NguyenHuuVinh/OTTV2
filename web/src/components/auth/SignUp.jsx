@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { api, csrfHeaders, DEFAULT_HEADERS } from '../../utils/api.js';
+import { api, csrfHeaders, DEFAULT_HEADERS, fetchWithTimeout } from '../../utils/api.js';
 
 export default function SignUp({ onRegistered, onShowLogin }) {
   const [studentCode, setStudentCode] = useState('');
@@ -7,22 +7,105 @@ export default function SignUp({ onRegistered, onShowLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const setErrorMessage = setError;
   const [busy, setBusy] = useState(false);
+
+  const OFFLINE_MESSAGE =
+    'Không thể kết nối đến máy chủ Backend (Hệ thống đang ngoại tuyến). Bạn có thể bật máy chủ hoặc tiếp tục bằng chế độ Ngoại Tuyến bên dưới.';
+
+  function filterErrorMessage(raw) {
+    if (!raw || typeof raw !== 'string') {
+      return OFFLINE_MESSAGE;
+    }
+    const trimmed = raw.trim();
+    if (
+      trimmed.startsWith('<!DOCTYPE') ||
+      trimmed.startsWith('<html') ||
+      trimmed.includes('<html') ||
+      trimmed.includes('<!DOCTYPE') ||
+      trimmed.includes('<div') ||
+      trimmed.includes('ERR_NGROK') ||
+      trimmed.includes('Whitelabel Error') ||
+      trimmed.includes('Failed to fetch') ||
+      trimmed.includes('NetworkError') ||
+      trimmed.includes('Backend 8080')
+    ) {
+      return OFFLINE_MESSAGE;
+    }
+    return trimmed.slice(0, 150);
+  }
 
   async function submit(event) {
     event.preventDefault();
-    setError('');
+    setErrorMessage('');
     setBusy(true);
     try {
       const csrfH = await csrfHeaders();
-      await api('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          ...DEFAULT_HEADERS,
-          ...csrfH,
+      const res = await fetchWithTimeout(
+        '/api/auth/register',
+        {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            ...DEFAULT_HEADERS,
+            ...csrfH,
+          },
+          body: JSON.stringify({ studentCode, displayName, email, password }),
         },
-        body: JSON.stringify({ studentCode, displayName, email, password }),
-      });
+        8000
+      );
+
+      if (!res || !res.ok) {
+        let errorText = 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.';
+        if (!res) {
+          setErrorMessage(OFFLINE_MESSAGE);
+          return;
+        }
+
+        try {
+          const contentType = res.headers?.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data = await res.json();
+            errorText = data.message || data.error || errorText;
+          } else {
+            const rawText = await res.text();
+            if (
+              rawText.includes('<!DOCTYPE') ||
+              rawText.includes('<html') ||
+              rawText.includes('<div') ||
+              rawText.includes('ERR_NGROK') ||
+              res.status === 502 ||
+              res.status === 504
+            ) {
+              errorText = OFFLINE_MESSAGE;
+            } else {
+              errorText = rawText.slice(0, 100);
+            }
+          }
+        } catch {
+          try {
+            const rawText = await res.text();
+            if (
+              rawText.includes('<!DOCTYPE') ||
+              rawText.includes('<html') ||
+              rawText.includes('<div') ||
+              rawText.includes('ERR_NGROK') ||
+              res.status === 502 ||
+              res.status === 504
+            ) {
+              errorText = OFFLINE_MESSAGE;
+            } else {
+              errorText = rawText ? rawText.slice(0, 100) : OFFLINE_MESSAGE;
+            }
+          } catch {
+            errorText = OFFLINE_MESSAGE;
+          }
+        }
+
+        setErrorMessage(filterErrorMessage(errorText));
+        return;
+      }
+
       const registeredData = {
         studentCode,
         displayName,
@@ -35,7 +118,7 @@ export default function SignUp({ onRegistered, onShowLogin }) {
       localStorage.setItem(`ottv2_user_${email}`, JSON.stringify(registeredData));
       onRegistered(email);
     } catch (failure) {
-      setError(failure.message);
+      setErrorMessage(filterErrorMessage(failure?.message));
     } finally {
       setBusy(false);
     }
@@ -100,7 +183,11 @@ export default function SignUp({ onRegistered, onShowLogin }) {
             />
           </div>
 
-          {error && <p className="text-rose-400 text-xs font-semibold">{error}</p>}
+          {error && (
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs font-medium leading-relaxed text-center break-words">
+              {error}
+            </div>
+          )}
 
           <button
             disabled={busy}

@@ -122,6 +122,16 @@ export async function api(path, options = {}) {
 
     if (!response.ok) {
       const body = await response.text().catch(() => '');
+      if (
+        body.includes('<!DOCTYPE') ||
+        body.includes('<html') ||
+        body.includes('<div') ||
+        body.includes('ERR_NGROK') ||
+        response.status === 502 ||
+        response.status === 504
+      ) {
+        throw new Error('Không thể kết nối đến máy chủ Backend (Hệ thống đang ngoại tuyến). Bạn có thể bật máy chủ hoặc tiếp tục bằng chế độ Ngoại Tuyến bên dưới.');
+      }
       throw new Error(body || `${response.status} ${response.statusText}`);
     }
     return response.status === 204 ? null : response;
@@ -181,6 +191,8 @@ export function extractErrorMessage(err, fallback = 'Thao tác thất bại. Vui
   const isSuspicious =
     raw.includes('<html') ||
     raw.includes('<!DOCTYPE') ||
+    raw.includes('<div') ||
+    raw.includes('ERR_NGROK') ||
     raw.includes('org.springframework') ||
     raw.includes('java.') ||
     raw.includes('jakarta.') ||
@@ -188,7 +200,7 @@ export function extractErrorMessage(err, fallback = 'Thao tác thất bại. Vui
     raw.length > 250;
 
   if (isSuspicious) {
-    return 'Không thể thực hiện thao tác vào lúc này. Vui lòng kiểm tra lại quyền hạn hoặc đăng nhập lại.';
+    return 'Không thể kết nối đến máy chủ Backend (Hệ thống đang ngoại tuyến). Bạn có thể bật máy chủ hoặc tiếp tục bằng chế độ Ngoại Tuyến bên dưới.';
   }
 
   return raw.trim() || fallback;
