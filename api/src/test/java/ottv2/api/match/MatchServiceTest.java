@@ -1,0 +1,89 @@
+package ottv2.api.match;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.UUID;
+import ottv2.api.match.MatchDtos.CreateMatchRequest;
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+class MatchServiceTest {
+    @Test
+    void snapshotsPlayableSubmissionsAndWritesQueueJobInTheMatchTransaction() throws Exception {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        TransactionTemplate transaction = mock(TransactionTemplate.class);
+        Instant now = Instant.now();
+        LocalDate month = LocalDate.now().withDayOfMonth(1);
+        UUID publicId = UUID.randomUUID();
+        doAnswer(invocation -> invocation.<TransactionCallback<?>>getArgument(0)
+                .doInTransaction(mock(TransactionStatus.class)))
+                .when(transaction).execute(any(TransactionCallback.class));
+        when(jdbc.queryForObject(anyString(), any(RowMapper.class), any(Object[].class))).thenAnswer(invocation -> {
+            String sql = invocation.getArgument(0);
+            ResultSet row = mock(ResultSet.class);
+            if (sql.contains("FROM submissions s JOIN bots b")) {
+                long submissionId = ((Number) invocation.getArgument(2)).longValue();
+                when(row.getLong("bot_id")).thenReturn(submissionId == 11 ? 101L : 202L);
+                when(row.getString("name")).thenReturn(submissionId == 11 ? "Alpha" : "Beta");
+                when(row.getLong("owner_id")).thenReturn(submissionId == 11 ? 50L : 60L);
+                when(row.getLong("submission_id")).thenReturn(submissionId);
+                when(row.getString("language")).thenReturn("PYTHON");
+                when(row.getString("artifact_key")).thenReturn("artifacts/sha/python");
+                when(row.getString("source_sha256")).thenReturn("a".repeat(64));
+            } else if (sql.contains("INSERT INTO matches")) {
+                when(row.getLong("id")).thenReturn(900L);
+                when(row.getObject("public_id", UUID.class)).thenReturn(publicId);
+                when(row.getDate("created_month")).thenReturn(Date.valueOf(month));
+                when(row.getTimestamp("queued_at")).thenReturn(Timestamp.from(now));
+            } else {
+                when(row.getObject("public_id", UUID.class)).thenReturn(publicId);
+                when(row.getString("status")).thenReturn("QUEUED");
+                when(row.getString("winner_side")).thenReturn(null);
+                when(row.getString("end_reason")).thenReturn(null);
+                when(row.getString("a_bot_name")).thenReturn("Alpha");
+                when(row.getString("b_bot_name")).thenReturn("Beta");
+                when(row.getString("a_fault")).thenReturn(null);
+                when(row.getString("b_fault")).thenReturn(null);
+                when(row.getLong("a_bot_id")).thenReturn(101L);
+                when(row.getLong("b_bot_id")).thenReturn(202L);
+                when(row.getLong("a_submission_id")).thenReturn(11L);
+                when(row.getLong("b_submission_id")).thenReturn(12L);
+                when(row.getLong("seed")).thenReturn(7L);
+                when(row.getObject("total_turns")).thenReturn(null);
+                when(row.getTimestamp("queued_at")).thenReturn(Timestamp.from(now));
+                when(row.getTimestamp("finished_at")).thenReturn(null);
+            }
+            @SuppressWarnings("unchecked") RowMapper<Object> mapper = invocation.getArgument(1);
+            return mapper.mapRow(row, 0);
+        });
+        when(jdbc.update(anyString(), any(Object[].class))).thenReturn(1);
+
+        MatchService service = new MatchService(jdbc, transaction, new ObjectMapper());
+        var created = service.create(50, new CreateMatchRequest(11L, 12L));
+
+        assertEquals(publicId, created.id());
+        assertEquals("QUEUED", created.status());
+        assertEquals(101L, created.sideA().botId());
+        assertEquals(202L, created.sideB().botId());
+        verify(jdbc).update(contains("INSERT INTO match_participants"), any(Object[].class));
+        verify(jdbc).update(contains("INSERT INTO outbox_events(topic, payload)"), any(Object[].class));
+    }
+}
