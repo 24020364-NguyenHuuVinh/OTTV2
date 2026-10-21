@@ -1,12 +1,11 @@
-# ⚔️ OTTV2 — Battle Code Arena
+<img width="3200" height="2000" alt="image" src="https://github.com/user-attachments/assets/7f8574e3-8cf7-4614-a850-10f7216ed401" /># ⚔️ OTTV2 — Battle Code Arena
 
 **OTTV2** là nền tảng thi đấu lập trình Bot AI và đối kháng trực tuyến (PvP) dành cho sinh viên. Hệ thống hỗ trợ nộp mã nguồn bot, thi đấu leo bảng xếp hạng ELO, tổ chức giải đấu và đấu realtime qua WebSockets.
 
 ## 🌐 1. Demo và Repository
 
-- **Website:** https://ottv2-frontend-gaa4.vercel.app/
-- **Repository chính (Backend, Engine, Worker):** https://github.com/24020364-NguyenHuuVinh/OTTV2
-- **Repository Frontend (Vercel):** https://github.com/24020364-NguyenHuuVinh/ottv2-frontend
+- **Website:** https://ottv-2.vercel.app
+- **Repository :** https://github.com/24020364-NguyenHuuVinh/OTTV2
 
 ### Quy ước cập nhật code
 
