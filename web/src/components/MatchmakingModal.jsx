@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { buildApiUrl } from '../utils/api.js';
 
 export default function MatchmakingModal({
   isOpen,
@@ -81,9 +82,9 @@ export default function MatchmakingModal({
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const res = await fetch('/api/matchmaking/heartbeat', {
+        const res = await fetch(buildApiUrl('/api/matchmaking/heartbeat'), {
           method: 'POST',
-          credentials: 'same-origin',
+          credentials: 'include',
           headers,
           body: JSON.stringify({
             userId: user?.id,
@@ -127,11 +128,11 @@ export default function MatchmakingModal({
         const leavePayload = JSON.stringify({ mode, userId: user?.id });
         if (navigator.sendBeacon) {
           const blob = new Blob([leavePayload], { type: 'application/json' });
-          navigator.sendBeacon('/api/matchmaking/leave', blob);
+          navigator.sendBeacon(buildApiUrl('/api/matchmaking/leave'), blob);
         } else {
-          fetch('/api/matchmaking/leave', {
+          fetch(buildApiUrl('/api/matchmaking/leave'), {
             method: 'POST',
-            credentials: 'same-origin',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: leavePayload,
             keepalive: true,
@@ -161,7 +162,7 @@ export default function MatchmakingModal({
 
     setIsSearching(true);
     try {
-      const csrfRes = await fetch('/api/auth/csrf', { credentials: 'same-origin' }).catch(() => null);
+      const csrfRes = await fetch(buildApiUrl('/api/auth/csrf'), { credentials: 'include' }).catch(() => null);
       let headers = {
         'Content-Type': 'application/json',
         'ngrok-skip-browser-warning': 'true',
@@ -173,9 +174,9 @@ export default function MatchmakingModal({
         }
       }
 
-      const res = await fetch('/api/matchmaking/join', {
+      const res = await fetch(buildApiUrl('/api/matchmaking/join'), {
         method: 'POST',
-        credentials: 'same-origin',
+        credentials: 'include',
         headers,
         body: JSON.stringify({
           mode,
@@ -213,7 +214,7 @@ export default function MatchmakingModal({
   const handleCancelSearch = async () => {
     setIsSearching(false);
     try {
-      const csrfRes = await fetch('/api/auth/csrf', { credentials: 'same-origin' }).catch(() => null);
+      const csrfRes = await fetch(buildApiUrl('/api/auth/csrf'), { credentials: 'include' }).catch(() => null);
       let headers = {
         'Content-Type': 'application/json',
         'ngrok-skip-browser-warning': 'true',
@@ -225,9 +226,9 @@ export default function MatchmakingModal({
         }
       }
 
-      await fetch('/api/matchmaking/leave', {
+      await fetch(buildApiUrl('/api/matchmaking/leave'), {
         method: 'POST',
-        credentials: 'same-origin',
+        credentials: 'include',
         headers,
         body: JSON.stringify({ mode }),
       });

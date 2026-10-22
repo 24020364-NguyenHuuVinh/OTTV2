@@ -387,16 +387,16 @@ public class MatchmakingQueueService {
         boolean isQuick = "PVP_QUICK".equalsIgnoreCase(a.queueMode()) || "PVP_QUICK".equalsIgnoreCase(b.queueMode());
         String matchMode = isQuick ? "PVP_QUICK" : "PVP";
         String sql = isQuick ? """
-                INSERT INTO matches(match_type, seed, map_config, engine_ver, status)
-                VALUES ('FRIENDLY', ?, ?::jsonb, '1', 'READY')
+                INSERT INTO matches(match_type, seed, map_config, engine_ver, status, user_a_id, user_b_id, room_code)
+                VALUES ('FRIENDLY', ?, ?::jsonb, '1', 'READY', ?, ?, ?)
                 RETURNING id
                 """ : """
-                INSERT INTO matches(match_type, seed, map_config, engine_ver, status)
-                VALUES ('PVP', ?, ?::jsonb, '1', 'READY')
+                INSERT INTO matches(match_type, seed, map_config, engine_ver, status, user_a_id, user_b_id, room_code)
+                VALUES ('PVP', ?, ?::jsonb, '1', 'READY', ?, ?, ?)
                 RETURNING id
                 """;
 
-        Long matchId = jdbc.queryForObject(sql, Long.class, seed, writeJson(MAP));
+        Long matchId = jdbc.queryForObject(sql, Long.class, seed, writeJson(MAP), a.userId(), b.userId(), room.getCode());
 
         UUID publicId = jdbc.queryForObject("SELECT public_id FROM matches WHERE id=?", UUID.class, matchId);
         long startsAt = System.currentTimeMillis() + 5000L;

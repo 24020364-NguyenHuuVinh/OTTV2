@@ -20,11 +20,12 @@ public class SecurityConfiguration {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         var contextRepository = new HttpSessionSecurityContextRepository();
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .securityContext(context -> context.securityContextRepository(contextRepository))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(new HttpSessionCsrfTokenRepository())
-                        .ignoringRequestMatchers("/api/ws/**", "/ws/**", "/api/rooms/**", "/api/challenge/**", "/api/matchmaking/**"))
+                        .ignoringRequestMatchers("/api/ws/**", "/ws/**", "/api/rooms/**", "/api/challenge/**", "/api/matchmaking/**", "/api/matches/*/finish"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/health", "/api/auth/csrf", "/api/auth/register", "/api/auth/login",
                                 "/api/users", "/api/users/**",
@@ -59,5 +60,17 @@ public class SecurityConfiguration {
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+        var configuration = new org.springframework.web.cors.CorsConfiguration();
+        configuration.addAllowedOriginPattern("*");
+        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedHeaders(java.util.List.of("*"));
+        configuration.setAllowCredentials(true);
+        var source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

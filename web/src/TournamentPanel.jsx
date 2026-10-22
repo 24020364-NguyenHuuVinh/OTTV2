@@ -43,7 +43,9 @@ export default function TournamentPanel() {
     const connect = () => {
       if (!live) return;
       const scheme = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      socket = new WebSocket(`${scheme}//${window.location.host}/ws`);
+      const backendWs = (import.meta.env?.VITE_BACKEND_URL || '').replace(/^http/, 'ws');
+      const wsUrl = backendWs ? `${backendWs.replace(/\/$/, '')}/ws` : `${scheme}//${window.location.host}/ws`;
+      socket = new WebSocket(wsUrl);
       socket.onopen = () => socket.send('CONNECT\naccept-version:1.2\nheart-beat:0,0\n\n\0');
       socket.onmessage = (message) => {
         const frames = String(message.data).split('\0');

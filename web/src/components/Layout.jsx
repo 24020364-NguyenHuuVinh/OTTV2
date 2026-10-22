@@ -149,6 +149,7 @@ export default function Layout({
         {roomGameConfig && (
           <RoomGameModal
             roomCode={roomGameConfig.roomCode}
+            matchId={roomGameConfig.matchId || roomGameConfig.matchPublicId}
             isHost={roomGameConfig.isHost}
             isQuickMatch={roomGameConfig.isQuickMatch}
             initialTimeControl={roomGameConfig.initialTimeControl}

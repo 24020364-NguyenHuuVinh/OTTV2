@@ -233,40 +233,15 @@ public class ProfileService {
             isPractice = true;
         }
 
-        // BẮT BUỘC: Các trận ghép cặp tự động (PVP_QUICK) hoặc request.isRanked() là Ranked nếu đối thủ là người thật
-        boolean isRanked = (isQuickMatch || request.isRanked()) && !isPractice && !isFriendly && !isSparringMachine;
-
+        // BẢO MẬT TUYỆT ĐỐI (ZERO-TRUST CLIENT):
+        // Mọi trận do Client tự báo cáo qua endpoint /api/profile/matches đều bị ép là trận luyện tập (PRACTICE).
+        // TUYỆT ĐỐI KHÔNG cho phép Client tự khai báo để cộng/trừ ELO qua endpoint này!
+        // Trận Ranked PvP chính thức chỉ được cập nhật ELO có thẩm quyền qua server endpoint:
+        // POST /api/matches/{publicId}/finish
+        boolean isRanked = false;
         int finalChange = 0;
-        int finalNewElo;
-        String matchType;
-
-        if (isSparringMachine || isPractice) {
-            matchType = "PRACTICE";
-            isRanked = false;
-            finalChange = 0;
-            finalNewElo = "BOT".equalsIgnoreCase(rawMode) ? currentBotElo : currentPvpElo;
-            // TUYỆT ĐỐI KHÔNG CỘNG/TRỪ ĐIỂM ELO KHI ĐÁNH VỚI MÁY
-        } else if (!isRanked) {
-            matchType = "FRIENDLY";
-            finalChange = 0;
-            finalNewElo = currentPvpElo;
-        } else {
-            // RANKED PvP: Compute Elo strictly server-side using standard zero-sum Elo formula with configured K-factor
-            // Do NOT trust request.newElo() or request.change() from frontend!
-            matchType = "RANKED";
-            int oppElo = request.opponentElo() > 0 ? request.opponentElo() : 1200;
-            double score = "DRAW".equalsIgnoreCase(request.winner()) ? 0.5 : (request.userWon() ? 1.0 : 0.0);
-            var result = calculator.calculate(currentPvpElo, oppElo, score);
-            finalNewElo = result.ratingA();
-            finalChange = finalNewElo - currentPvpElo;
-
-            // Atomically update user's PvP Elo in database
-            int updatedRows = jdbc.update("UPDATE users SET pvp_elo = ? WHERE id = ?", finalNewElo, userId);
-            if (updatedRows == 0) {
-                jdbc.update("UPDATE users SET pvp_elo = ? WHERE student_code = ? OR email = ?",
-                        finalNewElo, user.studentCode(), user.email());
-            }
-        }
+        int finalNewElo = "BOT".equalsIgnoreCase(rawMode) ? currentBotElo : currentPvpElo;
+        String matchType = isSparringMachine || isPractice ? "PRACTICE" : "PRACTICE";
 
         String replayId = request.replayId() != null && !request.replayId().isBlank()
                 ? request.replayId().trim()

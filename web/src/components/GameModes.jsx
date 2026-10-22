@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TIME_CONTROL_CONFIGS } from './ChallengeModal.jsx';
 import { createRoomApi, joinRoomApi } from '../utils/roomApi.js';
+import { buildApiUrl } from '../utils/api.js';
 
 export default function GameModes({
   onNavigateToBattleCode,
@@ -84,9 +85,9 @@ export default function GameModes({
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const res = await fetch('/api/matchmaking/heartbeat', {
+        const res = await fetch(buildApiUrl('/api/matchmaking/heartbeat'), {
           method: 'POST',
-          credentials: 'same-origin',
+          credentials: 'include',
           headers,
           body: JSON.stringify({
             userId: user?.id,
@@ -129,11 +130,11 @@ export default function GameModes({
         const leavePayload = JSON.stringify({ mode: 'PVP_QUICK', userId: user?.id });
         if (navigator.sendBeacon) {
           const blob = new Blob([leavePayload], { type: 'application/json' });
-          navigator.sendBeacon('/api/matchmaking/leave', blob);
+          navigator.sendBeacon(buildApiUrl('/api/matchmaking/leave'), blob);
         } else {
-          fetch('/api/matchmaking/leave', {
+          fetch(buildApiUrl('/api/matchmaking/leave'), {
             method: 'POST',
-            credentials: 'same-origin',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: leavePayload,
             keepalive: true,
@@ -161,7 +162,7 @@ export default function GameModes({
     setIsSearchingQuickMatch(true);
     setErrorNotice('');
     try {
-      const csrfRes = await fetch('/api/auth/csrf', { credentials: 'same-origin' }).catch(() => null);
+      const csrfRes = await fetch(buildApiUrl('/api/auth/csrf'), { credentials: 'include' }).catch(() => null);
       let headers = {
         'Content-Type': 'application/json',
         'ngrok-skip-browser-warning': 'true',
@@ -177,9 +178,9 @@ export default function GameModes({
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const res = await fetch('/api/matchmaking/join', {
+      const res = await fetch(buildApiUrl('/api/matchmaking/join'), {
         method: 'POST',
-        credentials: 'same-origin',
+        credentials: 'include',
         headers,
         body: JSON.stringify({
           mode: 'PVP_QUICK',
@@ -217,7 +218,7 @@ export default function GameModes({
   const handleCancelQuickMatch = async () => {
     setIsSearchingQuickMatch(false);
     try {
-      const csrfRes = await fetch('/api/auth/csrf', { credentials: 'same-origin' }).catch(() => null);
+      const csrfRes = await fetch(buildApiUrl('/api/auth/csrf'), { credentials: 'include' }).catch(() => null);
       let headers = {
         'Content-Type': 'application/json',
         'ngrok-skip-browser-warning': 'true',
@@ -233,9 +234,9 @@ export default function GameModes({
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      await fetch('/api/matchmaking/leave', {
+      await fetch(buildApiUrl('/api/matchmaking/leave'), {
         method: 'POST',
-        credentials: 'same-origin',
+        credentials: 'include',
         headers,
         body: JSON.stringify({
           mode: 'PVP_QUICK',

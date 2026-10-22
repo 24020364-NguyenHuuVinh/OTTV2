@@ -16,6 +16,8 @@ import {
   registerForceLogoutHandler,
   api,
   csrfHeaders,
+  buildApiUrl,
+  buildWsUrl,
 } from './utils/api.js';
 import { simulateMatch } from './utils/matchSimulator.js';
 import {
@@ -200,7 +202,7 @@ function AppContent() {
 
     try {
       stompClient = new Client({
-        webSocketFactory: () => new SockJS('/api/ws'),
+        webSocketFactory: () => new SockJS(buildWsUrl('/api/ws')),
         connectHeaders: {
           'ngrok-skip-browser-warning': 'true',
         },
@@ -330,8 +332,8 @@ function AppContent() {
       if (!active || requestInFlight) return;
       requestInFlight = true;
       try {
-        const response = await fetch('/api/matchmaking/status', { credentials: 'same-origin' });
-        if (!response.ok) return;
+        const response = await fetchWithTimeout('/api/matchmaking/status', {}, 5000);
+        if (!response || !response.ok) return;
         const data = await response.json();
         if (active && data?.matchFound) {
           window.dispatchEvent(new CustomEvent('ottv2_match_found', { detail: data.matchFound }));
@@ -362,6 +364,8 @@ function AppContent() {
           matchInfo.sideA?.username === user?.studentCode;
       setRoomGameConfig({
         roomCode: matchInfo.roomCode,
+        matchId: matchInfo.matchPublicId || matchInfo.matchId || matchInfo.id,
+        matchPublicId: matchInfo.matchPublicId || matchInfo.matchId,
         isHost,
         isQuickMatch: true,
         targetOpponent: isHost ? matchInfo.sideB : matchInfo.sideA,
@@ -1027,9 +1031,9 @@ function AppContent() {
   }
 
   const handlePvpMatchFinished = (matchResult) => {
-    const { opponentType, opponentName, opponentElo, userWon, winner, winReason, replay, replayData, isRanked, matchId } = matchResult;
+    const { opponentType, opponentName, opponentElo, userWon, winner, winReason, replay, replayData, isRanked, matchId, roomCode, mySide, isHost } = matchResult;
     const finalReplay = replay || replayData;
-    const finalMatchId = matchId || finalReplay?.matchId || `pvp_${Date.now()}`;
+    const finalMatchId = matchId || finalReplay?.matchId || (roomCode ? `pvp_${roomCode}` : `pvp_${Date.now()}`);
     const rawMode = matchResult.mode || (matchResult.isQuickMatch ? 'PVP_QUICK' : 'PVP');
     const isSparring = Boolean(
       opponentType === 'SPARRING' ||
@@ -1046,89 +1050,123 @@ function AppContent() {
     );
     const isRankedMatch = !isSparring && (Boolean(isRanked) || rawMode === 'PVP_QUICK') && opponentType === 'HUMAN';
     const targetRating = opponentElo || 1200;
-    const eloChange = 0;
-    const updatedElo = pvpElo;
 
     // Lưu replay vào localStorage ngay lập tức
     if (finalReplay) {
       try {
         localStorage.setItem(`ottv2_replay_${finalMatchId}`, JSON.stringify(finalReplay));
-        if (matchResult.roomCode) {
-          localStorage.setItem(`ottv2_replay_${matchResult.roomCode}`, JSON.stringify(finalReplay));
+        if (roomCode) {
+          localStorage.setItem(`ottv2_replay_${roomCode}`, JSON.stringify(finalReplay));
         }
       } catch (e) {
         console.warn('Lỗi lưu replay vào localStorage:', e);
       }
     }
 
-    // Gửi kết quả trận đấu lên máy chủ để ghi nhận vào user_matches và cập nhật ELO / Hồ Sơ
-    csrfHeaders().then((headers) => {
-      api('/api/profile/matches', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          mode: isSparring ? 'PRACTICE' : (matchResult.isQuickMatch ? 'PVP_QUICK' : 'PVP'),
-          opponent: opponentName || 'Đối thủ',
-          opponentElo: targetRating,
-          opponentType: isSparring ? 'SPARRING' : (opponentType || 'HUMAN'),
-          userWon: Boolean(userWon),
-          winner: userWon ? 'USER' : (winner === 'DRAW' ? 'DRAW' : 'OPPONENT'),
-          reason: winReason || 'FINISHED',
-          change: eloChange,
-          newElo: updatedElo,
-          isRanked: Boolean(isRankedMatch),
-          replayId: finalMatchId,
-          replayData: finalReplay,
-        }),
-      })
-        .then(async (res) => {
-          if (res && res.ok) {
-            const profile = await res.json();
-            if (profile.pvpElo !== undefined) setPvpElo(profile.pvpElo);
-            if (profile.botElo !== undefined) setBotElo(profile.botElo);
-            if (profile.eloHistory) setEloHistory(profile.eloHistory);
-            const newStats = {
-              matchesCount: profile.matchesCount ?? 0,
-              wins: profile.wins ?? 0,
-              losses: profile.losses ?? 0,
-              winRate: profile.winRate ?? 0,
-              pvpMatchesCount: profile.pvpMatchesCount ?? 0,
-              pvpWins: profile.pvpWins ?? 0,
-              pvpLosses: profile.pvpLosses ?? 0,
-              pvpDistinctOpponents: profile.pvpDistinctOpponents ?? 0,
-              botMatchesCount: profile.botMatchesCount ?? 0,
-              botWins: profile.botWins ?? 0,
-              botLosses: profile.botLosses ?? 0,
-            };
-            setServerStats(newStats);
-            const targetEmail = user?.email;
-            if (targetEmail) {
-              localStorage.setItem(`ottv2_stats_${targetEmail}`, JSON.stringify(newStats));
-              localStorage.setItem(`ottv2_history_${targetEmail}`, JSON.stringify(profile.eloHistory || []));
-            }
+    // Xác định bên thắng cuộc (A, B, hoặc DRAW)
+    let winnerSide = 'DRAW';
+    if (winner === 'A' || winner === 'B') {
+      winnerSide = winner;
+    } else if (winner === 'USER') {
+      winnerSide = mySide || (isHost ? 'A' : 'B');
+    } else if (winner === 'OPPONENT') {
+      winnerSide = (mySide === 'A' || isHost) ? 'B' : 'A';
+    } else if (userWon) {
+      winnerSide = mySide || (isHost ? 'A' : 'B');
+    } else if (userWon === false && winner !== 'DRAW') {
+      winnerSide = (mySide === 'A' || isHost) ? 'B' : 'A';
+    }
 
-            if (isRankedMatch) {
-              const diff = profile.pvpElo - pvpElo;
-              setEloToast({
-                type: userWon ? 'WIN' : 'LOSE',
-                text: userWon
-                  ? `🎉 Chiến thắng! PvP ELO +${diff > 0 ? diff : 16} (${profile.pvpElo} ELO)`
-                  : `💔 Thất bại! PvP ELO ${diff < 0 ? diff : -16} (${profile.pvpElo} ELO)`,
-              });
-            }
-          }
+    const isOnlineAuthoritativeMatch = !isSparring && (Boolean(roomCode) || Boolean(matchId));
+    const serverIdentifier = roomCode || matchId;
+
+    const recordPracticeMatch = () => {
+      csrfHeaders().then((headers) => {
+        api('/api/profile/matches', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            mode: 'PRACTICE',
+            opponent: opponentName || 'Đối thủ',
+            opponentElo: targetRating,
+            opponentType: isSparring ? 'SPARRING' : (opponentType || 'HUMAN'),
+            userWon: Boolean(userWon),
+            winner: userWon ? 'USER' : (winner === 'DRAW' ? 'DRAW' : 'OPPONENT'),
+            reason: winReason || 'FINISHED',
+            change: 0,
+            newElo: pvpElo,
+            isRanked: false,
+            replayId: finalMatchId,
+            replayData: finalReplay,
+          }),
         })
-        .catch((err) => {
-          console.warn('Lỗi lưu kết quả trận PvP lên máy chủ:', err);
-        });
-    });
+          .then(async (res) => {
+            if (res && res.ok) {
+              refreshData();
+            }
+          })
+          .catch((err) => {
+            console.warn('Lỗi lưu kết quả trận đấu tập:', err);
+          });
+      });
+    };
 
-    if (!isRankedMatch) {
+    if (isOnlineAuthoritativeMatch && serverIdentifier) {
+      // 1. Server-authoritative PvP: Gửi kết quả lên /api/matches/{id}/finish
+      csrfHeaders().then((headers) => {
+        api(`/api/matches/${serverIdentifier}/finish`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            winnerSide,
+            reason: winReason || 'FINISHED',
+            replayData: finalReplay,
+            userId: user?.id,
+          }),
+        })
+          .then(async (res) => {
+            if (res && res.ok) {
+              const finishRes = await res.json();
+              if (finishRes && finishRes.newElo !== undefined) {
+                setPvpElo(finishRes.newElo);
+              }
+              if (finishRes && finishRes.isRanked) {
+                const diff = finishRes.eloChange;
+                setEloToast({
+                  type: diff > 0 ? 'WIN' : (diff < 0 ? 'LOSE' : 'DRAW'),
+                  text: diff > 0
+                    ? `🎉 Chiến thắng! PvP ELO +${diff} (${finishRes.newElo} ELO)`
+                    : diff < 0
+                    ? `💔 Thất bại! PvP ELO ${diff} (${finishRes.newElo} ELO)`
+                    : `🤝 Hòa trận! PvP ELO giữ nguyên (${finishRes.newElo} ELO)`,
+                });
+              } else {
+                setEloToast({
+                  type: userWon ? 'WIN' : 'LOSE',
+                  text: userWon
+                    ? `🎉 Chiến thắng! (Trận giao hữu: PvP ELO giữ nguyên ${finishRes?.newElo || pvpElo})`
+                    : `💔 Thất bại! (Trận giao hữu: PvP ELO giữ nguyên ${finishRes?.newElo || pvpElo})`,
+                });
+              }
+              refreshData();
+            } else {
+              // Fallback nếu không tìm thấy trận trên server (phòng cục bộ)
+              recordPracticeMatch();
+            }
+          })
+          .catch((err) => {
+            console.warn('Lỗi gọi /api/matches/finish, fallback practice:', err);
+            recordPracticeMatch();
+          });
+      });
+    } else {
+      // 2. Trận đấu tập với Bot/Máy hoặc offline: Ghi nhận lịch sử cá nhân (không đổi ELO)
+      recordPracticeMatch();
       setEloToast({
         type: userWon ? 'WIN' : 'LOSE',
         text: userWon
-          ? `🎉 Bạn đã chiến thắng ${opponentName || 'Bot'}! (Trận tập luyện: PvP ELO giữ nguyên ${pvpElo})`
-          : `💔 Bạn đã thất bại trước ${opponentName || 'Bot'}! (Trận tập luyện: PvP ELO giữ nguyên ${pvpElo})`,
+          ? `🎉 Bạn đã chiến thắng ${opponentName || 'Máy'}! (Trận tập luyện: PvP ELO giữ nguyên ${pvpElo})`
+          : `💔 Bạn đã thất bại trước ${opponentName || 'Máy'}! (Trận tập luyện: PvP ELO giữ nguyên ${pvpElo})`,
       });
     }
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { filterActiveBots } from '../utils/botStorage.js';
-import { api, csrfHeaders } from '../utils/api.js';
+import { api, csrfHeaders, buildApiUrl } from '../utils/api.js';
 import BotDetailModal from './BotDetailModal.jsx';
 
 export default function Profile({
@@ -114,8 +114,8 @@ export default function Profile({
     const activeCacheKey = activeKey ? `ottv2_match_history_${activeKey}` : null;
 
     try {
-      const res = await fetch('/api/profile', {
-        credentials: 'same-origin',
+      const res = await fetch(buildApiUrl('/api/profile'), {
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           'ngrok-skip-browser-warning': 'true',

@@ -6,15 +6,23 @@ import java.security.SecureRandom;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import ottv2.api.ladder.RatingCalculator;
 import ottv2.api.match.MatchDtos.CreateMatchRequest;
+import ottv2.api.match.MatchDtos.FinishPvpMatchRequest;
 import ottv2.api.match.MatchDtos.MatchResponse;
 import ottv2.api.match.MatchDtos.Participant;
 import ottv2.api.match.MatchDtos.PlayableSubmission;
+import ottv2.api.match.MatchDtos.PvpMatchFinishResponse;
 import ottv2.api.submission.SubmissionDtos.Language;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
@@ -39,12 +47,20 @@ public class MatchService {
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transaction;
     private final ObjectMapper mapper;
+    private final SimpMessagingTemplate messagingTemplate;
     private final SecureRandom random = new SecureRandom();
 
-    public MatchService(JdbcTemplate jdbc, TransactionTemplate transaction, ObjectMapper mapper) {
+    @Autowired
+    public MatchService(JdbcTemplate jdbc, TransactionTemplate transaction, ObjectMapper mapper,
+                        @Autowired(required = false) SimpMessagingTemplate messagingTemplate) {
         this.jdbc = jdbc;
         this.transaction = transaction;
         this.mapper = mapper;
+        this.messagingTemplate = messagingTemplate;
+    }
+
+    public MatchService(JdbcTemplate jdbc, TransactionTemplate transaction, ObjectMapper mapper) {
+        this(jdbc, transaction, mapper, null);
     }
 
     public MatchResponse create(long ownerId, CreateMatchRequest request) {
@@ -212,6 +228,210 @@ public class MatchService {
                     rs.getString("artifact_key"), rs.getString("source_sha256").trim()), submissionId);
         } catch (org.springframework.dao.EmptyResultDataAccessException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Both submissions must be compiled and playable");
+        }
+    }
+
+    public PvpMatchFinishResponse finishPvpMatch(long currentUserId, String matchIdentifier, FinishPvpMatchRequest request) {
+        return transaction.execute(status -> {
+            // 1. Query match from matches table
+            List<Map<String, Object>> matchRows = jdbc.queryForList("""
+                    SELECT id, public_id, match_type, status, user_a_id, user_b_id, room_code, winner_side, end_reason
+                    FROM matches
+                    WHERE (public_id::text = ? OR id::text = ? OR room_code = ?)
+                    ORDER BY id DESC
+                    LIMIT 1
+                    """, matchIdentifier.trim(), matchIdentifier.trim(), matchIdentifier.trim());
+            if (matchRows.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy trận đấu: " + matchIdentifier);
+            }
+            Map<String, Object> match = matchRows.get(0);
+            Long matchId = ((Number) match.get("id")).longValue();
+            UUID publicId = (UUID) match.get("public_id");
+            String matchStatus = (String) match.get("status");
+            String matchType = (String) match.get("match_type");
+            Long userAId = match.get("user_a_id") != null ? ((Number) match.get("user_a_id")).longValue() : null;
+            Long userBId = match.get("user_b_id") != null ? ((Number) match.get("user_b_id")).longValue() : null;
+            String roomCode = (String) match.get("room_code");
+
+            // 2. Validate participants
+            if (userAId == null || userBId == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Trận đấu không có thông tin người chơi hợp lệ!");
+            }
+            if (currentUserId != userAId && currentUserId != userBId) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không phải là người chơi tham gia trận đấu này!");
+            }
+
+            // 3. Idempotency: If already FINISHED, return existing result without re-calculating ELO
+            if ("FINISHED".equalsIgnoreCase(matchStatus)) {
+                List<Map<String, Object>> existingUserMatch = jdbc.queryForList("""
+                        SELECT elo_change, new_elo, is_ranked, winner, reason
+                        FROM user_matches
+                        WHERE user_id = ? AND replay_id = ?
+                        ORDER BY id DESC LIMIT 1
+                        """, currentUserId, publicId.toString());
+                int eloChange = 0;
+                int newElo = 1200;
+                boolean isRanked = false;
+                if (!existingUserMatch.isEmpty()) {
+                    eloChange = ((Number) existingUserMatch.get(0).get("elo_change")).intValue();
+                    newElo = ((Number) existingUserMatch.get(0).get("new_elo")).intValue();
+                    isRanked = Boolean.TRUE.equals(existingUserMatch.get(0).get("is_ranked"));
+                } else {
+                    Integer dbElo = jdbc.queryForObject("SELECT pvp_elo FROM users WHERE id = ?", Integer.class, currentUserId);
+                    if (dbElo != null) newElo = dbElo;
+                }
+                return new PvpMatchFinishResponse(publicId.toString(), "FINISHED",
+                        (String) match.get("winner_side"), (String) match.get("end_reason"),
+                        eloChange, newElo, isRanked);
+            }
+
+            // 4. Query current Elo and user details from users table with row-level locks
+            Map<String, Object> userARow = jdbc.queryForMap("""
+                    SELECT id, display_name, student_code, email, COALESCE(pvp_elo, 1200) AS pvp_elo
+                    FROM users WHERE id = ? FOR UPDATE
+                    """, userAId);
+            Map<String, Object> userBRow = jdbc.queryForMap("""
+                    SELECT id, display_name, student_code, email, COALESCE(pvp_elo, 1200) AS pvp_elo
+                    FROM users WHERE id = ? FOR UPDATE
+                    """, userBId);
+
+            int eloA = ((Number) userARow.get("pvp_elo")).intValue();
+            int eloB = ((Number) userBRow.get("pvp_elo")).intValue();
+            String nameA = (String) userARow.get("display_name");
+            if (nameA == null || nameA.isBlank()) nameA = (String) userARow.get("student_code");
+            if (nameA == null || nameA.isBlank()) nameA = "Người chơi A";
+
+            String nameB = (String) userBRow.get("display_name");
+            if (nameB == null || nameB.isBlank()) nameB = (String) userBRow.get("student_code");
+            if (nameB == null || nameB.isBlank()) nameB = "Người chơi B";
+
+            // Determine winnerSide: "A", "B", or "DRAW"
+            String winnerSide = request != null && request.winnerSide() != null ? request.winnerSide().trim().toUpperCase() : "DRAW";
+            if (!"A".equals(winnerSide) && !"B".equals(winnerSide)) {
+                winnerSide = "DRAW";
+            }
+            String reason = request != null && request.reason() != null ? request.reason().trim() : "FINISHED";
+
+            boolean isRanked = "PVP".equalsIgnoreCase(matchType);
+            int newEloA = eloA;
+            int newEloB = eloB;
+            int changeA = 0;
+            int changeB = 0;
+
+            if (isRanked) {
+                double scoreA = "A".equals(winnerSide) ? 1.0 : ("B".equals(winnerSide) ? 0.0 : 0.5);
+                var ratingChange = new RatingCalculator.Elo(32).calculate(eloA, eloB, scoreA);
+                newEloA = ratingChange.ratingA();
+                newEloB = ratingChange.ratingB();
+                changeA = newEloA - eloA;
+                changeB = newEloB - eloB;
+
+                // Update users table atomically
+                jdbc.update("UPDATE users SET pvp_elo = ? WHERE id = ?", newEloA, userAId);
+                jdbc.update("UPDATE users SET pvp_elo = ? WHERE id = ?", newEloB, userBId);
+            }
+
+            // 5. Update matches table
+            jdbc.update("""
+                    UPDATE matches
+                    SET status = 'FINISHED', winner_side = ?, end_reason = ?, finished_at = now()
+                    WHERE id = ?
+                    """, winnerSide, reason, matchId);
+
+            // Replay JSON serialization
+            String replayJson = null;
+            if (request != null && request.replayData() != null) {
+                try {
+                    if (request.replayData() instanceof String s) {
+                        replayJson = s;
+                    } else {
+                        replayJson = mapper.writeValueAsString(request.replayData());
+                    }
+                } catch (Exception ignored) { }
+            }
+
+            String matchTypeLabel = isRanked ? "RANKED" : "FRIENDLY";
+
+            // 6. Insert user_matches for User A
+            insertUserMatch(userAId, "PVP", nameB, eloB, "HUMAN",
+                    "A".equals(winnerSide), winnerSide, reason, changeA, newEloA, isRanked, matchTypeLabel,
+                    publicId.toString(), replayJson);
+
+            // 7. Insert user_matches for User B
+            insertUserMatch(userBId, "PVP", nameA, eloA, "HUMAN",
+                    "B".equals(winnerSide), winnerSide, reason, changeB, newEloB, isRanked, matchTypeLabel,
+                    publicId.toString(), replayJson);
+
+            // 8. Save replay to replays table if replayJson is provided
+            if (replayJson != null) {
+                try {
+                    LocalDate month = jdbc.queryForObject("SELECT created_month FROM matches WHERE id = ?",
+                            (rs, r) -> rs.getDate(1).toLocalDate(), matchId);
+                    jdbc.update("""
+                            INSERT INTO replays(match_id, created_month, storage_key, size_bytes, replay_data)
+                            VALUES (?, ?, 'db://replay', 0, ?::jsonb)
+                            ON CONFLICT (match_id, created_month) DO UPDATE SET replay_data = EXCLUDED.replay_data
+                            """, matchId, Date.valueOf(month), replayJson);
+                } catch (Exception ignored) { }
+            }
+
+            // 9. Broadcast STOMP MATCH_FINISHED event to room
+            if (messagingTemplate != null && roomCode != null && !roomCode.isBlank()) {
+                try {
+                    Map<String, Object> wsEvent = new HashMap<>();
+                    wsEvent.put("type", "MATCH_FINISHED");
+                    wsEvent.put("matchId", matchId);
+                    wsEvent.put("matchPublicId", publicId.toString());
+                    wsEvent.put("roomCode", roomCode);
+                    wsEvent.put("winnerSide", winnerSide);
+                    wsEvent.put("endReason", reason);
+                    wsEvent.put("isRanked", isRanked);
+
+                    Map<String, Object> resultA = new HashMap<>();
+                    resultA.put("userId", userAId);
+                    resultA.put("eloBefore", eloA);
+                    resultA.put("eloAfter", newEloA);
+                    resultA.put("eloChange", changeA);
+                    wsEvent.put("sideA", resultA);
+
+                    Map<String, Object> resultB = new HashMap<>();
+                    resultB.put("userId", userBId);
+                    resultB.put("eloBefore", eloB);
+                    resultB.put("eloAfter", newEloB);
+                    resultB.put("eloChange", changeB);
+                    wsEvent.put("sideB", resultB);
+
+                    messagingTemplate.convertAndSend("/topic/room/" + roomCode, (Object) wsEvent);
+                } catch (Exception ignored) { }
+            }
+
+            int myChange = (currentUserId == userAId) ? changeA : changeB;
+            int myNewElo = (currentUserId == userAId) ? newEloA : newEloB;
+
+            return new PvpMatchFinishResponse(publicId.toString(), "FINISHED", winnerSide, reason,
+                    myChange, myNewElo, isRanked);
+        });
+    }
+
+    private void insertUserMatch(long userId, String mode, String opponent, int oppElo, String oppType,
+                                 boolean won, String winner, String reason, int change, int newElo,
+                                 boolean isRanked, String matchType, String replayId, String replayJson) {
+        if (replayJson != null) {
+            jdbc.update("""
+                    INSERT INTO user_matches (user_id, mode, opponent, opponent_elo, opponent_type,
+                                             user_won, winner, reason, elo_change, new_elo, is_ranked, match_type, replay_id, replay_data)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb)
+                    """,
+                    userId, mode, opponent, oppElo, oppType,
+                    won, winner, reason, change, newElo, isRanked, matchType, replayId, replayJson);
+        } else {
+            jdbc.update("""
+                    INSERT INTO user_matches (user_id, mode, opponent, opponent_elo, opponent_type,
+                                             user_won, winner, reason, elo_change, new_elo, is_ranked, match_type, replay_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    userId, mode, opponent, oppElo, oppType,
+                    won, winner, reason, change, newElo, isRanked, matchType, replayId);
         }
     }
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { isOpponentUnlocked } from '../utils/gameRules.js';
 import { SPARRING_MACHINES } from '../utils/sparringAi.js';
+import { buildApiUrl } from '../utils/api.js';
 import BotDetailModal from './BotDetailModal.jsx';
 import MatchmakingModal from './MatchmakingModal.jsx';
 
@@ -39,7 +40,7 @@ export default function Leaderboard({
   const handleRandomMatch = async () => {
     setIsMatching(true);
     try {
-      const csrfRes = await fetch('/api/auth/csrf', { credentials: 'same-origin' }).catch(() => null);
+      const csrfRes = await fetch(buildApiUrl('/api/auth/csrf'), { credentials: 'include' }).catch(() => null);
       let headers = {
         'Content-Type': 'application/json',
         'ngrok-skip-browser-warning': 'true',
@@ -65,9 +66,9 @@ export default function Leaderboard({
         return;
       }
 
-      const res = await fetch('/api/matchmaking/join', {
+      const res = await fetch(buildApiUrl('/api/matchmaking/join'), {
         method: 'POST',
-        credentials: 'same-origin',
+        credentials: 'include',
         headers,
         body: JSON.stringify({
           mode: matchMode,
@@ -135,8 +136,8 @@ export default function Leaderboard({
       const timeoutId = setTimeout(() => controller.abort(), 4000);
 
       try {
-        const res = await fetch('/api/users', { 
-          credentials: 'same-origin',
+        const res = await fetch(buildApiUrl('/api/users'), { 
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             'ngrok-skip-browser-warning': 'true',
@@ -161,8 +162,8 @@ export default function Leaderboard({
 
       // Lấy danh sách bot thật từ PostgreSQL/Ladder Service
       try {
-        const botRes = await fetch('/api/ladder/rankings', {
-          credentials: 'same-origin',
+        const botRes = await fetch(buildApiUrl('/api/ladder/rankings'), {
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             'ngrok-skip-browser-warning': 'true',

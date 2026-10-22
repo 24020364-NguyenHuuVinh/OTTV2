@@ -6,6 +6,8 @@ import java.util.UUID;
 import ottv2.api.match.MatchDtos.CreateMatchRequest;
 import ottv2.api.match.MatchDtos.MatchResponse;
 import ottv2.api.match.MatchDtos.PlayableSubmission;
+import ottv2.api.match.MatchDtos.FinishPvpMatchRequest;
+import ottv2.api.match.MatchDtos.PvpMatchFinishResponse;
 import ottv2.api.security.ApiPrincipal;
 import ottv2.api.storage.SourceObjectStore;
 import org.springframework.http.HttpHeaders;
@@ -41,6 +43,21 @@ public class MatchController {
             throw new org.springframework.web.server.ResponseStatusException(HttpStatus.UNAUTHORIZED, "Vui lòng đăng nhập!");
         }
         return matches.create(principal.id(), request);
+    }
+
+    @PostMapping("/{matchIdentifier}/finish")
+    public PvpMatchFinishResponse finishPvpMatch(
+            @AuthenticationPrincipal ApiPrincipal principal,
+            @PathVariable String matchIdentifier,
+            @RequestBody FinishPvpMatchRequest request) {
+        long userId = principal != null ? principal.id() : -1L;
+        if (userId <= 0 && request != null && request.userId() != null) {
+            userId = request.userId();
+        }
+        if (userId <= 0) {
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.UNAUTHORIZED, "Vui lòng đăng nhập!");
+        }
+        return matches.finishPvpMatch(userId, matchIdentifier, request);
     }
 
     @GetMapping

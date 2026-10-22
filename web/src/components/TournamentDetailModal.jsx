@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client/dist/sockjs';
-import { api, csrfHeaders, extractErrorMessage } from '../utils/api.js';
+import { api, csrfHeaders, extractErrorMessage, buildWsUrl } from '../utils/api.js';
 import TournamentAdminModal from './TournamentAdminModal.jsx';
 import BotDetailModal from './BotDetailModal.jsx';
 
@@ -69,11 +69,7 @@ export default function TournamentDetailModal({
   useEffect(() => {
     if (!tournamentId) return undefined;
 
-    const backendBase =
-      (typeof window !== 'undefined' &&
-        (window.__BACKEND_URL__ || localStorage.getItem('ottv2_backend_url'))) ||
-      '';
-    const sockJsUrl = backendBase ? `${backendBase.replace(/\/$/, '')}/api/ws` : '/api/ws';
+    const sockJsUrl = buildWsUrl('/api/ws');
 
     let isSubscribed = true;
 

@@ -35,31 +35,31 @@
 
  :: Spring Boot ::                (v4.1.1)
 
-2026-10-21T20:55:06.486+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Starting ApiApplication using Java 21.0.12.1 with PID 6668 (/mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/target/classes started by thinkbook in /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api)
-2026-10-21T20:55:06.495+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : No active profile set, falling back to 1 default profile: "default"
-2026-10-21T20:55:06.617+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
-2026-10-21T20:55:06.618+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
-2026-10-21T20:55:12.980+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
-2026-10-21T20:55:12.988+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-10-21T20:55:13.262+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 246 ms. Found 0 JPA repository interfaces.
-2026-10-21T20:55:13.442+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
-2026-10-21T20:55:13.447+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
-2026-10-21T20:55:13.641+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 165 ms. Found 0 Redis repository interfaces.
-2026-10-21T20:55:16.473+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
-2026-10-21T20:55:16.511+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-10-21T20:55:16.513+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
-2026-10-21T20:55:16.618+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 9934 ms
-2026-10-21T20:55:17.963+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-10-21T20:55:18.353+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@2a4cee3f
-2026-10-21T20:55:18.359+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-10-21T20:55:18.409+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/ottv2 (PostgreSQL 16.15)
-2026-10-21T20:55:18.942+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 19 migrations (execution time 00:00.320s)
-2026-10-21T20:55:18.968+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 19
-2026-10-21T20:55:18.973+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
-2026-10-21T20:55:19.484+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
-2026-10-21T20:55:19.835+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
-2026-10-21T20:55:23.061+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-10-21T20:55:23.463+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+2026-10-22T10:25:26.079+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Starting ApiApplication using Java 21.0.12.1 with PID 12226 (/mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/target/classes started by thinkbook in /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api)
+2026-10-22T10:25:26.087+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : No active profile set, falling back to 1 default profile: "default"
+2026-10-22T10:25:26.192+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-10-22T10:25:26.193+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-10-22T10:25:32.044+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-10-22T10:25:32.053+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-22T10:25:32.298+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 218 ms. Found 0 JPA repository interfaces.
+2026-10-22T10:25:32.482+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-10-22T10:25:32.486+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-10-22T10:25:32.696+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 175 ms. Found 0 Redis repository interfaces.
+2026-10-22T10:25:35.307+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-10-22T10:25:35.354+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-22T10:25:35.356+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-22T10:25:35.446+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 9184 ms
+2026-10-22T10:25:36.508+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-10-22T10:25:36.914+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@52a71b4d
+2026-10-22T10:25:36.920+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-10-22T10:25:36.958+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/ottv2 (PostgreSQL 16.15)
+2026-10-22T10:25:37.439+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 19 migrations (execution time 00:00.290s)
+2026-10-22T10:25:37.459+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 19
+2026-10-22T10:25:37.463+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-10-22T10:25:37.919+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-22T10:25:38.258+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
+2026-10-22T10:25:40.907+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-22T10:25:41.221+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
 	Database JDBC URL [jdbc:postgresql://localhost:5432/ottv2]
 	Database driver: PostgreSQL JDBC Driver
 	Database dialect: PostgreSQLDialect
@@ -71,46 +71,236 @@
 	Pool: DataSourceConnectionProvider
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2026-10-21T20:55:25.831+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-10-21T20:55:25.887+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-10-21T20:55:26.251+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name databaseUserDetailsService
-2026-10-21T20:55:30.547+07:00  WARN 6668 --- [ottv2-api] [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-10-21T20:55:36.485+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
-2026-10-21T20:55:36.486+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@b105fba]]
-2026-10-21T20:55:36.487+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
-2026-10-21T20:55:36.521+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
-2026-10-21T20:55:36.769+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8081 (http)
-2026-10-21T20:55:36.771+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-10-21T20:55:36.771+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
-2026-10-21T20:55:36.786+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 252 ms
-2026-10-21T20:55:36.804+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
-2026-10-21T20:55:36.867+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8081 (http) with context path '/'
-2026-10-21T20:55:36.876+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
-2026-10-21T20:55:37.001+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#4e353fc8:0/SimpleConnection@62791950 [delegate=amqp://ottv2@127.0.0.1:5672/, localPort=48664]
-2026-10-21T20:55:37.084+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Started ApiApplication in 31.952 seconds (process running for 33.234)
-2026-10-21T20:55:40.500+07:00  INFO 6668 --- [ottv2-api] [nio-8080-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-10-21T20:55:40.503+07:00  INFO 6668 --- [ottv2-api] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-10-21T20:55:40.510+07:00  INFO 6668 --- [ottv2-api] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 6 ms
-2026-10-21T20:55:43.795+07:00  INFO 6668 --- [ottv2-api] [0.0-8081-exec-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServletRegistration'
-2026-10-21T20:55:43.796+07:00  INFO 6668 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServletRegistration'
-2026-10-21T20:55:43.797+07:00  INFO 6668 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
-2026-10-21T20:56:36.377+07:00  INFO 6668 --- [ottv2-api] [essageBroker-10] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 21, active threads = 0, queued tasks = 0, completed tasks = 21], outboundChannel[pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 4], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 7, completed tasks = 177]
-2026-10-21T20:59:00.931+07:00  WARN 6668 --- [ottv2-api] [nio-8080-exec-7] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [org.springframework.web.bind.MethodArgumentNotValidException: Validation failed for argument [1] in public ottv2.api.profile.ProfileDtos$ProfileResponse ottv2.api.profile.ProfileController.recordMatch(ottv2.api.security.ApiPrincipal,ottv2.api.profile.ProfileDtos$RecordMatchRequest): [Field error in object 'recordMatchRequest' on field 'winner': rejected value [null]; codes [NotBlank.recordMatchRequest.winner,NotBlank.winner,NotBlank.java.lang.String,NotBlank]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [recordMatchRequest.winner,winner]; arguments []; default message [winner]]; default message [must not be blank]] ]
-2026-10-21T21:16:25.025+07:00  INFO 6668 --- [ottv2-api] [   File Watcher] rtingClassPathChangeChangedEventListener : Restarting due to 178 class path changes (0 additions, 0 deletions, 178 modifications)
-2026-10-21T21:16:25.042+07:00  INFO 6668 --- [ottv2-api] [ntContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
-2026-10-21T21:16:25.224+07:00  INFO 6668 --- [ottv2-api] [ntContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
-2026-10-21T21:16:25.228+07:00  INFO 6668 --- [ottv2-api] [       Thread-1] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
-2026-10-21T21:16:25.231+07:00  INFO 6668 --- [ottv2-api] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
-2026-10-21T21:16:25.232+07:00  INFO 6668 --- [ottv2-api] [       Thread-1] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
-2026-10-21T21:16:25.233+07:00  INFO 6668 --- [ottv2-api] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
-2026-10-21T21:16:25.238+07:00  INFO 6668 --- [ottv2-api] [       Thread-1] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
-2026-10-21T21:16:25.241+07:00  INFO 6668 --- [ottv2-api] [       Thread-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Destroying Spring FrameworkServlet 'dispatcherServletRegistration'
-2026-10-21T21:16:25.258+07:00  INFO 6668 --- [ottv2-api] [       Thread-1] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
-2026-10-21T21:16:25.259+07:00  INFO 6668 --- [ottv2-api] [       Thread-1] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@b105fba]]
-2026-10-21T21:16:25.260+07:00  INFO 6668 --- [ottv2-api] [       Thread-1] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
-2026-10-21T21:16:25.301+07:00  INFO 6668 --- [ottv2-api] [       Thread-1] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
-2026-10-21T21:16:25.310+07:00  INFO 6668 --- [ottv2-api] [       Thread-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
-2026-10-21T21:16:25.312+07:00  INFO 6668 --- [ottv2-api] [       Thread-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-10-22T10:25:43.415+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-22T10:25:43.475+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-22T10:25:43.810+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name databaseUserDetailsService
+2026-10-22T10:25:47.436+07:00  WARN 12226 --- [ottv2-api] [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-10-22T10:25:52.582+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-10-22T10:25:52.583+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@293431a2]]
+2026-10-22T10:25:52.584+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-10-22T10:25:52.613+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-10-22T10:25:52.820+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8081 (http)
+2026-10-22T10:25:52.821+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-22T10:25:52.822+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-22T10:25:52.834+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 212 ms
+2026-10-22T10:25:52.848+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-22T10:25:52.884+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8081 (http) with context path '/'
+2026-10-22T10:25:52.892+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2026-10-22T10:25:53.003+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#7ddef1d9:0/SimpleConnection@7387b47 [delegate=amqp://ottv2@127.0.0.1:5672/, localPort=37442]
+2026-10-22T10:25:53.067+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Started ApiApplication in 28.323 seconds (process running for 29.495)
+2026-10-22T10:25:55.322+07:00  INFO 12226 --- [ottv2-api] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-22T10:25:55.324+07:00  INFO 12226 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-22T10:25:55.327+07:00  INFO 12226 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
+2026-10-22T10:25:59.875+07:00  INFO 12226 --- [ottv2-api] [0.0-8081-exec-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServletRegistration'
+2026-10-22T10:25:59.876+07:00  INFO 12226 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServletRegistration'
+2026-10-22T10:25:59.877+07:00  INFO 12226 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-10-22T10:26:52.495+07:00  INFO 12226 --- [ottv2-api] [essageBroker-13] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[8 current WS(0)-HttpStream(8)-HttpPoll(0), 8 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(7)-CONNECTED(7)-DISCONNECT(1)], stompBrokerRelay[null], inboundChannel[pool size = 32, active threads = 0, queued tasks = 0, completed tasks = 45], outboundChannel[pool size = 8, active threads = 0, queued tasks = 0, completed tasks = 8], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 13, completed tasks = 178]
+2026-10-22T10:27:05.062+07:00  INFO 12226 --- [ottv2-api] [io-8080-exec-10] o.s.w.s.m.SubProtocolWebSocketHandler    : No messages received after 69605 ms. Closing XhrStreamingSockJsSession[id=fpjt24rl].
+2026-10-22T10:27:21.606+07:00  INFO 12226 --- [ottv2-api] [nio-8080-exec-9] o.api.ladder.MatchmakingQueueService     : User admin (ID=11, ELO=1200, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T16:10:26.237+07:00 ERROR 12226 --- [ottv2-api] [nio-8080-exec-3] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] threw exception
+
+org.springframework.security.authorization.AuthorizationDeniedException: Access Denied
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:99) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:92) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:86) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:96) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:336) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317) ~[spring-security-config-7.1.1.jar:7.1.1]
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:355) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:272) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.catalina.core.ApplicationDispatcher.invoke(ApplicationDispatcher.java:512) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.catalina.core.ApplicationDispatcher.include(ApplicationDispatcher.java:413) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.catalina.core.StandardHostValve.custom(StandardHostValve.java:360) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.catalina.core.StandardHostValve.status(StandardHostValve.java:209) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.catalina.core.StandardHostValve.throwable(StandardHostValve.java:286) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.catalina.core.AsyncContextImpl.setErrorState(AsyncContextImpl.java:552) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.catalina.connector.CoyoteAdapter.asyncDispatch(CoyoteAdapter.java:157) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.coyote.AbstractProcessor.dispatch(AbstractProcessor.java:269) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:65) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:1307) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:2036) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:74) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:949) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:483) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:74) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
+
+2026-10-22T16:10:26.281+07:00 ERROR 12226 --- [ottv2-api] [nio-8080-exec-3] o.a.c.c.C.[Tomcat].[localhost]           : Exception Processing [ErrorPage[errorCode=0, location=/error]]
+
+jakarta.servlet.ServletException: Unable to handle the Spring Security Exception because the response is already committed.
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:144) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:92) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:86) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:96) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:336) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317) ~[spring-security-config-7.1.1.jar:7.1.1]
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:355) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:272) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-7.0.9.jar:7.0.9]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:111) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.catalina.core.ApplicationDispatcher.invoke(ApplicationDispatcher.java:512) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.catalina.core.ApplicationDispatcher.include(ApplicationDispatcher.java:413) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.catalina.core.StandardHostValve.custom(StandardHostValve.java:360) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.catalina.core.StandardHostValve.status(StandardHostValve.java:209) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.catalina.core.StandardHostValve.throwable(StandardHostValve.java:286) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.catalina.core.AsyncContextImpl.setErrorState(AsyncContextImpl.java:552) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.catalina.connector.CoyoteAdapter.asyncDispatch(CoyoteAdapter.java:157) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.coyote.AbstractProcessor.dispatch(AbstractProcessor.java:269) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:65) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:1307) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:2036) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:74) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:949) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:483) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:74) ~[tomcat-embed-core-11.0.24.jar:11.0.24]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
+Caused by: org.springframework.security.authorization.AuthorizationDeniedException: Access Denied
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:99) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140) ~[spring-security-web-7.1.1.jar:7.1.1]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126) ~[spring-security-web-7.1.1.jar:7.1.1]
+	... 81 common frames omitted
+
+2026-10-22T16:19:17.361+07:00  WARN 12226 --- [ottv2-api] [nio-8080-exec-7] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [org.springframework.web.server.ResponseStatusException: 404 NOT_FOUND "Dữ liệu Replay chưa sẵn sàng hoặc đã bị xóa"]
+2026-10-22T16:19:17.602+07:00  WARN 12226 --- [ottv2-api] [nio-8080-exec-8] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [org.springframework.web.server.ResponseStatusException: 404 NOT_FOUND "Dữ liệu Replay chưa sẵn sàng hoặc đã bị xóa"]
+2026-10-22T16:21:01.635+07:00  WARN 12226 --- [ottv2-api] [nio-8080-exec-4] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [org.springframework.web.server.ResponseStatusException: 404 NOT_FOUND "Dữ liệu Replay chưa sẵn sàng hoặc đã bị xóa"]
+2026-10-22T16:21:01.945+07:00  WARN 12226 --- [ottv2-api] [nio-8080-exec-5] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [org.springframework.web.server.ResponseStatusException: 404 NOT_FOUND "Dữ liệu Replay chưa sẵn sàng hoặc đã bị xóa"]
+2026-10-22T16:33:09.627+07:00  INFO 12226 --- [ottv2-api] [   File Watcher] rtingClassPathChangeChangedEventListener : Restarting due to 181 class path changes (3 additions, 0 deletions, 178 modifications)
+2026-10-22T16:33:09.643+07:00  INFO 12226 --- [ottv2-api] [ntContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
+2026-10-22T16:33:10.447+07:00  INFO 12226 --- [ottv2-api] [ntContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
+2026-10-22T16:33:10.453+07:00  INFO 12226 --- [ottv2-api] [       Thread-1] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-22T16:33:40.459+07:00  INFO 12226 --- [ottv2-api] [       Thread-1] o.s.c.support.DefaultLifecycleProcessor  : Shutdown phase 2147482623 ends with 1 bean still running after timeout of 30000ms: [webServerGracefulShutdown]
+2026-10-22T16:33:40.462+07:00  INFO 12226 --- [ottv2-api] [       Thread-1] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-22T16:33:40.464+07:00  INFO 12226 --- [ottv2-api] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-10-22T16:33:40.469+07:00  INFO 12226 --- [ottv2-api] [       Thread-1] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-10-22T16:33:40.473+07:00  INFO 12226 --- [ottv2-api] [       Thread-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Destroying Spring FrameworkServlet 'dispatcherServletRegistration'
+2026-10-22T16:33:40.505+07:00  WARN 12226 --- [ottv2-api] [       Thread-1] o.s.w.s.m.SubProtocolWebSocketHandler    : Failed to close 'XhrStreamingSockJsSession[id=ani1egcf]': java.lang.IllegalStateException: The request object has been recycled and is no longer associated with this facade
+2026-10-22T16:33:40.507+07:00  INFO 12226 --- [ottv2-api] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown aborted with one or more requests still active
+2026-10-22T16:33:40.508+07:00  INFO 12226 --- [ottv2-api] [       Thread-1] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-22T16:33:40.509+07:00  INFO 12226 --- [ottv2-api] [       Thread-1] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@293431a2]]
+2026-10-22T16:33:40.510+07:00  INFO 12226 --- [ottv2-api] [       Thread-1] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-22T16:33:40.579+07:00  INFO 12226 --- [ottv2-api] [       Thread-1] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-22T16:33:40.593+07:00  INFO 12226 --- [ottv2-api] [       Thread-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-10-22T16:33:40.596+07:00  INFO 12226 --- [ottv2-api] [       Thread-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -121,28 +311,29 @@
 
  :: Spring Boot ::                (v4.1.1)
 
-2026-10-21T21:16:25.671+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Starting ApiApplication using Java 21.0.12.1 with PID 6668 (/mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/target/classes started by thinkbook in /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api)
-2026-10-21T21:16:25.673+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : No active profile set, falling back to 1 default profile: "default"
-2026-10-21T21:16:30.205+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
-2026-10-21T21:16:30.208+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-10-21T21:16:30.470+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 259 ms. Found 0 JPA repository interfaces.
-2026-10-21T21:16:30.522+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
-2026-10-21T21:16:30.523+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
-2026-10-21T21:16:30.721+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 192 ms. Found 0 Redis repository interfaces.
-2026-10-21T21:16:31.545+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
-2026-10-21T21:16:31.550+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-10-21T21:16:31.555+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
-2026-10-21T21:16:31.599+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 5911 ms
-2026-10-21T21:16:31.836+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
-2026-10-21T21:16:31.858+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-2 - Added connection org.postgresql.jdbc.PgConnection@4e5901e7
-2026-10-21T21:16:31.859+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
-2026-10-21T21:16:31.861+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/ottv2 (PostgreSQL 16.15)
-2026-10-21T21:16:32.248+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 19 migrations (execution time 00:00.256s)
-2026-10-21T21:16:32.256+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 19
-2026-10-21T21:16:32.258+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
-2026-10-21T21:16:32.468+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
-2026-10-21T21:16:32.999+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-10-21T21:16:33.017+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+2026-10-22T16:33:43.026+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Starting ApiApplication using Java 21.0.12.1 with PID 12226 (/mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/target/classes started by thinkbook in /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api)
+2026-10-22T16:33:43.028+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : No active profile set, falling back to 1 default profile: "default"
+2026-10-22T16:33:47.906+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-10-22T16:33:47.907+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-22T16:33:48.128+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 217 ms. Found 0 JPA repository interfaces.
+2026-10-22T16:33:48.163+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-10-22T16:33:48.163+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-10-22T16:33:48.339+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 172 ms. Found 0 Redis repository interfaces.
+2026-10-22T16:33:48.776+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-10-22T16:33:48.779+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-22T16:33:48.780+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-22T16:33:48.817+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 5773 ms
+2026-10-22T16:33:48.954+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
+2026-10-22T16:33:48.969+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-2 - Added connection org.postgresql.jdbc.PgConnection@65b767f0
+2026-10-22T16:33:48.970+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
+2026-10-22T16:33:48.972+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/ottv2 (PostgreSQL 16.15)
+2026-10-22T16:33:49.394+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 20 migrations (execution time 00:00.281s)
+2026-10-22T16:33:49.401+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 19
+2026-10-22T16:33:49.473+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "20 - pvp match authoritative participants"
+2026-10-22T16:33:49.530+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "public", now at version v20 (execution time 00:00.043s)
+2026-10-22T16:33:49.756+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-22T16:33:50.275+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-22T16:33:50.290+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
 	Database JDBC URL [jdbc:postgresql://localhost:5432/ottv2]
 	Database driver: PostgreSQL JDBC Driver
 	Database dialect: PostgreSQLDialect
@@ -154,112 +345,32 @@
 	Pool: DataSourceConnectionProvider
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2026-10-21T21:16:33.191+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-10-21T21:16:33.211+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-10-21T21:16:33.409+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name databaseUserDetailsService
-2026-10-21T21:16:34.659+07:00  WARN 6668 --- [ottv2-api] [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-10-21T21:16:35.094+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
-2026-10-21T21:16:35.095+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@396dad0d]]
-2026-10-21T21:16:35.096+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
-2026-10-21T21:16:35.099+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
-2026-10-21T21:16:35.312+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8081 (http)
-2026-10-21T21:16:35.313+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-10-21T21:16:35.314+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
-2026-10-21T21:16:35.338+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 235 ms
-2026-10-21T21:16:35.354+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
-2026-10-21T21:16:35.404+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8081 (http) with context path '/'
-2026-10-21T21:16:35.408+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
-2026-10-21T21:16:35.413+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#5e026a30:0/SimpleConnection@4cfe0f40 [delegate=amqp://ottv2@127.0.0.1:5672/, localPort=59210]
-2026-10-21T21:16:35.430+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Started ApiApplication in 9.948 seconds (process running for 1291.661)
-2026-10-21T21:16:35.445+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
-2026-10-21T21:16:36.369+07:00  INFO 6668 --- [ottv2-api] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-10-21T21:16:36.370+07:00  INFO 6668 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-10-21T21:16:36.373+07:00  INFO 6668 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
-2026-10-21T21:16:43.713+07:00  INFO 6668 --- [ottv2-api] [0.0-8081-exec-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServletRegistration'
-2026-10-21T21:16:43.714+07:00  INFO 6668 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServletRegistration'
-2026-10-21T21:16:43.715+07:00  INFO 6668 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
-2026-10-21T21:17:35.085+07:00  INFO 6668 --- [ottv2-api] [essageBroker-12] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 2 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(2)-CONNECTED(2)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 12, active threads = 0, queued tasks = 0, completed tasks = 12], outboundChannel[pool size = 2, active threads = 0, queued tasks = 0, completed tasks = 2], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 7, completed tasks = 178]
-2026-10-21T21:18:51.116+07:00  INFO 6668 --- [ottv2-api] [   File Watcher] rtingClassPathChangeChangedEventListener : Restarting due to 178 class path changes (0 additions, 0 deletions, 178 modifications)
-2026-10-21T21:18:51.123+07:00  INFO 6668 --- [ottv2-api] [ntContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
-2026-10-21T21:18:51.438+07:00  INFO 6668 --- [ottv2-api] [ntContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
-2026-10-21T21:18:51.440+07:00  INFO 6668 --- [ottv2-api] [       Thread-6] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
-2026-10-21T21:18:51.442+07:00  INFO 6668 --- [ottv2-api] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
-2026-10-21T21:18:51.443+07:00  INFO 6668 --- [ottv2-api] [       Thread-6] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
-2026-10-21T21:18:51.445+07:00  INFO 6668 --- [ottv2-api] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
-2026-10-21T21:18:51.447+07:00  INFO 6668 --- [ottv2-api] [       Thread-6] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
-2026-10-21T21:18:51.449+07:00  INFO 6668 --- [ottv2-api] [       Thread-6] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Destroying Spring FrameworkServlet 'dispatcherServletRegistration'
-2026-10-21T21:18:51.462+07:00  INFO 6668 --- [ottv2-api] [       Thread-6] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
-2026-10-21T21:18:51.463+07:00  INFO 6668 --- [ottv2-api] [       Thread-6] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@396dad0d]]
-2026-10-21T21:18:51.463+07:00  INFO 6668 --- [ottv2-api] [       Thread-6] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
-2026-10-21T21:18:51.482+07:00  INFO 6668 --- [ottv2-api] [       Thread-6] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
-2026-10-21T21:18:51.483+07:00  INFO 6668 --- [ottv2-api] [       Thread-6] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Shutdown initiated...
-2026-10-21T21:18:51.485+07:00  INFO 6668 --- [ottv2-api] [       Thread-6] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Shutdown completed.
-
-  .   ____          _            __ _ _
- /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
-( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
- \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
-  '  |____| .__|_| |_|_| |_\__, | / / / /
- =========|_|==============|___/=/_/_/_/
-
- :: Spring Boot ::                (v4.1.1)
-
-2026-10-21T21:18:51.873+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Starting ApiApplication using Java 21.0.12.1 with PID 6668 (/mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/target/classes started by thinkbook in /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api)
-2026-10-21T21:18:51.875+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : No active profile set, falling back to 1 default profile: "default"
-2026-10-21T21:18:56.438+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
-2026-10-21T21:18:56.439+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-10-21T21:18:56.682+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 239 ms. Found 0 JPA repository interfaces.
-2026-10-21T21:18:56.729+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
-2026-10-21T21:18:56.730+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
-2026-10-21T21:18:56.931+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 197 ms. Found 0 Redis repository interfaces.
-2026-10-21T21:18:57.482+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
-2026-10-21T21:18:57.484+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-10-21T21:18:57.485+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
-2026-10-21T21:18:57.512+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 5623 ms
-2026-10-21T21:18:57.683+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Starting...
-2026-10-21T21:18:57.701+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-3 - Added connection org.postgresql.jdbc.PgConnection@3e0683c8
-2026-10-21T21:18:57.702+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Start completed.
-2026-10-21T21:18:57.704+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/ottv2 (PostgreSQL 16.15)
-2026-10-21T21:18:58.111+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 19 migrations (execution time 00:00.271s)
-2026-10-21T21:18:58.122+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 19
-2026-10-21T21:18:58.124+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
-2026-10-21T21:18:58.343+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
-2026-10-21T21:18:58.988+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-10-21T21:18:59.010+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
-	Database JDBC URL [jdbc:postgresql://localhost:5432/ottv2]
-	Database driver: PostgreSQL JDBC Driver
-	Database dialect: PostgreSQLDialect
-	Database version: 16.15
-	Default catalog/schema: ottv2/public
-	Autocommit mode: undefined/unknown
-	Isolation level: READ_COMMITTED [default READ_COMMITTED]
-	JDBC fetch size: none
-	Pool: DataSourceConnectionProvider
-	Minimum pool size: undefined/unknown
-	Maximum pool size: undefined/unknown
-2026-10-21T21:18:59.229+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-10-21T21:18:59.251+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-10-21T21:18:59.478+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name databaseUserDetailsService
-2026-10-21T21:19:00.889+07:00  WARN 6668 --- [ottv2-api] [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-10-21T21:19:01.438+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
-2026-10-21T21:19:01.439+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@43192a31]]
-2026-10-21T21:19:01.440+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
-2026-10-21T21:19:01.444+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
-2026-10-21T21:19:01.686+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8081 (http)
-2026-10-21T21:19:01.687+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-10-21T21:19:01.688+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
-2026-10-21T21:19:01.710+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 260 ms
-2026-10-21T21:19:01.726+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
-2026-10-21T21:19:01.786+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8081 (http) with context path '/'
-2026-10-21T21:19:01.793+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
-2026-10-21T21:19:01.799+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#b2de27:0/SimpleConnection@3baf40e3 [delegate=amqp://ottv2@127.0.0.1:5672/, localPort=49334]
-2026-10-21T21:19:01.819+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Started ApiApplication in 10.155 seconds (process running for 1438.059)
-2026-10-21T21:19:01.835+07:00  INFO 6668 --- [ottv2-api] [  restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
-2026-10-21T21:19:02.489+07:00  INFO 6668 --- [ottv2-api] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-10-21T21:19:02.495+07:00  INFO 6668 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-10-21T21:19:02.502+07:00  INFO 6668 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 6 ms
-2026-10-21T21:19:13.705+07:00  INFO 6668 --- [ottv2-api] [0.0-8081-exec-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServletRegistration'
-2026-10-21T21:19:13.706+07:00  INFO 6668 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServletRegistration'
-2026-10-21T21:19:13.707+07:00  INFO 6668 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
-2026-10-21T21:20:01.427+07:00  INFO 6668 --- [ottv2-api] [essageBroker-16] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 21, active threads = 0, queued tasks = 0, completed tasks = 21], outboundChannel[pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 4], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 7, completed tasks = 177]
-2026-10-21T21:50:01.323+07:00  INFO 6668 --- [ottv2-api] [essageBroker-15] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 21], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 4], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 7, completed tasks = 5529]
+2026-10-22T16:33:50.463+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-22T16:33:50.480+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-22T16:33:50.667+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name databaseUserDetailsService
+2026-10-22T16:33:51.883+07:00  WARN 12226 --- [ottv2-api] [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-10-22T16:33:52.269+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-10-22T16:33:52.270+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@7e012af9]]
+2026-10-22T16:33:52.271+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-10-22T16:33:52.274+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-10-22T16:33:52.454+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8081 (http)
+2026-10-22T16:33:52.456+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-22T16:33:52.456+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-22T16:33:52.477+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 199 ms
+2026-10-22T16:33:52.493+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-22T16:33:52.550+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8081 (http) with context path '/'
+2026-10-22T16:33:52.555+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2026-10-22T16:33:52.561+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#42f47971:0/SimpleConnection@bcf7701 [delegate=amqp://ottv2@127.0.0.1:5672/, localPort=60526]
+2026-10-22T16:33:52.577+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Started ApiApplication in 9.773 seconds (process running for 1763.911)
+2026-10-22T16:33:52.597+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
+2026-10-22T16:33:57.145+07:00  INFO 12226 --- [ottv2-api] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-22T16:33:57.146+07:00  INFO 12226 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-22T16:33:57.148+07:00  INFO 12226 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-10-22T16:34:04.968+07:00  INFO 12226 --- [ottv2-api] [0.0-8081-exec-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServletRegistration'
+2026-10-22T16:34:04.969+07:00  INFO 12226 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServletRegistration'
+2026-10-22T16:34:04.970+07:00  INFO 12226 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-10-22T16:34:52.261+07:00  INFO 12226 --- [ottv2-api] [MessageBroker-9] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[2 current WS(1)-HttpStream(1)-HttpPoll(0), 2 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(2)-CONNECTED(2)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 12, active threads = 0, queued tasks = 0, completed tasks = 12], outboundChannel[pool size = 2, active threads = 0, queued tasks = 0, completed tasks = 2], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 7, completed tasks = 178]
+2026-10-22T16:39:59.770+07:00  INFO 12226 --- [ottv2-api] [   File Watcher] rtingClassPathChangeChangedEventListener : Restarting due to 180 class path changes (0 additions, 0 deletions, 180 modifications)
+2026-10-22T16:39:59.779+07:00  INFO 12226 --- [ottv2-api] [ntContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
+2026-10-22T16:40:00.616+07:00  INFO 12226 --- [ottv2-api] [ntContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
+2026-10-22T16:40:00.617+07:00  INFO 12226 --- [ottv2-api] [       Thread-7] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete

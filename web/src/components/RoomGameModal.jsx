@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client/dist/sockjs';
+import { buildWsUrl } from '../utils/api.js';
 import InteractiveBoard from './InteractiveBoard.jsx';
 import {
   INITIAL_PIECES,
@@ -58,6 +59,7 @@ function getBestBotMove(currentPieces) {
 
 export default function RoomGameModal({
   roomCode,
+  matchId = null,
   isHost = false,
   onClose,
   initialTimeControl = null,
@@ -155,8 +157,14 @@ export default function RoomGameModal({
   const [opponentReady, setOpponentReady] = useState(Boolean(isSparring || isSpectator || isPreMatched));
   const [myReady, setMyReady] = useState(true);
   const recordedTurnsRef = useRef([]);
-  const matchIdRef = useRef(`pvp-${roomCode || 'match'}-${Date.now()}`);
+  const matchIdRef = useRef(matchId || `pvp-${roomCode || 'match'}-${Date.now()}`);
   const notifiedRef = useRef(false);
+
+  useEffect(() => {
+    if (matchId) {
+      matchIdRef.current = matchId;
+    }
+  }, [matchId]);
 
   const [remoteOpponentName, setRemoteOpponentName] = useState(
     targetOpponent?.displayName || targetOpponent?.name || targetOpponent?.username || ''
@@ -254,7 +262,7 @@ export default function RoomGameModal({
 
   const buildReplayData = (finalWinner, finalReason) => {
     if (!matchIdRef.current) {
-      matchIdRef.current = `pvp-${roomCode || 'room'}-${Date.now()}`;
+      matchIdRef.current = matchId || `pvp-${roomCode || 'room'}-${Date.now()}`;
     }
     const sideAName = isHost
       ? userName
@@ -314,8 +322,8 @@ export default function RoomGameModal({
     if (onMatchFinished) {
       onMatchFinished({
         roomCode,
-        matchId: replay.matchId,
-        replayId: replay.matchId,
+        matchId: matchId || matchIdRef.current || replay.matchId,
+        replayId: matchId || matchIdRef.current || replay.matchId,
         opponentType: isSparring ? 'SPARRING' : opponentType,
         opponentName: resolvedOpponentName,
         opponentElo: resolvedOpponentElo,
@@ -326,6 +334,8 @@ export default function RoomGameModal({
         replayData: replay,
         isRanked: isRankedMatch,
         mode: isQuickMatch ? 'PVP_QUICK' : 'PVP',
+        mySide,
+        isHost,
       });
     }
   };
@@ -334,11 +344,7 @@ export default function RoomGameModal({
   useEffect(() => {
     if (isSparring) return undefined;
 
-    const backendBase =
-      (typeof window !== 'undefined' &&
-        (window.__BACKEND_URL__ || localStorage.getItem('ottv2_backend_url'))) ||
-      '';
-    const sockJsUrl = backendBase ? `${backendBase.replace(/\/$/, '')}/api/ws` : '/api/ws';
+    const sockJsUrl = buildWsUrl('/api/ws');
 
     let isSubscribed = true;
 

@@ -2,6 +2,24 @@
  * Centralized Network & API Client Layer for OTTV2
  */
 
+export const BACKEND_BASE = (
+  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BACKEND_URL) ||
+  (typeof window !== 'undefined' && (window.__BACKEND_URL__ || localStorage.getItem('ottv2_backend_url'))) ||
+  ''
+).replace(/\/$/, '');
+
+export function buildApiUrl(path) {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return BACKEND_BASE ? `${BACKEND_BASE}${cleanPath}` : cleanPath;
+}
+
+export function buildWsUrl(endpoint = '/api/ws') {
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return BACKEND_BASE ? `${BACKEND_BASE}${cleanEndpoint}` : cleanEndpoint;
+}
+
 export const DEFAULT_HEADERS = {
   'Content-Type': 'application/json',
   'ngrok-skip-browser-warning': 'true',
@@ -14,6 +32,7 @@ export function registerForceLogoutHandler(handler) {
 }
 
 export async function fetchWithTimeout(url, options = {}, timeoutMs = 3500) {
+  const targetUrl = buildApiUrl(url);
   const controller = new AbortController();
   const id = setTimeout(() => {
     try {
@@ -25,7 +44,10 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = 3500) {
       ...DEFAULT_HEADERS,
       ...(options?.headers || {}),
     };
-    const response = await fetch(url, {
+    const credentials = (BACKEND_BASE && (!options?.credentials || options?.credentials === 'same-origin'))
+      ? 'include'
+      : (options?.credentials || 'same-origin');
+    const response = await fetch(targetUrl, {
       ...(options || {}),
       headers,
       signal: options?.signal || controller.signal,

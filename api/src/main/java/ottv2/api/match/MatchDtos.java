@@ -18,4 +18,25 @@ public final class MatchDtos {
     }
     public record PlayableSubmission(long id, long botId, String botName, int versionNo,
                                      String language, String status) { }
+
+    public record FinishPvpMatchRequest(
+            String winnerSide,
+            String reason,
+            Object replayData,
+            Long userId
+    ) {
+        public FinishPvpMatchRequest(String winnerSide, String reason, Object replayData) {
+            this(winnerSide, reason, replayData, null);
+        }
+    }
+
+    public record PvpMatchFinishResponse(
+            String matchPublicId,
+            String status,
+            String winnerSide,
+            String reason,
+            int eloChange,
+            int newElo,
+            boolean isRanked
+    ) { }
 }
