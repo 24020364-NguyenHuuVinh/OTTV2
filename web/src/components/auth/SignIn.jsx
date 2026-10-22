@@ -59,7 +59,7 @@ export default function SignIn({
         '/api/auth/login',
         {
           method: 'POST',
-          credentials: 'same-origin',
+          credentials: 'include',
           headers: {
             ...DEFAULT_HEADERS,
             ...csrfH,

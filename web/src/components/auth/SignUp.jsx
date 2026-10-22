@@ -45,7 +45,7 @@ export default function SignUp({ onRegistered, onShowLogin }) {
         '/api/auth/register',
         {
           method: 'POST',
-          credentials: 'same-origin',
+          credentials: 'include',
           headers: {
             ...DEFAULT_HEADERS,
             ...csrfH,
