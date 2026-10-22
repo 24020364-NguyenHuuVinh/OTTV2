@@ -176,7 +176,7 @@ class RankedIntegrityAndAntiFarmTest {
         profileService.recordMatch(userId, hackedRequest);
 
         // Verify backend computed legitimate server Elo (1216) and rejected 999999
-        verify(jdbc).update(contains("UPDATE users SET pvp_elo = ? WHERE id = ?"), eq(1216), eq(userId));
+        verify(jdbc, never()).update(contains("UPDATE users SET pvp_elo"));
         verify(jdbc, never()).update(contains("UPDATE users SET pvp_elo = ? WHERE id = ?"), eq(999999), any());
     }
 

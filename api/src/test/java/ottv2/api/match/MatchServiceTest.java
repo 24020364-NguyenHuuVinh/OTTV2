@@ -86,4 +86,76 @@ class MatchServiceTest {
         verify(jdbc).update(contains("INSERT INTO match_participants"), any(Object[].class));
         verify(jdbc).update(contains("INSERT INTO outbox_events(topic, payload)"), any(Object[].class));
     }
+
+    @Test
+    void finishPvpMatchCalculatesAuthoritativeEloAndUpdatesBothUsers() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        TransactionTemplate transaction = mock(TransactionTemplate.class);
+        UUID publicId = UUID.randomUUID();
+        doAnswer(invocation -> invocation.<TransactionCallback<?>>getArgument(0)
+                .doInTransaction(mock(TransactionStatus.class)))
+                .when(transaction).execute(any(TransactionCallback.class));
+
+        // 1. Mock query match from matches table
+        java.util.Map<String, Object> matchRow = new java.util.HashMap<>();
+        matchRow.put("id", 555L);
+        matchRow.put("public_id", publicId);
+        matchRow.put("match_type", "PVP");
+        matchRow.put("status", "READY");
+        matchRow.put("user_a_id", 100L);
+        matchRow.put("user_b_id", 200L);
+        matchRow.put("room_code", "123456");
+        matchRow.put("winner_side", null);
+        matchRow.put("end_reason", null);
+
+        when(jdbc.queryForList(contains("SELECT id, public_id, match_type"), any(Object[].class)))
+                .thenReturn(java.util.List.of(matchRow));
+
+        // 2. Mock query user A and user B current elo with FOR UPDATE
+        java.util.Map<String, Object> userARow = java.util.Map.of(
+                "id", 100L,
+                "display_name", "Player Blue",
+                "student_code", "B22DCCN100",
+                "email", "blue@ptit.edu.vn",
+                "pvp_elo", 1200
+        );
+        java.util.Map<String, Object> userBRow = java.util.Map.of(
+                "id", 200L,
+                "display_name", "Player Red",
+                "student_code", "B22DCCN200",
+                "email", "red@ptit.edu.vn",
+                "pvp_elo", 1200
+        );
+
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(100L))).thenReturn(userARow);
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(200L))).thenReturn(userBRow);
+        when(jdbc.queryForObject(contains("SELECT created_month FROM matches"), any(RowMapper.class), eq(555L)))
+                .thenReturn(LocalDate.now());
+
+        MatchService service = new MatchService(jdbc, transaction, new ObjectMapper());
+
+        // Player A finishes match declaring winner Side A
+        var response = service.finishPvpMatch(100L, "123456",
+                new MatchDtos.FinishPvpMatchRequest("A", "TARGET_REACHED", java.util.Map.of("sample", "replay")));
+
+        assertEquals(publicId.toString(), response.matchPublicId());
+        assertEquals("FINISHED", response.status());
+        assertEquals("A", response.winnerSide());
+        assertEquals(16, response.eloChange(), "Winner A gains +16 Elo");
+        assertEquals(1216, response.newElo(), "Winner A new Elo is 1216");
+        assertEquals(true, response.isRanked());
+
+        // Verify users table updated atomically with Zero-Sum Elo
+        verify(jdbc).update("UPDATE users SET pvp_elo = ? WHERE id = ?", 1216, 100L);
+        verify(jdbc).update("UPDATE users SET pvp_elo = ? WHERE id = ?", 1184, 200L);
+
+        // Verify match status set to FINISHED
+        verify(jdbc).update(contains("UPDATE matches"), eq("A"), eq("TARGET_REACHED"), eq(555L));
+
+        // 3. Test security: third-party user cannot finalize other users' match
+        org.junit.jupiter.api.Assertions.assertThrows(
+                org.springframework.web.server.ResponseStatusException.class,
+                () -> service.finishPvpMatch(999L, "123456", new MatchDtos.FinishPvpMatchRequest("A", "TARGET_REACHED", null))
+        );
+    }
 }

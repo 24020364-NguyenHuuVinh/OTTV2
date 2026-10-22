@@ -374,3 +374,86 @@ Caused by: org.springframework.security.authorization.AuthorizationDeniedExcepti
 2026-10-22T16:39:59.779+07:00  INFO 12226 --- [ottv2-api] [ntContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
 2026-10-22T16:40:00.616+07:00  INFO 12226 --- [ottv2-api] [ntContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
 2026-10-22T16:40:00.617+07:00  INFO 12226 --- [ottv2-api] [       Thread-7] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-22T16:40:30.618+07:00  INFO 12226 --- [ottv2-api] [       Thread-7] o.s.c.support.DefaultLifecycleProcessor  : Shutdown phase 2147482623 ends with 1 bean still running after timeout of 30000ms: [webServerGracefulShutdown]
+2026-10-22T16:40:30.621+07:00  INFO 12226 --- [ottv2-api] [       Thread-7] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-22T16:40:30.624+07:00  INFO 12226 --- [ottv2-api] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-10-22T16:40:30.627+07:00  INFO 12226 --- [ottv2-api] [       Thread-7] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-10-22T16:40:30.629+07:00  INFO 12226 --- [ottv2-api] [       Thread-7] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Destroying Spring FrameworkServlet 'dispatcherServletRegistration'
+2026-10-22T16:40:30.645+07:00  WARN 12226 --- [ottv2-api] [       Thread-7] o.s.w.s.m.SubProtocolWebSocketHandler    : Failed to close 'XhrStreamingSockJsSession[id=xlesrues]': java.lang.IllegalStateException: The request object has been recycled and is no longer associated with this facade
+2026-10-22T16:40:30.647+07:00  WARN 12226 --- [ottv2-api] [       Thread-7] o.s.w.s.m.SubProtocolWebSocketHandler    : Failed to close 'XhrStreamingSockJsSession[id=ecksfch1]': java.lang.IllegalStateException: The request object has been recycled and is no longer associated with this facade
+2026-10-22T16:40:30.650+07:00  WARN 12226 --- [ottv2-api] [       Thread-7] o.s.w.s.m.SubProtocolWebSocketHandler    : Failed to close 'XhrStreamingSockJsSession[id=mzsylott]': java.lang.IllegalStateException: The request object has been recycled and is no longer associated with this facade
+2026-10-22T16:40:30.651+07:00  INFO 12226 --- [ottv2-api] [       Thread-7] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-22T16:40:30.652+07:00  INFO 12226 --- [ottv2-api] [       Thread-7] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@7e012af9]]
+2026-10-22T16:40:30.653+07:00  INFO 12226 --- [ottv2-api] [       Thread-7] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-22T16:40:30.664+07:00  INFO 12226 --- [ottv2-api] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown aborted with one or more requests still active
+2026-10-22T16:40:30.665+07:00  INFO 12226 --- [ottv2-api] [       Thread-7] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-22T16:40:30.667+07:00  INFO 12226 --- [ottv2-api] [       Thread-7] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Shutdown initiated...
+2026-10-22T16:40:30.669+07:00  INFO 12226 --- [ottv2-api] [       Thread-7] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Shutdown completed.
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-22T16:40:33.048+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Starting ApiApplication using Java 21.0.12.1 with PID 12226 (/mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/target/classes started by thinkbook in /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api)
+2026-10-22T16:40:33.049+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : No active profile set, falling back to 1 default profile: "default"
+2026-10-22T16:40:37.323+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-10-22T16:40:37.324+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-22T16:40:37.551+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 224 ms. Found 0 JPA repository interfaces.
+2026-10-22T16:40:37.597+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-10-22T16:40:37.598+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-10-22T16:40:37.824+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 222 ms. Found 0 Redis repository interfaces.
+2026-10-22T16:40:38.515+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-10-22T16:40:38.520+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-22T16:40:38.521+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-22T16:40:38.577+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 5510 ms
+2026-10-22T16:40:38.782+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Starting...
+2026-10-22T16:40:38.800+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-3 - Added connection org.postgresql.jdbc.PgConnection@6abeecf5
+2026-10-22T16:40:38.801+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Start completed.
+2026-10-22T16:40:38.804+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/ottv2 (PostgreSQL 16.15)
+2026-10-22T16:40:39.326+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 20 migrations (execution time 00:00.345s)
+2026-10-22T16:40:39.335+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 20
+2026-10-22T16:40:39.337+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-10-22T16:40:39.586+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-22T16:40:40.179+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-22T16:40:40.195+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/ottv2]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 16.15
+	Default catalog/schema: ottv2/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-22T16:40:40.400+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-22T16:40:40.425+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-22T16:40:40.666+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name databaseUserDetailsService
+2026-10-22T16:40:42.040+07:00  WARN 12226 --- [ottv2-api] [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-10-22T16:40:42.482+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-10-22T16:40:42.483+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@3d154253]]
+2026-10-22T16:40:42.484+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-10-22T16:40:42.487+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-10-22T16:40:42.700+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8081 (http)
+2026-10-22T16:40:42.702+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-22T16:40:42.703+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-22T16:40:42.725+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 235 ms
+2026-10-22T16:40:42.743+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-22T16:40:42.796+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8081 (http) with context path '/'
+2026-10-22T16:40:42.802+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2026-10-22T16:40:42.808+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#371c74c2:0/SimpleConnection@7cd9760f [delegate=amqp://ottv2@127.0.0.1:5672/, localPort=57532]
+2026-10-22T16:40:42.824+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Started ApiApplication in 9.98 seconds (process running for 2174.18)
+2026-10-22T16:40:42.839+07:00  INFO 12226 --- [ottv2-api] [  restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
+2026-10-22T16:40:45.989+07:00  INFO 12226 --- [ottv2-api] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-22T16:40:45.989+07:00  INFO 12226 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-22T16:40:45.991+07:00  INFO 12226 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-10-22T16:40:49.945+07:00  INFO 12226 --- [ottv2-api] [0.0-8081-exec-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServletRegistration'
+2026-10-22T16:40:49.946+07:00  INFO 12226 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServletRegistration'
+2026-10-22T16:40:49.947+07:00  INFO 12226 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-10-22T16:41:42.472+07:00  INFO 12226 --- [ottv2-api] [MessageBroker-2] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[2 current WS(1)-HttpStream(1)-HttpPoll(0), 2 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(2)-CONNECTED(2)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 12, active threads = 0, queued tasks = 0, completed tasks = 12], outboundChannel[pool size = 2, active threads = 0, queued tasks = 0, completed tasks = 2], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 7, completed tasks = 178]

@@ -136,7 +136,7 @@ class MatchmakingQueueAndSparringIntegrityTest {
         when(jdbc.queryForMap(contains("SELECT student_code"), eq(2L))).thenReturn(user2Map);
 
         // Mock tạo bản ghi match
-        when(jdbc.queryForObject(contains("INSERT INTO matches"), eq(Long.class), any(), any()))
+        when(jdbc.queryForObject(contains("INSERT INTO matches"), eq(Long.class), any(), any(), any(), any(), any()))
                 .thenReturn(999L);
         when(jdbc.queryForObject(contains("SELECT public_id FROM matches"), eq(UUID.class), eq(999L)))
                 .thenReturn(UUID.randomUUID());
@@ -204,7 +204,7 @@ class MatchmakingQueueAndSparringIntegrityTest {
         assertEquals("QUEUED", botJoin.get("status"), "Bot của User 2 không được phép ghép với PvP của User 1!");
 
         // Không có trận đấu nào được tạo
-        verify(jdbc, never()).queryForObject(contains("INSERT INTO matches"), eq(Long.class), any(), any());
+        verify(jdbc, never()).queryForObject(contains("INSERT INTO matches"), eq(Long.class), any(), any(), any(), any(), any());
     }
 
     // =========================================================================
@@ -234,7 +234,7 @@ class MatchmakingQueueAndSparringIntegrityTest {
                 "pvp_elo", 1230
         ));
 
-        when(jdbc.queryForObject(contains("INSERT INTO matches"), eq(Long.class), any(), any()))
+        when(jdbc.queryForObject(contains("INSERT INTO matches"), eq(Long.class), any(), any(), any(), any(), any()))
                 .thenReturn(888L);
         when(jdbc.queryForObject(contains("SELECT public_id FROM matches"), eq(UUID.class), eq(888L)))
                 .thenReturn(UUID.randomUUID());
@@ -294,7 +294,7 @@ class MatchmakingQueueAndSparringIntegrityTest {
                 "student_code", "user_auto", "email", "auto@test.com", "display_name", "Player Auto", "pvp_elo", 1200
         ));
 
-        when(jdbc.queryForObject(contains("INSERT INTO matches"), eq(Long.class), any(), any()))
+        when(jdbc.queryForObject(contains("INSERT INTO matches"), eq(Long.class), any(), any(), any(), any(), any()))
                 .thenReturn(777L);
         when(jdbc.queryForObject(contains("SELECT public_id FROM matches"), eq(UUID.class), eq(777L)))
                 .thenReturn(UUID.randomUUID());
