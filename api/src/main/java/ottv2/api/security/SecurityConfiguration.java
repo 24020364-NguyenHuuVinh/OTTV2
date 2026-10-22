@@ -12,7 +12,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -24,16 +26,25 @@ import java.util.List;
 public class SecurityConfiguration {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        var contextRepository = new HttpSessionSecurityContextRepository();
+    public SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
+    }
 
+    @Bean
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            SecurityContextRepository securityContextRepository,
+            TokenAuthenticationFilter tokenAuthenticationFilter,
+            TokenSessionService tokenSessionService
+    ) throws Exception {
         var csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         csrfTokenRepository.setCookieCustomizer(cookie -> cookie.sameSite("None").secure(true));
 
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .securityContext(context -> context.securityContextRepository(contextRepository))
+                .securityContext(context -> context.securityContextRepository(securityContextRepository))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository)
                         .ignoringRequestMatchers(
@@ -72,6 +83,12 @@ public class SecurityConfiguration {
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID", "XSRF-TOKEN")
+                        .addLogoutHandler((request, response, authentication) -> {
+                            String token = TokenAuthenticationFilter.resolveToken(request);
+                            if (token != null) {
+                                tokenSessionService.invalidate(token);
+                            }
+                        })
                         .logoutSuccessHandler((request, response, authentication) ->
                                 response.setStatus(HttpStatus.NO_CONTENT.value())))
                 .exceptionHandling(errors -> errors
@@ -104,7 +121,7 @@ public class SecurityConfiguration {
         configuration.addAllowedOriginPattern("*");
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("Set-Cookie", "XSRF-TOKEN", "Authorization"));
+        configuration.setExposedHeaders(List.of("Set-Cookie", "XSRF-TOKEN", "Authorization", "X-Auth-Token"));
         configuration.setAllowCredentials(true);
         var source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

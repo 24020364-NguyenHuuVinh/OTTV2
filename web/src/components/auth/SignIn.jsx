@@ -122,9 +122,16 @@ export default function SignIn({
 
       // Xử lý khi đăng nhập thành công (res.ok)
       try {
+        const headerToken = res.headers?.get('x-auth-token') || res.headers?.get('authorization')?.replace(/^Bearer\s+/i, '');
+        if (headerToken) {
+          localStorage.setItem('ottv2_auth_token', headerToken);
+        }
         const contentType = res.headers?.get('content-type') || '';
         if (contentType.includes('application/json')) {
           const u = await res.json();
+          if (u?.token) {
+            localStorage.setItem('ottv2_auth_token', u.token);
+          }
           if (u && u.email) {
             localStorage.setItem('ottv2_last_active_user', JSON.stringify(u));
             localStorage.setItem(`ottv2_user_${u.email}`, JSON.stringify(u));

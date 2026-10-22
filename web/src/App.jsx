@@ -1423,6 +1423,7 @@ function AppContent() {
       });
     } catch {}
     localStorage.removeItem('ottv2_last_active_user');
+    localStorage.removeItem('ottv2_auth_token');
     localStorage.removeItem('ottv2_match_history');
     setUser(null);
     setMatches([]);

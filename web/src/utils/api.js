@@ -40,8 +40,10 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = 3500) {
     } catch {}
   }, timeoutMs);
   try {
+    const token = (typeof window !== 'undefined' && localStorage.getItem('ottv2_auth_token')) || '';
     const headers = {
       ...DEFAULT_HEADERS,
+      ...(token ? { Authorization: `Bearer ${token}`, 'X-Auth-Token': token } : {}),
       ...(options?.headers || {}),
     };
     const credentials = (BACKEND_BASE && (!options?.credentials || options?.credentials === 'same-origin'))
@@ -49,9 +51,19 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = 3500) {
       : (options?.credentials || 'same-origin');
     const response = await fetch(targetUrl, {
       ...(options || {}),
+      credentials,
       headers,
       signal: options?.signal || controller.signal,
     });
+    // Tự động lưu hoặc cập nhật auth token nếu server phản hồi
+    if (response && response.ok && typeof window !== 'undefined') {
+      const newToken = response.headers?.get('x-auth-token');
+      if (newToken) {
+        try {
+          localStorage.setItem('ottv2_auth_token', newToken);
+        } catch {}
+      }
+    }
     return response;
   } finally {
     clearTimeout(id);

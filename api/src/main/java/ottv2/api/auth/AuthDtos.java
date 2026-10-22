@@ -15,9 +15,14 @@ public final class AuthDtos {
 
     public record LoginRequest(@NotBlank @Email String email, @NotBlank String password) { }
     public record UserResponse(long id, String studentCode, String email, String displayName, String role,
-                               int pvpElo, int botElo) {
+                               int pvpElo, int botElo, String token) {
+        public UserResponse(long id, String studentCode, String email, String displayName, String role,
+                           int pvpElo, int botElo) {
+            this(id, studentCode, email, displayName, role, pvpElo, botElo, null);
+        }
+
         public UserResponse(long id, String studentCode, String email, String displayName, String role) {
-            this(id, studentCode, email, displayName, role, 1200, 1200);
+            this(id, studentCode, email, displayName, role, 1200, 1200, null);
         }
     }
     public record CsrfResponse(String token, String headerName) { }
