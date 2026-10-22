@@ -49,7 +49,9 @@ public class SecurityConfiguration {
                         .csrfTokenRepository(csrfTokenRepository)
                         .ignoringRequestMatchers(
                                 "/api/auth/**",
+                                "/api/ws",
                                 "/api/ws/**",
+                                "/ws",
                                 "/ws/**",
                                 "/api/rooms/**",
                                 "/api/challenge/**",
@@ -68,7 +70,9 @@ public class SecurityConfiguration {
                                 "/api/users",
                                 "/api/users/**",
                                 "/api/rooms/**",
+                                "/api/ws",
                                 "/api/ws/**",
+                                "/ws",
                                 "/ws/**",
                                 "/api/challenge/**",
                                 "/api/matchmaking/**",

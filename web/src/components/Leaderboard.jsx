@@ -52,6 +52,12 @@ export default function Leaderboard({
         }
       }
 
+      const token = localStorage.getItem('ottv2_auth_token') || localStorage.getItem('ottv2_jwt_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        headers['X-Auth-Token'] = token;
+      }
+
       const matchMode = category === 'BOT' ? 'BOT' : 'PVP';
       const activeLadderBot = myBots.find((b) => b.ladderEnabled) || myBots[0] || null;
 
@@ -74,7 +80,11 @@ export default function Leaderboard({
           mode: matchMode,
           botId: matchMode === 'BOT' ? (activeLadderBot?.id || null) : null,
           pvpElo: activeElo,
-          username: currentUser?.username || currentUser?.studentCode,
+          userId: currentUser?.id,
+          username: currentUser?.studentCode || currentUser?.username || currentUser?.email,
+          studentCode: currentUser?.studentCode,
+          email: currentUser?.email,
+          displayName: currentUser?.displayName,
         }),
       });
 

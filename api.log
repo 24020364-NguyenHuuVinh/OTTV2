@@ -316,3 +316,206 @@ Unconditional classes:
 2026-10-22T19:57:02.482+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
 2026-10-22T19:57:02.484+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
 2026-10-22T19:57:02.489+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 5 ms
+2026-10-22T19:59:34.443+07:00  INFO 15773 --- [ottv2-api] [essageBroker-10] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 1 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(1)-CONNECTED(1)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 6], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 1], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 7, completed tasks = 5049]
+2026-10-22T20:06:39.209+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-2] o.api.ladder.MatchmakingQueueService     : User admin (ID=11, ELO=1200, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:06:43.239+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-6] o.api.ladder.MatchmakingQueueService     : User 24020364 (ID=1, ELO=1184, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:06:43.361+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-6] o.api.ladder.MatchmakingQueueService     : PVP Match Found: 24020364 vs admin, Mode=PVP_QUICK, Room=168918, MatchId=318
+2026-10-22T20:06:49.068+07:00  INFO 15773 --- [ottv2-api] [boundChannel-13] ottv2.api.room.RoomController            : [STOMP ACTION] Room 168918: type=READY_CHANGE, sender=A
+2026-10-22T20:06:51.219+07:00  INFO 15773 --- [ottv2-api] [boundChannel-16] ottv2.api.room.RoomController            : [STOMP MOVE] Room 168918: pieceId=3, from=[6, 6], to=[5, 6]
+2026-10-22T20:07:38.612+07:00  INFO 15773 --- [ottv2-api] [boundChannel-19] ottv2.api.room.RoomController            : [STOMP ACTION] Room 168918: type=RESTART_GAME, sender=A
+2026-10-22T20:07:45.234+07:00  INFO 15773 --- [ottv2-api] [boundChannel-22] ottv2.api.room.RoomController            : [STOMP MOVE] Room 168918: pieceId=3, from=[6, 6], to=[5, 6]
+2026-10-22T20:09:22.738+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-9] o.api.ladder.MatchmakingQueueService     : User admin (ID=11, ELO=1200, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:10:19.943+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-2] o.api.ladder.MatchmakingQueueService     : User admin (ID=11, ELO=1200, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:11:29.174+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-2] o.api.ladder.MatchmakingQueueService     : User 24020364 (ID=1, ELO=1184, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:23:23.287+07:00  INFO 15773 --- [ottv2-api] [   File Watcher] rtingClassPathChangeChangedEventListener : Restarting due to 185 class path changes (0 additions, 0 deletions, 185 modifications)
+2026-10-22T20:23:23.293+07:00  INFO 15773 --- [ottv2-api] [ntContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
+2026-10-22T20:23:24.262+07:00  INFO 15773 --- [ottv2-api] [ntContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
+2026-10-22T20:23:24.264+07:00  INFO 15773 --- [ottv2-api] [      Thread-13] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-22T20:23:24.266+07:00  INFO 15773 --- [ottv2-api] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-10-22T20:23:24.267+07:00  INFO 15773 --- [ottv2-api] [      Thread-13] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-22T20:23:24.269+07:00  INFO 15773 --- [ottv2-api] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-10-22T20:23:24.271+07:00  INFO 15773 --- [ottv2-api] [      Thread-13] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-10-22T20:23:24.272+07:00  INFO 15773 --- [ottv2-api] [      Thread-13] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Destroying Spring FrameworkServlet 'dispatcherServletRegistration'
+2026-10-22T20:23:24.284+07:00  INFO 15773 --- [ottv2-api] [      Thread-13] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-22T20:23:24.286+07:00  INFO 15773 --- [ottv2-api] [      Thread-13] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@2f1ceb77]]
+2026-10-22T20:23:24.287+07:00  INFO 15773 --- [ottv2-api] [      Thread-13] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-22T20:23:24.301+07:00  INFO 15773 --- [ottv2-api] [      Thread-13] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-22T20:23:24.303+07:00  INFO 15773 --- [ottv2-api] [      Thread-13] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Shutdown initiated...
+2026-10-22T20:23:24.305+07:00  INFO 15773 --- [ottv2-api] [      Thread-13] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Shutdown completed.
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-22T20:23:24.711+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Starting ApiApplication using Java 21.0.12.1 with PID 15773 (/mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/target/classes started by thinkbook in /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api)
+2026-10-22T20:23:24.713+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : No active profile set, falling back to 1 default profile: "default"
+2026-10-22T20:23:30.076+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-10-22T20:23:30.077+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-22T20:23:30.354+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 273 ms. Found 0 JPA repository interfaces.
+2026-10-22T20:23:30.394+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-10-22T20:23:30.395+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-10-22T20:23:30.609+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 210 ms. Found 0 Redis repository interfaces.
+2026-10-22T20:23:31.113+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-10-22T20:23:31.115+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-22T20:23:31.116+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-22T20:23:31.140+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 6412 ms
+2026-10-22T20:23:31.310+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-4 - Starting...
+2026-10-22T20:23:31.325+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-4 - Added connection org.postgresql.jdbc.PgConnection@74d4f5bd
+2026-10-22T20:23:31.327+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-4 - Start completed.
+2026-10-22T20:23:31.328+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/ottv2 (PostgreSQL 16.15)
+2026-10-22T20:23:31.773+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 20 migrations (execution time 00:00.301s)
+2026-10-22T20:23:31.781+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 20
+2026-10-22T20:23:31.783+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-10-22T20:23:32.059+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-22T20:23:32.580+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-22T20:23:32.600+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/ottv2]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 16.15
+	Default catalog/schema: ottv2/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-22T20:23:32.782+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-22T20:23:32.804+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-22T20:23:33.007+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name databaseUserDetailsService
+2026-10-22T20:23:34.357+07:00  WARN 15773 --- [ottv2-api] [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-10-22T20:23:34.819+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-10-22T20:23:34.820+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@1ee7d6e1]]
+2026-10-22T20:23:34.821+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-10-22T20:23:34.824+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-10-22T20:23:35.029+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8081 (http)
+2026-10-22T20:23:35.031+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-22T20:23:35.032+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-22T20:23:35.055+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 227 ms
+2026-10-22T20:23:35.067+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-22T20:23:35.117+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8081 (http) with context path '/'
+2026-10-22T20:23:35.122+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2026-10-22T20:23:35.128+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#b083e4:0/SimpleConnection@40f0bb3e [delegate=amqp://ottv2@127.0.0.1:5672/, localPort=49790]
+2026-10-22T20:23:35.145+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Started ApiApplication in 10.638 seconds (process running for 4433.426)
+2026-10-22T20:23:35.164+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
+2026-10-22T20:23:44.005+07:00  INFO 15773 --- [ottv2-api] [0.0-8081-exec-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServletRegistration'
+2026-10-22T20:23:44.006+07:00  INFO 15773 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServletRegistration'
+2026-10-22T20:23:44.007+07:00  INFO 15773 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2026-10-22T20:24:17.949+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-22T20:24:17.950+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-22T20:24:17.953+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-10-22T20:24:34.809+07:00  INFO 15773 --- [ottv2-api] [essageBroker-14] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 5, completed tasks = 163]
+2026-10-22T20:24:41.692+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-7] o.api.ladder.MatchmakingQueueService     : User 24020364 (ID=1, ELO=1184, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:26:01.167+07:00  INFO 15773 --- [ottv2-api] [MessageBroker-4] o.api.ladder.MatchmakingQueueService     : Kick 'bóng ma' PvP khỏi hàng đợi: user=24020364 (ID=1), mất tín hiệu heartbeat 11s
+2026-10-22T20:26:11.900+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-5] o.api.ladder.MatchmakingQueueService     : User 24020364 (ID=1, ELO=1184, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:26:14.108+07:00  INFO 15773 --- [ottv2-api] [io-8080-exec-10] o.api.ladder.MatchmakingQueueService     : User 2402xxxx (ID=2, ELO=1232, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:26:14.135+07:00  INFO 15773 --- [ottv2-api] [io-8080-exec-10] o.api.ladder.MatchmakingQueueService     : PVP Match Found: 2402xxxx vs 24020364, Mode=PVP_QUICK, Room=738547, MatchId=319
+2026-10-22T20:26:24.598+07:00  INFO 15773 --- [ottv2-api] [boundChannel-13] ottv2.api.room.RoomController            : [STOMP ACTION] Room 738547: type=PLAYER_JOINED, sender=B
+2026-10-22T20:26:36.666+07:00  INFO 15773 --- [ottv2-api] [boundChannel-16] ottv2.api.room.RoomController            : [STOMP ACTION] Room 738547: type=PLAYER_LEFT, sender=B
+2026-10-22T20:26:52.364+07:00  WARN 15773 --- [ottv2-api] [nio-8080-exec-4] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [org.springframework.security.authentication.BadCredentialsException: Bad credentials]
+2026-10-22T20:47:23.936+07:00  INFO 15773 --- [ottv2-api] [   File Watcher] rtingClassPathChangeChangedEventListener : Restarting due to 185 class path changes (0 additions, 0 deletions, 185 modifications)
+2026-10-22T20:47:23.942+07:00  INFO 15773 --- [ottv2-api] [ntContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
+2026-10-22T20:47:24.325+07:00  INFO 15773 --- [ottv2-api] [ntContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
+2026-10-22T20:47:24.326+07:00  INFO 15773 --- [ottv2-api] [      Thread-21] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-22T20:47:24.329+07:00  INFO 15773 --- [ottv2-api] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-10-22T20:47:24.330+07:00  INFO 15773 --- [ottv2-api] [      Thread-21] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-22T20:47:24.332+07:00  INFO 15773 --- [ottv2-api] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-10-22T20:47:24.334+07:00  INFO 15773 --- [ottv2-api] [      Thread-21] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-10-22T20:47:24.335+07:00  INFO 15773 --- [ottv2-api] [      Thread-21] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Destroying Spring FrameworkServlet 'dispatcherServletRegistration'
+2026-10-22T20:47:24.349+07:00  INFO 15773 --- [ottv2-api] [      Thread-21] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-22T20:47:24.350+07:00  INFO 15773 --- [ottv2-api] [      Thread-21] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@1ee7d6e1]]
+2026-10-22T20:47:24.351+07:00  INFO 15773 --- [ottv2-api] [      Thread-21] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-22T20:47:24.363+07:00  INFO 15773 --- [ottv2-api] [      Thread-21] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-22T20:47:24.366+07:00  INFO 15773 --- [ottv2-api] [      Thread-21] com.zaxxer.hikari.HikariDataSource       : HikariPool-4 - Shutdown initiated...
+2026-10-22T20:47:24.368+07:00  INFO 15773 --- [ottv2-api] [      Thread-21] com.zaxxer.hikari.HikariDataSource       : HikariPool-4 - Shutdown completed.
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-22T20:47:24.736+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Starting ApiApplication using Java 21.0.12.1 with PID 15773 (/mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api/target/classes started by thinkbook in /mnt/d/Tai_lieu_hoc_tap/ky_5/lap_trinh_mang/azOTTV2_9/OTTV2_9/api)
+2026-10-22T20:47:24.737+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : No active profile set, falling back to 1 default profile: "default"
+2026-10-22T20:47:29.806+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-10-22T20:47:29.807+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-22T20:47:30.045+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 235 ms. Found 0 JPA repository interfaces.
+2026-10-22T20:47:30.088+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-10-22T20:47:30.089+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-10-22T20:47:30.284+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 192 ms. Found 0 Redis repository interfaces.
+2026-10-22T20:47:30.708+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-10-22T20:47:30.710+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-22T20:47:30.710+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-22T20:47:30.733+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 5981 ms
+2026-10-22T20:47:30.882+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-5 - Starting...
+2026-10-22T20:47:30.897+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-5 - Added connection org.postgresql.jdbc.PgConnection@7d478fd6
+2026-10-22T20:47:30.898+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-5 - Start completed.
+2026-10-22T20:47:30.899+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/ottv2 (PostgreSQL 16.15)
+2026-10-22T20:47:31.290+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 20 migrations (execution time 00:00.260s)
+2026-10-22T20:47:31.297+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 20
+2026-10-22T20:47:31.299+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-10-22T20:47:31.516+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-10-22T20:47:32.034+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-22T20:47:32.051+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/ottv2]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 16.15
+	Default catalog/schema: ottv2/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-10-22T20:47:32.232+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-22T20:47:32.253+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-22T20:47:32.450+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name databaseUserDetailsService
+2026-10-22T20:47:33.754+07:00  WARN 15773 --- [ottv2-api] [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-10-22T20:47:34.168+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-10-22T20:47:34.168+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@f4aac34]]
+2026-10-22T20:47:34.169+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-10-22T20:47:34.172+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-10-22T20:47:34.363+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8081 (http)
+2026-10-22T20:47:34.364+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-22T20:47:34.365+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-22T20:47:34.387+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 211 ms
+2026-10-22T20:47:34.400+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-22T20:47:34.447+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8081 (http) with context path '/'
+2026-10-22T20:47:34.453+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2026-10-22T20:47:34.458+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#35186c1b:0/SimpleConnection@20ed5480 [delegate=amqp://ottv2@127.0.0.1:5672/, localPort=40526]
+2026-10-22T20:47:34.473+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] ottv2.api.ApiApplication                 : Started ApiApplication in 9.934 seconds (process running for 5872.833)
+2026-10-22T20:47:34.488+07:00  INFO 15773 --- [ottv2-api] [  restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
+2026-10-22T20:47:35.472+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-22T20:47:35.473+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-22T20:47:35.476+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
+2026-10-22T20:47:43.926+07:00  INFO 15773 --- [ottv2-api] [0.0-8081-exec-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServletRegistration'
+2026-10-22T20:47:43.927+07:00  INFO 15773 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServletRegistration'
+2026-10-22T20:47:43.928+07:00  INFO 15773 --- [ottv2-api] [0.0-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2026-10-22T20:48:31.453+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-3] o.api.ladder.MatchmakingQueueService     : User 2402xxxx (ID=2, ELO=1232, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:48:34.159+07:00  INFO 15773 --- [ottv2-api] [essageBroker-14] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[2 current WS(2)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(1)], stompBrokerRelay[null], inboundChannel[pool size = 24, active threads = 0, queued tasks = 0, completed tasks = 24], outboundChannel[pool size = 5, active threads = 0, queued tasks = 0, completed tasks = 5], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 5, completed tasks = 163]
+2026-10-22T20:48:34.308+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-9] o.api.ladder.MatchmakingQueueService     : User 24020364 (ID=1, ELO=1184, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:48:34.333+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-9] o.api.ladder.MatchmakingQueueService     : PVP Match Found: 24020364 vs 2402xxxx, Mode=PVP_QUICK, Room=838137, MatchId=320
+2026-10-22T20:48:39.880+07:00  INFO 15773 --- [ottv2-api] [boundChannel-31] ottv2.api.room.RoomController            : [STOMP ACTION] Room 838137: type=READY_CHANGE, sender=A
+2026-10-22T20:48:42.962+07:00  INFO 15773 --- [ottv2-api] [boundChannel-40] ottv2.api.room.RoomController            : [STOMP ACTION] Room 838137: type=PLAYER_JOINED, sender=B
+2026-10-22T20:48:42.967+07:00  INFO 15773 --- [ottv2-api] [boundChannel-43] ottv2.api.room.RoomController            : [STOMP ACTION] Room 838137: type=ROOM_START, sender=A
+2026-10-22T20:48:46.600+07:00  INFO 15773 --- [ottv2-api] [boundChannel-15] ottv2.api.room.RoomController            : [STOMP MOVE] Room 838137: pieceId=3, from=[6, 6], to=[5, 6]
+2026-10-22T20:48:49.080+07:00  INFO 15773 --- [ottv2-api] [boundChannel-18] ottv2.api.room.RoomController            : [STOMP MOVE] Room 838137: pieceId=12, from=[2, 2], to=[3, 2]
+2026-10-22T20:48:50.730+07:00  INFO 15773 --- [ottv2-api] [boundChannel-21] ottv2.api.room.RoomController            : [STOMP ACTION] Room 838137: type=RESTART_GAME, sender=B
+2026-10-22T20:49:11.454+07:00  INFO 15773 --- [ottv2-api] [boundChannel-23] ottv2.api.room.RoomController            : [STOMP ACTION] Room 838137: type=PLAYER_LEFT, sender=A
+2026-10-22T20:49:15.018+07:00  INFO 15773 --- [ottv2-api] [boundChannel-33] ottv2.api.room.RoomController            : [STOMP ACTION] Room 838137: type=PLAYER_LEFT, sender=B
+2026-10-22T20:49:18.070+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-4] o.api.ladder.MatchmakingQueueService     : User 2402xxxx (ID=2, ELO=1232, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:49:19.619+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-3] o.api.ladder.MatchmakingQueueService     : User 24020364 (ID=1, ELO=1184, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:49:19.627+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-3] o.api.ladder.MatchmakingQueueService     : PVP Match Found: 24020364 vs 2402xxxx, Mode=PVP_QUICK, Room=183135, MatchId=321
+2026-10-22T20:49:25.659+07:00  INFO 15773 --- [ottv2-api] [boundChannel-14] ottv2.api.room.RoomController            : [STOMP ACTION] Room 183135: type=READY_CHANGE, sender=A
+2026-10-22T20:49:26.519+07:00  INFO 15773 --- [ottv2-api] [boundChannel-25] ottv2.api.room.RoomController            : [STOMP ACTION] Room 183135: type=PLAYER_JOINED, sender=B
+2026-10-22T20:49:26.524+07:00  INFO 15773 --- [ottv2-api] [boundChannel-28] ottv2.api.room.RoomController            : [STOMP ACTION] Room 183135: type=ROOM_START, sender=A
+2026-10-22T20:49:28.132+07:00  INFO 15773 --- [ottv2-api] [boundChannel-32] ottv2.api.room.RoomController            : [STOMP MOVE] Room 183135: pieceId=3, from=[6, 6], to=[5, 6]

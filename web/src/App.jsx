@@ -18,6 +18,7 @@ import {
   csrfHeaders,
   buildApiUrl,
   buildWsUrl,
+  createStompWebSocket,
 } from './utils/api.js';
 import { simulateMatch } from './utils/matchSimulator.js';
 import {
@@ -202,7 +203,7 @@ function AppContent() {
 
     try {
       stompClient = new Client({
-        webSocketFactory: () => new SockJS(buildWsUrl('/api/ws')),
+        webSocketFactory: () => createStompWebSocket('/api/ws'),
         connectHeaders: {
           'ngrok-skip-browser-warning': 'true',
         },

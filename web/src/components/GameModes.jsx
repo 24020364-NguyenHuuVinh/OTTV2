@@ -76,13 +76,14 @@ export default function GameModes({
       if (!isMounted || inFlight) return;
       inFlight = true;
       try {
-        const token = localStorage.getItem('ottv2_jwt_token');
+        const token = localStorage.getItem('ottv2_auth_token') || localStorage.getItem('ottv2_jwt_token');
         const headers = {
           'Content-Type': 'application/json',
           'ngrok-skip-browser-warning': 'true',
         };
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
+          headers['X-Auth-Token'] = token;
         }
 
         const res = await fetch(buildApiUrl('/api/matchmaking/heartbeat'), {
@@ -91,6 +92,7 @@ export default function GameModes({
           headers,
           body: JSON.stringify({
             userId: user?.id,
+            username: user?.studentCode || user?.username || user?.email,
             mode: 'PVP_QUICK',
           }),
         });
@@ -173,9 +175,10 @@ export default function GameModes({
           headers[csrfData.headerName] = csrfData.token;
         }
       }
-      const token = localStorage.getItem('ottv2_jwt_token');
+      const token = localStorage.getItem('ottv2_auth_token') || localStorage.getItem('ottv2_jwt_token');
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+        headers['X-Auth-Token'] = token;
       }
 
       const res = await fetch(buildApiUrl('/api/matchmaking/join'), {
@@ -185,8 +188,11 @@ export default function GameModes({
         body: JSON.stringify({
           mode: 'PVP_QUICK',
           timeControlKey: selectedQuickTcKey,
-          username: user?.username || user?.studentCode,
-          displayName: user?.displayName,
+          userId: user?.id,
+          username: user?.studentCode || user?.username || user?.email,
+          studentCode: user?.studentCode,
+          email: user?.email,
+          displayName: user?.displayName || user?.studentCode || 'Người chơi',
           pvpElo: user?.pvpElo || pvpElo || 1200,
         }),
       });
@@ -229,9 +235,10 @@ export default function GameModes({
           headers[csrfData.headerName] = csrfData.token;
         }
       }
-      const token = localStorage.getItem('ottv2_jwt_token');
+      const token = localStorage.getItem('ottv2_auth_token') || localStorage.getItem('ottv2_jwt_token');
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+        headers['X-Auth-Token'] = token;
       }
 
       await fetch(buildApiUrl('/api/matchmaking/leave'), {
@@ -240,7 +247,8 @@ export default function GameModes({
         headers,
         body: JSON.stringify({
           mode: 'PVP_QUICK',
-          username: user?.username || user?.studentCode,
+          userId: user?.id,
+          username: user?.studentCode || user?.username || user?.email,
         }),
       });
       if (onToast) onToast({ type: 'INFO', text: '⚪ Đã hủy tìm kiếm ghép trận nhanh.' });

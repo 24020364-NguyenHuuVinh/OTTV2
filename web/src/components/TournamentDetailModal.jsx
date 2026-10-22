@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client/dist/sockjs';
-import { api, csrfHeaders, extractErrorMessage, buildWsUrl } from '../utils/api.js';
+import { api, csrfHeaders, extractErrorMessage, buildWsUrl, createStompWebSocket } from '../utils/api.js';
 import TournamentAdminModal from './TournamentAdminModal.jsx';
 import BotDetailModal from './BotDetailModal.jsx';
 
@@ -74,7 +74,7 @@ export default function TournamentDetailModal({
     let isSubscribed = true;
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(sockJsUrl),
+      webSocketFactory: () => createStompWebSocket('/api/ws'),
       connectHeaders: {
         'ngrok-skip-browser-warning': 'true',
       },

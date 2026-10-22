@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client/dist/sockjs';
-import { buildWsUrl } from '../utils/api.js';
+import { buildWsUrl, createStompWebSocket } from '../utils/api.js';
 import InteractiveBoard from './InteractiveBoard.jsx';
 import {
   INITIAL_PIECES,
@@ -349,7 +349,7 @@ export default function RoomGameModal({
     let isSubscribed = true;
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(sockJsUrl),
+      webSocketFactory: () => createStompWebSocket('/api/ws'),
       connectHeaders: {
         'ngrok-skip-browser-warning': 'true',
       },
@@ -363,7 +363,7 @@ export default function RoomGameModal({
       },
       onConnect: (frame) => {
         // Requirement 3: BẮT BUỘC gọi ngay dòng đầu tiên trong callback onConnect
-        console.log('[STOMP] CONNECTED successfully to', sockJsUrl, 'headers:', frame?.headers);
+        console.log('[STOMP] CONNECTED successfully, headers:', frame?.headers);
         setWsConnected(true);
         if (!isSubscribed) return;
 

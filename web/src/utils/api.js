@@ -2,6 +2,8 @@
  * Centralized Network & API Client Layer for OTTV2
  */
 
+import SockJS from 'sockjs-client/dist/sockjs';
+
 export const BACKEND_BASE = (
   (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BACKEND_URL) ||
   (typeof window !== 'undefined' && (window.__BACKEND_URL__ || localStorage.getItem('ottv2_backend_url'))) ||
@@ -18,6 +20,38 @@ export function buildApiUrl(path) {
 export function buildWsUrl(endpoint = '/api/ws') {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   return BACKEND_BASE ? `${BACKEND_BASE}${cleanEndpoint}` : cleanEndpoint;
+}
+
+export function buildNativeWsUrl(endpoint = '/api/ws') {
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  if (BACKEND_BASE) {
+    if (BACKEND_BASE.startsWith('https://')) {
+      return BACKEND_BASE.replace(/^https:\/\//i, 'wss://') + cleanEndpoint;
+    }
+    if (BACKEND_BASE.startsWith('http://')) {
+      return BACKEND_BASE.replace(/^http:\/\//i, 'ws://') + cleanEndpoint;
+    }
+    return `${BACKEND_BASE}${cleanEndpoint}`;
+  }
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${window.location.host}${cleanEndpoint}`;
+  }
+  return `ws://localhost:8080${cleanEndpoint}`;
+}
+
+export function createStompWebSocket(endpoint = '/api/ws') {
+  // Ưu tiên Native WebSocket: Kết nối trực tiếp qua Tunnel (Ngrok, Cloudflare, Reverse Proxy)
+  // và tránh hoàn toàn việc Ngrok chặn request /info của SockJS bằng HTML Warning Page gây lỗi CORS
+  if (typeof WebSocket !== 'undefined') {
+    try {
+      const nativeWsUrl = buildNativeWsUrl(endpoint);
+      return new WebSocket(nativeWsUrl);
+    } catch (err) {
+      console.warn('[STOMP] Native WebSocket init failed, fallback to SockJS:', err);
+    }
+  }
+  return new SockJS(buildWsUrl(endpoint));
 }
 
 export const DEFAULT_HEADERS = {

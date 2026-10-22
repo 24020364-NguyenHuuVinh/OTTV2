@@ -73,13 +73,14 @@ export default function MatchmakingModal({
       if (!isMounted || inFlight) return;
       inFlight = true;
       try {
-        const token = localStorage.getItem('ottv2_jwt_token');
+        const token = localStorage.getItem('ottv2_auth_token') || localStorage.getItem('ottv2_jwt_token');
         const headers = {
           'Content-Type': 'application/json',
           'ngrok-skip-browser-warning': 'true',
         };
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
+          headers['X-Auth-Token'] = token;
         }
 
         const res = await fetch(buildApiUrl('/api/matchmaking/heartbeat'), {
@@ -88,6 +89,7 @@ export default function MatchmakingModal({
           headers,
           body: JSON.stringify({
             userId: user?.id,
+            username: user?.studentCode || user?.username || user?.email,
             mode,
           }),
         });
@@ -174,6 +176,12 @@ export default function MatchmakingModal({
         }
       }
 
+      const token = localStorage.getItem('ottv2_auth_token') || localStorage.getItem('ottv2_jwt_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        headers['X-Auth-Token'] = token;
+      }
+
       const res = await fetch(buildApiUrl('/api/matchmaking/join'), {
         method: 'POST',
         credentials: 'include',
@@ -182,8 +190,12 @@ export default function MatchmakingModal({
           mode,
           timeControlKey: mode === 'PVP' ? selectedPvpTcKey : 'blitz_3_2',
           botId: mode === 'BOT' ? (selectedBotId ? Number(selectedBotId) : null) : null,
+          userId: user?.id,
+          username: user?.studentCode || user?.username || user?.email,
+          studentCode: user?.studentCode,
+          email: user?.email,
+          displayName: user?.displayName,
           pvpElo,
-          username: user?.username || user?.studentCode,
         }),
       });
 
@@ -226,11 +238,21 @@ export default function MatchmakingModal({
         }
       }
 
+      const token = localStorage.getItem('ottv2_auth_token') || localStorage.getItem('ottv2_jwt_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        headers['X-Auth-Token'] = token;
+      }
+
       await fetch(buildApiUrl('/api/matchmaking/leave'), {
         method: 'POST',
         credentials: 'include',
         headers,
-        body: JSON.stringify({ mode }),
+        body: JSON.stringify({
+          mode,
+          userId: user?.id,
+          username: user?.studentCode || user?.username || user?.email,
+        }),
       });
       if (onToast) onToast({ type: 'INFO', text: '⚪ Đã hủy tìm kiếm trận đấu.' });
     } catch (e) {

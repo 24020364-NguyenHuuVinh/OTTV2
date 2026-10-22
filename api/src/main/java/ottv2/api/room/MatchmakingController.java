@@ -317,8 +317,14 @@ public class MatchmakingController {
                 userId = Long.parseLong(String.valueOf(body.get("userId")));
             } catch (Exception ignored) {}
         }
-        if (username == null && body != null && body.get("username") != null) {
-            username = String.valueOf(body.get("username"));
+        if (username == null && body != null) {
+            if (body.get("username") != null) {
+                username = String.valueOf(body.get("username"));
+            } else if (body.get("studentCode") != null) {
+                username = String.valueOf(body.get("studentCode"));
+            } else if (body.get("email") != null) {
+                username = String.valueOf(body.get("email"));
+            }
         }
         if (displayName == null && body != null && body.get("displayName") != null) {
             displayName = String.valueOf(body.get("displayName"));
@@ -326,11 +332,30 @@ public class MatchmakingController {
         if (userId <= 0 && username != null && !username.isBlank() && jdbc != null) {
             try {
                 List<Map<String, Object>> rows = jdbc.queryForList(
-                        "SELECT id, username, display_name, student_code FROM users WHERE username = ? OR student_code = ? OR email = ? LIMIT 1",
+                        "SELECT id, student_code, email, display_name FROM users WHERE student_code = ? OR email = ? OR display_name = ? LIMIT 1",
                         username, username, username
                 );
                 if (!rows.isEmpty()) {
                     userId = ((Number) rows.getFirst().get("id")).longValue();
+                    if (displayName == null) {
+                        displayName = (String) rows.getFirst().get("display_name");
+                    }
+                    if (username == null) {
+                        username = (String) rows.getFirst().get("student_code");
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+        if (userId > 0 && (username == null || displayName == null) && jdbc != null) {
+            try {
+                List<Map<String, Object>> rows = jdbc.queryForList(
+                        "SELECT id, student_code, email, display_name FROM users WHERE id = ? LIMIT 1",
+                        userId
+                );
+                if (!rows.isEmpty()) {
+                    if (username == null) {
+                        username = (String) rows.getFirst().get("student_code");
+                    }
                     if (displayName == null) {
                         displayName = (String) rows.getFirst().get("display_name");
                     }
