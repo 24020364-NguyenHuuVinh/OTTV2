@@ -519,3 +519,62 @@ Unconditional classes:
 2026-10-22T20:49:26.519+07:00  INFO 15773 --- [ottv2-api] [boundChannel-25] ottv2.api.room.RoomController            : [STOMP ACTION] Room 183135: type=PLAYER_JOINED, sender=B
 2026-10-22T20:49:26.524+07:00  INFO 15773 --- [ottv2-api] [boundChannel-28] ottv2.api.room.RoomController            : [STOMP ACTION] Room 183135: type=ROOM_START, sender=A
 2026-10-22T20:49:28.132+07:00  INFO 15773 --- [ottv2-api] [boundChannel-32] ottv2.api.room.RoomController            : [STOMP MOVE] Room 183135: pieceId=3, from=[6, 6], to=[5, 6]
+2026-10-22T20:50:24.213+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-2] o.api.ladder.MatchmakingQueueService     : User 2402xxxx (ID=2, ELO=1232, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:50:26.672+07:00  INFO 15773 --- [ottv2-api] [boundChannel-52] ottv2.api.room.RoomController            : [STOMP ACTION] Room 183135: type=PLAYER_LEFT, sender=A
+2026-10-22T20:50:27.712+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-9] o.api.ladder.MatchmakingQueueService     : User 24020364 (ID=1, ELO=1184, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:50:27.727+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-9] o.api.ladder.MatchmakingQueueService     : PVP Match Found: 24020364 vs 2402xxxx, Mode=PVP_QUICK, Room=289021, MatchId=322
+2026-10-22T20:50:33.228+07:00  INFO 15773 --- [ottv2-api] [boundChannel-67] ottv2.api.room.RoomController            : [STOMP ACTION] Room 289021: type=READY_CHANGE, sender=A
+2026-10-22T20:50:34.464+07:00  INFO 15773 --- [ottv2-api] [boundChannel-70] ottv2.api.room.RoomController            : [STOMP ACTION] Room 183135: type=PLAYER_LEFT, sender=B
+2026-10-22T20:50:34.520+07:00  INFO 15773 --- [ottv2-api] [boundChannel-54] ottv2.api.room.RoomController            : [STOMP ACTION] Room 289021: type=PLAYER_JOINED, sender=B
+2026-10-22T20:50:34.524+07:00  INFO 15773 --- [ottv2-api] [boundChannel-57] ottv2.api.room.RoomController            : [STOMP ACTION] Room 289021: type=ROOM_START, sender=A
+2026-10-22T20:50:36.461+07:00  INFO 15773 --- [ottv2-api] [boundChannel-62] ottv2.api.room.RoomController            : [STOMP ACTION] Room 289021: type=PLAYER_JOINED, sender=B
+2026-10-22T20:50:36.466+07:00  INFO 15773 --- [ottv2-api] [boundChannel-69] ottv2.api.room.RoomController            : [STOMP ACTION] Room 289021: type=ROOM_START, sender=A
+2026-10-22T20:50:40.312+07:00  INFO 15773 --- [ottv2-api] [boundChannel-72] ottv2.api.room.RoomController            : [STOMP MOVE] Room 289021: pieceId=3, from=[6, 6], to=[5, 6]
+2026-10-22T20:50:42.499+07:00  INFO 15773 --- [ottv2-api] [boundChannel-75] ottv2.api.room.RoomController            : [STOMP MOVE] Room 289021: pieceId=12, from=[2, 2], to=[3, 2]
+2026-10-22T20:50:43.558+07:00  INFO 15773 --- [ottv2-api] [boundChannel-46] ottv2.api.room.RoomController            : [STOMP ACTION] Room 289021: type=PLAYER_LEFT, sender=B
+2026-10-22T20:50:45.320+07:00  INFO 15773 --- [ottv2-api] [boundChannel-55] ottv2.api.room.RoomController            : [STOMP ACTION] Room 289021: type=PLAYER_LEFT, sender=A
+2026-10-22T20:50:58.803+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-4] o.api.ladder.MatchmakingQueueService     : User 24020364 (ID=1, ELO=1184, Mode=PVP, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:51:03.118+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-8] o.api.ladder.MatchmakingQueueService     : User 2402xxxx (ID=2, ELO=1232, Mode=PVP, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:51:03.131+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-8] o.api.ladder.MatchmakingQueueService     : PVP Match Found: 2402xxxx vs 24020364, Mode=PVP, Room=668860, MatchId=323
+2026-10-22T20:51:08.526+07:00  INFO 15773 --- [ottv2-api] [boundChannel-64] ottv2.api.room.RoomController            : [STOMP ACTION] Room 289021: type=PLAYER_LEFT, sender=A
+2026-10-22T20:51:08.586+07:00  INFO 15773 --- [ottv2-api] [boundChannel-49] ottv2.api.room.RoomController            : [STOMP ACTION] Room 668860: type=READY_CHANGE, sender=A
+2026-10-22T20:51:08.630+07:00  INFO 15773 --- [ottv2-api] [boundChannel-56] ottv2.api.room.RoomController            : [STOMP ACTION] Room 668860: type=PLAYER_JOINED, sender=B
+2026-10-22T20:51:08.634+07:00  INFO 15773 --- [ottv2-api] [boundChannel-57] ottv2.api.room.RoomController            : [STOMP ACTION] Room 668860: type=ROOM_START, sender=A
+2026-10-22T20:51:09.314+07:00  INFO 15773 --- [ottv2-api] [boundChannel-67] ottv2.api.room.RoomController            : [STOMP ACTION] Room 668860: type=READY_CHANGE, sender=A
+2026-10-22T20:51:10.106+07:00  INFO 15773 --- [ottv2-api] [boundChannel-69] ottv2.api.room.RoomController            : [STOMP MOVE] Room 668860: pieceId=3, from=[6, 6], to=[5, 6]
+2026-10-22T20:51:11.985+07:00  INFO 15773 --- [ottv2-api] [boundChannel-72] ottv2.api.room.RoomController            : [STOMP MOVE] Room 668860: pieceId=12, from=[2, 2], to=[3, 2]
+2026-10-22T20:51:14.700+07:00  INFO 15773 --- [ottv2-api] [boundChannel-76] ottv2.api.room.RoomController            : [STOMP MOVE] Room 668860: pieceId=3, from=[5, 6], to=[4, 6]
+2026-10-22T20:51:16.301+07:00  INFO 15773 --- [ottv2-api] [boundChannel-51] ottv2.api.room.RoomController            : [STOMP ACTION] Room 668860: type=PLAYER_LEFT, sender=B
+2026-10-22T20:51:18.488+07:00  INFO 15773 --- [ottv2-api] [boundChannel-58] ottv2.api.room.RoomController            : [STOMP ACTION] Room 668860: type=PLAYER_LEFT, sender=A
+2026-10-22T20:51:27.848+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-8] o.api.ladder.MatchmakingQueueService     : User 24020364 (ID=1, ELO=1184, Mode=PVP, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:51:31.384+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-9] o.api.ladder.MatchmakingQueueService     : User 2402xxxx (ID=2, ELO=1232, Mode=PVP, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:51:31.390+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-9] o.api.ladder.MatchmakingQueueService     : PVP Match Found: 2402xxxx vs 24020364, Mode=PVP, Room=720935, MatchId=324
+2026-10-22T20:51:36.783+07:00  INFO 15773 --- [ottv2-api] [boundChannel-75] ottv2.api.room.RoomController            : [STOMP ACTION] Room 668860: type=PLAYER_LEFT, sender=A
+2026-10-22T20:51:36.844+07:00  INFO 15773 --- [ottv2-api] [boundChannel-60] ottv2.api.room.RoomController            : [STOMP ACTION] Room 720935: type=READY_CHANGE, sender=A
+2026-10-22T20:51:37.648+07:00  INFO 15773 --- [ottv2-api] [boundChannel-68] ottv2.api.room.RoomController            : [STOMP ACTION] Room 720935: type=PLAYER_JOINED, sender=B
+2026-10-22T20:51:37.651+07:00  INFO 15773 --- [ottv2-api] [boundChannel-71] ottv2.api.room.RoomController            : [STOMP ACTION] Room 720935: type=ROOM_START, sender=A
+2026-10-22T20:51:40.780+07:00  INFO 15773 --- [ottv2-api] [boundChannel-76] ottv2.api.room.RoomController            : [STOMP ACTION] Room 720935: type=READY_CHANGE, sender=A
+2026-10-22T20:51:42.143+07:00  INFO 15773 --- [ottv2-api] [boundChannel-46] ottv2.api.room.RoomController            : [STOMP MOVE] Room 720935: pieceId=3, from=[6, 6], to=[5, 6]
+2026-10-22T20:51:44.280+07:00  INFO 15773 --- [ottv2-api] [boundChannel-54] ottv2.api.room.RoomController            : [STOMP MOVE] Room 720935: pieceId=12, from=[2, 2], to=[3, 2]
+2026-10-22T20:51:46.216+07:00  INFO 15773 --- [ottv2-api] [boundChannel-59] ottv2.api.room.RoomController            : [STOMP MOVE] Room 720935: pieceId=3, from=[5, 6], to=[5, 7]
+2026-10-22T20:51:48.278+07:00  INFO 15773 --- [ottv2-api] [boundChannel-57] ottv2.api.room.RoomController            : [STOMP MOVE] Room 720935: pieceId=12, from=[3, 2], to=[4, 2]
+2026-10-22T20:51:50.435+07:00  INFO 15773 --- [ottv2-api] [boundChannel-58] ottv2.api.room.RoomController            : [STOMP MOVE] Room 720935: pieceId=3, from=[5, 7], to=[5, 8]
+2026-10-22T20:51:52.063+07:00  INFO 15773 --- [ottv2-api] [boundChannel-66] ottv2.api.room.RoomController            : [STOMP MOVE] Room 720935: pieceId=12, from=[4, 2], to=[5, 2]
+2026-10-22T20:51:54.086+07:00  INFO 15773 --- [ottv2-api] [boundChannel-67] ottv2.api.room.RoomController            : [STOMP MOVE] Room 720935: pieceId=3, from=[5, 8], to=[4, 8]
+2026-10-22T20:51:59.924+07:00  INFO 15773 --- [ottv2-api] [boundChannel-69] ottv2.api.room.RoomController            : [STOMP MOVE] Room 720935: pieceId=12, from=[5, 2], to=[5, 1]
+2026-10-22T20:52:01.762+07:00  INFO 15773 --- [ottv2-api] [boundChannel-72] ottv2.api.room.RoomController            : [STOMP MOVE] Room 720935: pieceId=3, from=[4, 8], to=[3, 8]
+2026-10-22T20:52:03.907+07:00  INFO 15773 --- [ottv2-api] [boundChannel-77] ottv2.api.room.RoomController            : [STOMP MOVE] Room 720935: pieceId=12, from=[5, 1], to=[5, 0]
+2026-10-22T20:52:06.103+07:00  INFO 15773 --- [ottv2-api] [boundChannel-51] ottv2.api.room.RoomController            : [STOMP MOVE] Room 720935: pieceId=3, from=[3, 8], to=[2, 8]
+2026-10-22T20:52:08.429+07:00  INFO 15773 --- [ottv2-api] [boundChannel-53] ottv2.api.room.RoomController            : [STOMP MOVE] Room 720935: pieceId=12, from=[5, 0], to=[6, 0]
+2026-10-22T20:52:10.554+07:00  INFO 15773 --- [ottv2-api] [boundChannel-55] ottv2.api.room.RoomController            : [STOMP MOVE] Room 720935: pieceId=3, from=[2, 8], to=[1, 8]
+2026-10-22T20:52:12.854+07:00  INFO 15773 --- [ottv2-api] [boundChannel-50] ottv2.api.room.RoomController            : [STOMP MOVE] Room 720935: pieceId=12, from=[6, 0], to=[7, 0]
+2026-10-22T20:52:16.138+07:00  INFO 15773 --- [ottv2-api] [boundChannel-60] ottv2.api.room.RoomController            : [STOMP ACTION] Room 720935: type=PLAYER_LEFT, sender=A
+2026-10-22T20:52:19.096+07:00  INFO 15773 --- [ottv2-api] [boundChannel-73] ottv2.api.room.RoomController            : [STOMP ACTION] Room 720935: type=PLAYER_LEFT, sender=B
+2026-10-22T20:54:49.773+07:00  INFO 15773 --- [ottv2-api] [io-8080-exec-10] o.api.ladder.MatchmakingQueueService     : User admin (ID=11, ELO=1200, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:54:55.265+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-3] o.api.ladder.MatchmakingQueueService     : User 2402xxxx (ID=2, ELO=1246, Mode=PVP_QUICK, TC=blitz_3_2) đã vào hàng đợi PvP
+2026-10-22T20:54:55.280+07:00  INFO 15773 --- [ottv2-api] [nio-8080-exec-3] o.api.ladder.MatchmakingQueueService     : PVP Match Found: 2402xxxx vs admin, Mode=PVP_QUICK, Room=993244, MatchId=325
+2026-10-22T20:55:01.466+07:00  INFO 15773 --- [ottv2-api] [boundChannel-90] ottv2.api.room.RoomController            : [STOMP ACTION] Room 720935: type=PLAYER_LEFT, sender=A
+2026-10-22T20:55:01.521+07:00  INFO 15773 --- [ottv2-api] [oundChannel-105] ottv2.api.room.RoomController            : [STOMP ACTION] Room 993244: type=READY_CHANGE, sender=A
+2026-10-22T21:09:09.149+07:00  INFO 15773 --- [ottv2-api] [oundChannel-108] ottv2.api.room.RoomController            : [STOMP ACTION] Room 993244: type=PLAYER_LEFT, sender=A
+2026-10-22T21:18:34.060+07:00  INFO 15773 --- [ottv2-api] [MessageBroker-9] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 20 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(20)-CONNECTED(20)-DISCONNECT(15)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 396], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 198], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 5, completed tasks = 5017]
+2026-10-22T21:48:33.961+07:00  INFO 15773 --- [ottv2-api] [MessageBroker-6] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 20 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(20)-CONNECTED(20)-DISCONNECT(15)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 396], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 198], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 5, completed tasks = 9872]
