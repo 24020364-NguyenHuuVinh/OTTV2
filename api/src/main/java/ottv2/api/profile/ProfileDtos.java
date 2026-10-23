@@ -16,10 +16,20 @@ public final class ProfileDtos {
             int change,
             int newElo,
             String timestamp,
-            String replayId
+            String replayId,
+            boolean isRanked,
+            String winner
     ) {
+        public EloHistoryItem(long id, String opponent, int opponentElo, String mode, boolean userWon, int change, int newElo, String timestamp, String replayId, boolean isRanked) {
+            this(id, opponent, opponentElo, mode, userWon, change, newElo, timestamp, replayId, isRanked, userWon ? "A" : "B");
+        }
+
+        public EloHistoryItem(long id, String opponent, int opponentElo, String mode, boolean userWon, int change, int newElo, String timestamp, String replayId) {
+            this(id, opponent, opponentElo, mode, userWon, change, newElo, timestamp, replayId, true, userWon ? "A" : "B");
+        }
+
         public EloHistoryItem(long id, String opponent, int opponentElo, String mode, boolean userWon, int change, int newElo, String timestamp) {
-            this(id, opponent, opponentElo, mode, userWon, change, newElo, timestamp, null);
+            this(id, opponent, opponentElo, mode, userWon, change, newElo, timestamp, null, true, userWon ? "A" : "B");
         }
     }
 

@@ -204,7 +204,15 @@ public class RoomController {
                 room.updateLastActive();
             }
             Map<String, Object> actionData = parsePayload(rawPayload);
-            log.info("[STOMP ACTION] Room {}: type={}, sender={}", code, actionData.get("type"), actionData.get("sender"));
+            String actionType = actionData.get("type") != null ? String.valueOf(actionData.get("type")) : "";
+            log.info("[STOMP ACTION] Room {}: type={}, sender={}", code, actionType, actionData.get("sender"));
+
+            if ("PLAYER_LEFT".equalsIgnoreCase(actionType) && room != null) {
+                String sender = actionData.get("sender") != null ? String.valueOf(actionData.get("sender")).trim().toUpperCase() : "";
+                if ("A".equals(sender) || "B".equals(sender)) {
+                    room.setPlayerLeft(sender);
+                }
+            }
             return actionData;
         } catch (Exception e) {
             log.error("Lỗi khi xử lý STOMP action phòng {}: {}", code, e.getMessage(), e);

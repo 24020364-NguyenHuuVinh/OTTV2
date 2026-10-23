@@ -150,6 +150,9 @@ export default function RoomGameModal({
   const [timeLeftB, setTimeLeftB] = useState(baseMs);
   const [winner, setWinner] = useState(null);
   const [winReason, setWinReason] = useState(null);
+  const [showWinModal, setShowWinModal] = useState(false);
+  const winnerRef = useRef(winner);
+  winnerRef.current = winner;
   const [copied, setCopied] = useState(false);
 
   const stompClientRef = useRef(null);
@@ -298,8 +301,12 @@ export default function RoomGameModal({
   };
 
   const handleFinishGame = (finalWinner, finalReason) => {
+    winnerRef.current = finalWinner;
     setWinner(finalWinner);
     setWinReason(finalReason);
+    setTimeout(() => {
+      setShowWinModal(true);
+    }, 450);
 
     if (notifiedRef.current) return;
     notifiedRef.current = true;
@@ -487,20 +494,60 @@ export default function RoomGameModal({
                   data.historyItem?.pieceType,
                   data.historyItem?.capturedType
                 );
-                if (data.winner) {
-                  handleFinishGame(data.winner, data.winReason);
-                  if (data.winner === mySideRef.current) {
+                if (typeof data.timeLeftA === 'number') setTimeLeftA(data.timeLeftA);
+                if (typeof data.timeLeftB === 'number') setTimeLeftB(data.timeLeftB);
+                setSelectedPiece(null);
+                setValidMoves([]);
+
+                // Kiểm tra điều kiện thắng cờ từ payload hoặc tính toán trực tiếp từ bàn cờ mới
+                const winCheck = Array.isArray(data.nextPieces)
+                  ? checkWinner(data.nextPieces)
+                  : { winner: null, reason: null };
+                const finalWinner = data.winner || winCheck.winner;
+                const finalReason = data.winReason || winCheck.reason;
+
+                if (finalWinner) {
+                  winnerRef.current = finalWinner;
+                  handleFinishGame(finalWinner, finalReason);
+                  if (finalWinner === mySideRef.current) {
                     playVictorySound();
-                  } else if (data.winner === 'DRAW') {
+                  } else if (finalWinner === 'DRAW') {
                     playDrawSound();
                   } else {
                     playDefeatSound();
                   }
                 }
-                if (typeof data.timeLeftA === 'number') setTimeLeftA(data.timeLeftA);
-                if (typeof data.timeLeftB === 'number') setTimeLeftB(data.timeLeftB);
-                setSelectedPiece(null);
-                setValidMoves([]);
+                break;
+
+              case 'MATCH_FINISHED':
+                const winningSide = data.winnerSide || data.winner;
+                const endReason = data.endReason || data.winReason || 'TARGET_REACHED';
+
+                // Cập nhật nước đi cuối cùng nếu server hoặc đối thủ gửi kèm
+                if (data.finalMove) {
+                  setLastMove(data.finalMove);
+                } else if (data.lastMove) {
+                  setLastMove(data.lastMove);
+                } else if (data.from && data.to) {
+                  setLastMove({ from: data.from, to: data.to });
+                }
+                if (Array.isArray(data.nextPieces)) {
+                  setPieces(data.nextPieces);
+                }
+
+                if (!winnerRef.current) {
+                  winnerRef.current = winningSide;
+                  setWinner(winningSide);
+                  setWinReason(endReason);
+                  if (winningSide === mySideRef.current) {
+                    playVictorySound();
+                  } else if (winningSide === 'DRAW') {
+                    playDrawSound();
+                  } else {
+                    playDefeatSound();
+                  }
+                  handleFinishGame(winningSide, endReason);
+                }
                 break;
 
               case 'CLOCK_SYNC':
@@ -519,15 +566,27 @@ export default function RoomGameModal({
                 setMoveHistory([]);
                 setTimeLeftA(baseMsRef.current);
                 setTimeLeftB(baseMsRef.current);
+                winnerRef.current = null;
                 setWinner(null);
                 setWinReason(null);
+                setShowWinModal(false);
                 recordedTurnsRef.current = [];
                 notifiedRef.current = false;
                 break;
 
               case 'PLAYER_LEFT':
                 if (opponentTypeRef.current === 'HUMAN') {
+                  // Nếu ván cờ đã kết thúc (đã có kết quả thắng/thua), việc đối thủ rời phòng sau đó là bình thường
+                  // TUYỆT ĐỐI KHÔNG ghi đè kết quả thành OPPONENT_LEFT!
+                  if (winnerRef.current || notifiedRef.current) {
+                    console.log('[STOMP] Đối thủ đã rời phòng sau khi trận đấu đã kết thúc.');
+                    return;
+                  }
                   setRoomState('OPPONENT_LEFT');
+                  const remainingSide = mySideRef.current || 'A';
+                  winnerRef.current = remainingSide;
+                  handleFinishGame(remainingSide, 'OPPONENT_LEFT');
+                  playVictorySound();
                 }
                 break;
 
@@ -597,15 +656,18 @@ export default function RoomGameModal({
       isSubscribed = false;
       if (client.connected) {
         try {
-          client.publish({
-            destination: `/app/room/${roomCode}/action`,
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({
-              type: 'PLAYER_LEFT',
-              roomCode: String(roomCode),
-              sender: mySideRef.current || 'A',
-            }),
-          });
+          // Chỉ gửi PLAYER_LEFT nếu ván cờ đang diễn ra và chưa có kết quả thắng/thua
+          if (!winnerRef.current) {
+            client.publish({
+              destination: `/app/room/${roomCode}/action`,
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({
+                type: 'PLAYER_LEFT',
+                roomCode: String(roomCode),
+                sender: mySideRef.current || 'A',
+              }),
+            });
+          }
         } catch {}
       }
       client.deactivate();
@@ -809,19 +871,8 @@ export default function RoomGameModal({
       setTimeLeftB(nextTimeB);
     }
 
-    if (winResult.winner) {
-      handleFinishGame(winResult.winner, winResult.reason);
-      if (winResult.winner === allowedSide) {
-        playVictorySound();
-      } else if (winResult.winner === 'DRAW') {
-        playDrawSound();
-      } else {
-        playDefeatSound();
-      }
-    } else {
-      setCurrentTurn(nextTurn);
-    }
-
+    // 1. Luôn publish nước đi (kèm trạng thái kết thúc trận nếu có) qua STOMP WebSocket trước tiên
+    // để máy đối thủ nhận được ngay lập tức và render mượt mà nước cờ cuối cùng
     if (opponentType === 'HUMAN' && !isSparring && stompClientRef.current?.connected) {
       try {
         stompClientRef.current.publish({
@@ -849,6 +900,21 @@ export default function RoomGameModal({
         console.error('[STOMP Error] Lỗi gửi MAKE_MOVE:', sendErr);
       }
     }
+
+    // 2. Cập nhật kết thúc trận cờ trên máy người chơi
+    if (winResult.winner) {
+      winnerRef.current = winResult.winner;
+      handleFinishGame(winResult.winner, winResult.reason);
+      if (winResult.winner === allowedSide) {
+        playVictorySound();
+      } else if (winResult.winner === 'DRAW') {
+        playDrawSound();
+      } else {
+        playDefeatSound();
+      }
+    } else {
+      setCurrentTurn(nextTurn);
+    }
   };
 
   const handleRestart = () => {
@@ -860,8 +926,10 @@ export default function RoomGameModal({
     setMoveHistory([]);
     setTimeLeftA(baseMs);
     setTimeLeftB(baseMs);
+    winnerRef.current = null;
     setWinner(null);
     setWinReason(null);
+    setShowWinModal(false);
     recordedTurnsRef.current = [];
     notifiedRef.current = false;
 
@@ -921,8 +989,10 @@ export default function RoomGameModal({
     setMoveHistory([]);
     setTimeLeftA(baseMs);
     setTimeLeftB(baseMs);
+    winnerRef.current = null;
     setWinner(null);
     setWinReason(null);
+    setShowWinModal(false);
     recordedTurnsRef.current = [];
     notifiedRef.current = false;
     setOpponentType('HUMAN');
@@ -961,6 +1031,18 @@ export default function RoomGameModal({
       createdAt: new Date().toISOString(),
     };
     onOpenReplay?.({ matchInfo, replay });
+    onClose();
+  };
+
+  const handleRequestClose = () => {
+    if (roomState === 'PLAYING' && !winnerRef.current && opponentType === 'HUMAN' && !isSpectator) {
+      const confirmed = window.confirm(
+        '⚠️ Ván đấu đang diễn ra!\n\nNếu bạn thoát ngay bây giờ, bạn sẽ bị tính là ĐẦU HÀNG (Thua trận).\nNếu đối thủ đang dừng suy nghĩ, hãy đợi đồng hồ đối thủ hết giờ để tự động thắng cuộc.\n\nBạn có chắc chắn muốn thoát phòng không?'
+      );
+      if (!confirmed) return;
+      const opponentSide = mySide === 'A' ? 'B' : 'A';
+      handleFinishGame(opponentSide, 'RESIGN');
+    }
     onClose();
   };
 
@@ -1069,8 +1151,9 @@ export default function RoomGameModal({
             )}
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleRequestClose}
               className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 text-sm ml-1"
+              title="Đóng / Thoát phòng"
             >
               ✕
             </button>
@@ -1166,15 +1249,25 @@ export default function RoomGameModal({
           </div>
         ) : roomState === 'OPPONENT_LEFT' ? (
           <div className="py-16 text-center space-y-4 max-w-md mx-auto">
-            <div className="text-5xl">🚪</div>
-            <h4 className="text-xl font-black text-white">Đối Thủ Đã Rời Phòng</h4>
-            <p className="text-xs text-zinc-400">Trận đấu đã kết thúc do đối thủ thoát hoặc đóng tab.</p>
+            <div className="text-5xl">{winner ? '🏆' : '🚪'}</div>
+            <h4 className="text-xl font-black text-white">
+              {winner ? 'Đối Thủ Đã Rời Trận Đấu!' : 'Đối Thủ Đã Rời Phòng'}
+            </h4>
+            <p className="text-xs text-zinc-300">
+              {winner
+                ? 'Đối thủ đã thoát phòng hoặc đóng tab giữa trận. Bạn giành Chiến Thắng do đối thủ bỏ cuộc!'
+                : 'Trận đấu đã kết thúc do đối thủ thoát hoặc đóng tab.'}
+            </p>
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-750 text-white font-bold text-xs"
+              className={`px-6 py-2.5 rounded-xl font-bold text-xs shadow-lg transition-all ${
+                winner
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                  : 'bg-zinc-800 hover:bg-zinc-750 text-white'
+              }`}
             >
-              Quay Về Sảnh
+              {winner ? 'Nhận Chiến Thắng & Quay Về Sảnh' : 'Quay Về Sảnh'}
             </button>
           </div>
         ) : (
@@ -1476,7 +1569,7 @@ export default function RoomGameModal({
         )}
 
         {/* Win Banner Modal Overlay */}
-        {winner && (
+        {winner && showWinModal && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
             <div className="bg-zinc-850 border border-zinc-700 w-full max-w-md rounded-3xl p-6 text-center space-y-4 shadow-2xl">
               <div className="text-5xl">{isSpectator ? '🏆' : winner === effectiveSide ? '🎉' : '💔'}</div>
@@ -1498,6 +1591,10 @@ export default function RoomGameModal({
                       : 'Đối thủ hết thời gian thi đấu (Timeout 00:00.0)!')
                   : winReason === 'TARGET_REACHED'
                   ? 'Đã thâm nhập thành công vào Ô Đích đối phương!'
+                  : winReason === 'RESIGN' || winReason === 'FORFEIT'
+                  ? 'Đối thủ đã xin đầu hàng!'
+                  : winReason === 'OPPONENT_LEFT'
+                  ? 'Đối thủ đã rời khỏi phòng đấu / bỏ cuộc!'
                   : 'Đã tiêu diệt toàn bộ quân cờ của đối phương!'}
               </p>
 

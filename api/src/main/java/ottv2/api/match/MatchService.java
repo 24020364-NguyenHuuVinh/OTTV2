@@ -48,19 +48,22 @@ public class MatchService {
     private final TransactionTemplate transaction;
     private final ObjectMapper mapper;
     private final SimpMessagingTemplate messagingTemplate;
+    private final PvpMatchValidator pvpMatchValidator;
     private final SecureRandom random = new SecureRandom();
 
     @Autowired
     public MatchService(JdbcTemplate jdbc, TransactionTemplate transaction, ObjectMapper mapper,
-                        @Autowired(required = false) SimpMessagingTemplate messagingTemplate) {
+                        @Autowired(required = false) SimpMessagingTemplate messagingTemplate,
+                        @Autowired(required = false) PvpMatchValidator pvpMatchValidator) {
         this.jdbc = jdbc;
         this.transaction = transaction;
         this.mapper = mapper;
         this.messagingTemplate = messagingTemplate;
+        this.pvpMatchValidator = pvpMatchValidator != null ? pvpMatchValidator : new PvpMatchValidator(mapper);
     }
 
     public MatchService(JdbcTemplate jdbc, TransactionTemplate transaction, ObjectMapper mapper) {
-        this(jdbc, transaction, mapper, null);
+        this(jdbc, transaction, mapper, null, null);
     }
 
     public MatchResponse create(long ownerId, CreateMatchRequest request) {
@@ -240,6 +243,7 @@ public class MatchService {
                     WHERE (public_id::text = ? OR id::text = ? OR room_code = ?)
                     ORDER BY id DESC
                     LIMIT 1
+                    FOR UPDATE
                     """, matchIdentifier.trim(), matchIdentifier.trim(), matchIdentifier.trim());
             if (matchRows.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy trận đấu: " + matchIdentifier);
@@ -305,12 +309,17 @@ public class MatchService {
             if (nameB == null || nameB.isBlank()) nameB = (String) userBRow.get("student_code");
             if (nameB == null || nameB.isBlank()) nameB = "Người chơi B";
 
-            // Determine winnerSide: "A", "B", or "DRAW"
-            String winnerSide = request != null && request.winnerSide() != null ? request.winnerSide().trim().toUpperCase() : "DRAW";
-            if (!"A".equals(winnerSide) && !"B".equals(winnerSide)) {
-                winnerSide = "DRAW";
-            }
-            String reason = request != null && request.reason() != null ? request.reason().trim() : "FINISHED";
+            // Authoritative PvP validation: Server determines winnerSide and verifies moves / resignation
+            var validated = pvpMatchValidator.validate(
+                    currentUserId,
+                    userAId,
+                    userBId,
+                    request != null ? request.winnerSide() : null,
+                    request != null ? request.reason() : null,
+                    request != null ? request.replayData() : null
+            );
+            String winnerSide = validated.winnerSide();
+            String reason = validated.reason();
 
             boolean isRanked = "PVP".equalsIgnoreCase(matchType);
             int newEloA = eloA;
@@ -384,8 +393,38 @@ public class MatchService {
                     wsEvent.put("matchPublicId", publicId.toString());
                     wsEvent.put("roomCode", roomCode);
                     wsEvent.put("winnerSide", winnerSide);
+                    wsEvent.put("winner", winnerSide);
                     wsEvent.put("endReason", reason);
+                    wsEvent.put("winReason", reason);
                     wsEvent.put("isRanked", isRanked);
+
+                    // Extract final move from replayData if available to guarantee board sync
+                    if (request != null && request.replayData() != null) {
+                        try {
+                            com.fasterxml.jackson.databind.JsonNode root;
+                            if (request.replayData() instanceof String s) {
+                                root = mapper.readTree(s);
+                            } else {
+                                root = mapper.valueToTree(request.replayData());
+                            }
+                            com.fasterxml.jackson.databind.JsonNode turns = root.path("turns");
+                            if (!turns.isArray() || turns.isEmpty()) {
+                                turns = root.path("moves");
+                            }
+                            if (turns.isArray() && !turns.isEmpty()) {
+                                com.fasterxml.jackson.databind.JsonNode lastTurn = turns.get(turns.size() - 1);
+                                Map<String, Object> finalMoveMap = new HashMap<>();
+                                if (lastTurn.has("from")) {
+                                    finalMoveMap.put("from", mapper.convertValue(lastTurn.get("from"), Object.class));
+                                }
+                                if (lastTurn.has("to")) {
+                                    finalMoveMap.put("to", mapper.convertValue(lastTurn.get("to"), Object.class));
+                                }
+                                wsEvent.put("finalMove", finalMoveMap);
+                                wsEvent.put("lastMove", finalMoveMap);
+                            }
+                        } catch (Exception ignored) { }
+                    }
 
                     Map<String, Object> resultA = new HashMap<>();
                     resultA.put("userId", userAId);

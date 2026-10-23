@@ -134,7 +134,9 @@ public class ProfileService {
         List<EloHistoryItem> eloHistory = jdbc.query("""
                 SELECT id, opponent, opponent_elo, mode, user_won, elo_change, new_elo,
                        to_char(created_at, 'HH24:MI:SS') AS timestamp_str,
-                       COALESCE(replay_id, id::text) AS replay_id
+                       COALESCE(replay_id, id::text) AS replay_id,
+                       COALESCE(is_ranked, false) AS is_ranked,
+                       COALESCE(winner, '') AS winner
                 FROM user_matches
                 WHERE user_id = ?
                 ORDER BY created_at DESC, id DESC
@@ -148,7 +150,9 @@ public class ProfileService {
                 rs.getInt("elo_change"),
                 rs.getInt("new_elo"),
                 rs.getString("timestamp_str"),
-                rs.getString("replay_id")
+                rs.getString("replay_id"),
+                rs.getBoolean("is_ranked"),
+                rs.getString("winner")
         ), userId);
 
         return new ProfileResponse(

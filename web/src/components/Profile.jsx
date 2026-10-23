@@ -114,28 +114,9 @@ export default function Profile({
     const activeCacheKey = activeKey ? `ottv2_match_history_${activeKey}` : null;
 
     try {
-      const res = await fetch(buildApiUrl('/api/profile'), {
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
-        },
-      });
+      const res = await api('/api/profile');
       if (res && (res.status === 401 || res.status === 403)) {
-        try {
-          localStorage.removeItem('ottv2_last_active_user');
-          localStorage.removeItem('ottv2_match_history');
-        } catch {}
         setMatchHistory([]);
-        window.dispatchEvent(
-          new CustomEvent('ottv2_auth_expired', {
-            detail: {
-              status: res.status,
-              path: '/api/profile',
-              message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!',
-            },
-          })
-        );
         return;
       }
       if (res && res.ok) {
@@ -163,6 +144,12 @@ export default function Profile({
                 if (raw) cachedReplay = JSON.parse(raw);
               } catch {}
             }
+            if (!cachedReplay && item.replayId) {
+              try {
+                const raw = localStorage.getItem(`ottv2_replay_${item.replayId}`);
+                if (raw) cachedReplay = JSON.parse(raw);
+              } catch {}
+            }
             if (!cachedReplay && localMatch?.replayId) {
               try {
                 const raw = localStorage.getItem(`ottv2_replay_${localMatch.replayId}`);
@@ -170,21 +157,82 @@ export default function Profile({
               } catch {}
             }
 
+            // Nhận diện phe người chơi (A hay B) để cấu hình góc nhìn & tên đấu thủ chuẩn xác
+            const myName = user?.displayName || user?.username || 'Bạn';
+            const oppName = item.opponent || 'Đối thủ';
+            const myIdentifiers = [
+              user?.username,
+              user?.studentCode,
+              user?.displayName,
+              user?.email ? user.email.split('@')[0] : null,
+            ].filter(Boolean).map((s) => String(s).toLowerCase().trim());
+
+            let userSide = localMatch?.userSide || localMatch?.side;
+            if (!userSide && item.winner) {
+              const w = String(item.winner).toUpperCase().trim();
+              if (w === 'B') {
+                userSide = item.userWon ? 'B' : 'A';
+              } else if (w === 'A') {
+                userSide = item.userWon ? 'A' : 'B';
+              }
+            }
+            if (!userSide && cachedReplay) {
+              const bName = (cachedReplay.sideB?.botName || cachedReplay.sideB?.name || '').toLowerCase().trim();
+              const bUser = cachedReplay.sideB?.userId || cachedReplay.sideB?.ownerId;
+              const aName = (cachedReplay.sideA?.botName || cachedReplay.sideA?.name || '').toLowerCase().trim();
+              const aUser = cachedReplay.sideA?.userId || cachedReplay.sideA?.ownerId;
+
+              const isMatchB = (user?.id && bUser && String(user.id) === String(bUser)) ||
+                myIdentifiers.some((id) => id && bName && (bName === id || bName.includes(id)));
+              const isMatchA = (user?.id && aUser && String(user.id) === String(aUser)) ||
+                myIdentifiers.some((id) => id && aName && (aName === id || aName.includes(id)));
+
+              if (isMatchB && !isMatchA) {
+                userSide = 'B';
+              } else if (isMatchA && !isMatchB) {
+                userSide = 'A';
+              }
+            }
+
+            const isRanked = item.isRanked !== undefined
+              ? Boolean(item.isRanked)
+              : (localMatch?.isRanked !== undefined
+                  ? Boolean(localMatch.isRanked)
+                  : (item.change !== 0 && item.eloChange !== 0 && item.mode !== 'PRACTICE' && item.mode !== 'CASUAL'));
+
+            const sideA = cachedReplay?.sideA || localMatch?.sideA || (userSide === 'A' ? { botName: myName, userId: user?.id } : (userSide === 'B' ? { botName: oppName } : { botName: 'Đội Xanh' }));
+            const sideB = cachedReplay?.sideB || localMatch?.sideB || (userSide === 'B' ? { botName: myName, userId: user?.id } : (userSide === 'A' ? { botName: oppName } : { botName: 'Đội Đỏ' }));
+
+            let winnerSide = localMatch?.winnerSide || cachedReplay?.result?.winner || localMatch?.winner || (item.winner && item.winner !== 'USER' && item.winner !== 'OPPONENT' ? item.winner : null);
+            if (!winnerSide || winnerSide === 'USER' || winnerSide === 'OPPONENT') {
+              if (item.userWon === true) {
+                winnerSide = userSide || 'A';
+              } else if (item.userWon === false) {
+                winnerSide = userSide === 'A' ? 'B' : (userSide === 'B' ? 'A' : 'B');
+              } else {
+                winnerSide = 'DRAW';
+              }
+            }
+
             return {
               id: item.id,
               replayId: localMatch?.replayId || item.id,
               mode: (item.mode || 'PVP').toUpperCase(),
+              isRanked,
+              userSide,
+              side: userSide,
               opponent: item.opponent,
               opponentElo: item.opponentElo,
               userWon: item.userWon,
-              change: item.change ?? item.eloChange,
+              change: isRanked ? (item.change ?? item.eloChange) : 0,
               newElo: item.newElo,
               timestamp: item.timestamp,
               createdAt: item.createdAt || localMatch?.createdAt || (item.timestamp ? `1970-01-01T${item.timestamp}` : new Date().toISOString()),
               status: 'FINISHED',
-              sideA: localMatch?.sideA || { botName: user?.displayName || user?.username || 'Bạn' },
-              sideB: localMatch?.sideB || { botName: item.opponent },
-              winner: item.userWon ? 'USER' : 'OPPONENT',
+              sideA,
+              sideB,
+              winner: winnerSide,
+              winnerSide,
               replay: cachedReplay,
               replayData: cachedReplay,
             };
@@ -323,14 +371,17 @@ export default function Profile({
   const highestBotElo = userBots.length > 0 ? Math.max(...userBots.map((b) => b.elo || 1200)) : 1200;
   const activeLadderBot = userBots.find((b) => b.ladderEnabled) || null;
 
-  // 1. Thống Kê PvP Độc Lập
-  const localPvpMatches = (matchHistory || matches || []).filter(
-    (m) => (m.mode || 'PVP').toUpperCase() === 'PVP'
-  );
-  const pvpWins = userStats?.pvpWins ?? localPvpMatches.filter((m) => m.winner === 'USER' || m.winner === 'A' || m.userWon === true).length;
-  const pvpLosses = userStats?.pvpLosses ?? localPvpMatches.filter((m) => (m.winner !== 'USER' && m.winner !== 'A' && m.winner !== 'DRAW') || m.userWon === false).length;
-  const pvpDraws = userStats?.pvpDraws ?? localPvpMatches.filter((m) => m.winner === 'DRAW').length;
-  const pvpTotal = pvpWins + pvpLosses + pvpDraws;
+  // 1. Thống Kê PvP Rank Độc Lập (Chỉ gom các trận có isRanked === true vào công thức Tổng số trận = W + D + L)
+  const localPvpRankMatches = (matchHistory || matches || []).filter((m) => {
+    const isPvp = (m.mode || 'PVP').toUpperCase() === 'PVP' || (m.mode || '').toUpperCase() === 'PVP_QUICK';
+    if (!isPvp) return false;
+    if (m.isRanked !== undefined) return Boolean(m.isRanked);
+    return Boolean(m.change && m.change !== 0) && m.mode !== 'PRACTICE' && m.mode !== 'CASUAL';
+  });
+  const pvpWins = userStats?.pvpWins ?? localPvpRankMatches.filter((m) => m.userWon === true).length;
+  const pvpLosses = userStats?.pvpLosses ?? localPvpRankMatches.filter((m) => m.userWon === false && m.winner !== 'DRAW').length;
+  const pvpTotal = userStats?.pvpMatchesCount ?? (pvpWins + pvpLosses + localPvpRankMatches.filter((m) => m.winner === 'DRAW').length);
+  const pvpDraws = Math.max(0, pvpTotal - pvpWins - pvpLosses);
   const pvpWinRate = pvpTotal > 0 ? Math.round((pvpWins / pvpTotal) * 100) : 0;
   const pvpRank = user?.pvpRank || userStats?.pvpRank || user?.rank || null;
 
@@ -361,6 +412,7 @@ export default function Profile({
     .filter(
       (m) =>
         (m.mode || '').toUpperCase() === activeTab ||
+        (activeTab === 'PVP' && ((m.mode || '').toUpperCase() === 'PVP_QUICK' || (m.mode || '').toUpperCase() === 'CASUAL' || (m.mode || '').toUpperCase() === 'PRACTICE')) ||
         (activeTab === 'BOT' && (m.mode || '').toUpperCase() === 'LADDER')
     )
     .slice(0, 10);
@@ -521,25 +573,25 @@ export default function Profile({
         {activeTab === 'PVP' && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-zinc-800 text-left text-xs animate-fadeIn">
             <div className="bg-zinc-900 p-3 rounded-2xl border border-zinc-800">
-              <span className="text-zinc-500 block text-[11px]">Tổng số trận PvP</span>
+              <span className="text-zinc-500 block text-[11px]">Tổng số trận PvP Rank</span>
               <span className="font-bold text-white text-base font-mono tabular-nums">
                 {pvpTotal} trận
               </span>
             </div>
             <div className="bg-zinc-900 p-3 rounded-2xl border border-zinc-800">
-              <span className="text-zinc-500 block text-[11px]">Kết quả</span>
+              <span className="text-zinc-500 block text-[11px]">Kết quả PvP Rank</span>
               <span className="font-bold text-emerald-400 text-base font-mono tabular-nums">
                 {pvpWins}W / {pvpDraws}D / {pvpLosses}L
               </span>
             </div>
             <div className="bg-zinc-900 p-3 rounded-2xl border border-zinc-800">
-              <span className="text-zinc-500 block text-[11px]">Tỉ lệ thắng PvP</span>
+              <span className="text-zinc-500 block text-[11px]">Tỉ lệ thắng PvP Rank</span>
               <span className="font-bold text-white text-base font-mono tabular-nums">
                 {pvpWinRate}%
               </span>
             </div>
             <div className="bg-zinc-900 p-3 rounded-2xl border border-zinc-800">
-              <span className="text-zinc-500 block text-[11px]">Thứ hạng PvP</span>
+              <span className="text-zinc-500 block text-[11px]">Thứ hạng PvP Rank</span>
               <span className="font-bold text-blue-400 text-base font-mono tabular-nums">
                 Hạng #{pvpRank || '-'}
               </span>
@@ -812,7 +864,10 @@ export default function Profile({
                 const opponentName = item.opponent || item.sideB?.botName || 'Đối thủ';
                 const opponentElo = item.opponentElo || 1200;
                 const userWon = item.userWon ?? (item.winner === 'USER' || item.winner === 'A');
-                const change = item.change ?? item.eloChange ?? (userWon ? 16 : -16);
+                const isItemRanked = item.isRanked !== undefined
+                  ? Boolean(item.isRanked)
+                  : (item.change !== 0 && item.eloChange !== 0 && item.mode !== 'PRACTICE' && item.mode !== 'CASUAL');
+                const change = item.change ?? item.eloChange ?? (isItemRanked ? (userWon ? 16 : -16) : 0);
                 const itemNewElo = item.newElo ?? pvpElo;
                 const timestamp = item.timestamp || (item.createdAt ? new Date(item.createdAt).toLocaleTimeString() : '');
 
@@ -822,16 +877,28 @@ export default function Profile({
                       <span className={`w-2 h-2 rounded-full ${userWon ? 'bg-emerald-400' : 'bg-rose-400'}`} />
                       <span className="text-white font-bold">{opponentName}</span>
                       <span className="text-zinc-500 text-[11px]">({opponentElo} ELO)</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded font-bold border bg-blue-500/10 text-blue-400 border-blue-500/30">
-                        PvP
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded font-bold border ${
+                          isItemRanked
+                            ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+                            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                        }`}
+                      >
+                        {isItemRanked ? 'PvP Rank' : 'Giao Hữu'}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-3 font-mono">
-                        <span className={`font-bold tabular-nums ${userWon ? 'text-emerald-400' : 'text-rose-400'}`}>
-                          {change > 0 ? `+${change}` : `${change}`} ELO
-                        </span>
+                        {isItemRanked ? (
+                          <span className={`font-bold tabular-nums ${userWon ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {change > 0 ? `+${change}` : `${change}`} ELO
+                          </span>
+                        ) : (
+                          <span className="font-bold tabular-nums text-zinc-400">
+                            0 ELO
+                          </span>
+                        )}
                         <span className="text-zinc-400 tabular-nums">{itemNewElo} ELO</span>
                         {timestamp && (
                           <span className="text-zinc-600 text-[10px] hidden sm:inline">{timestamp}</span>

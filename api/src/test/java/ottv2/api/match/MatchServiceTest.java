@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import ottv2.api.match.MatchDtos.CreateMatchRequest;
 import org.junit.jupiter.api.Test;
@@ -14,8 +16,10 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
@@ -97,7 +101,7 @@ class MatchServiceTest {
                 .when(transaction).execute(any(TransactionCallback.class));
 
         // 1. Mock query match from matches table
-        java.util.Map<String, Object> matchRow = new java.util.HashMap<>();
+        Map<String, Object> matchRow = new java.util.HashMap<>();
         matchRow.put("id", 555L);
         matchRow.put("public_id", publicId);
         matchRow.put("match_type", "PVP");
@@ -109,17 +113,17 @@ class MatchServiceTest {
         matchRow.put("end_reason", null);
 
         when(jdbc.queryForList(contains("SELECT id, public_id, match_type"), any(Object[].class)))
-                .thenReturn(java.util.List.of(matchRow));
+                .thenReturn(List.of(matchRow));
 
         // 2. Mock query user A and user B current elo with FOR UPDATE
-        java.util.Map<String, Object> userARow = java.util.Map.of(
+        Map<String, Object> userARow = Map.of(
                 "id", 100L,
                 "display_name", "Player Blue",
                 "student_code", "B22DCCN100",
                 "email", "blue@ptit.edu.vn",
                 "pvp_elo", 1200
         );
-        java.util.Map<String, Object> userBRow = java.util.Map.of(
+        Map<String, Object> userBRow = Map.of(
                 "id", 200L,
                 "display_name", "Player Red",
                 "student_code", "B22DCCN200",
@@ -134,9 +138,20 @@ class MatchServiceTest {
 
         MatchService service = new MatchService(jdbc, transaction, new ObjectMapper());
 
-        // Player A finishes match declaring winner Side A
+        // Valid replay showing Team A reaching enemy base [0, 8]
+        Map<String, Object> validWinningReplay = Map.of(
+                "moves", List.of(
+                        Map.of(
+                                "team", "A",
+                                "from", List.of(1, 8),
+                                "to", List.of(0, 8)
+                        )
+                )
+        );
+
+        // Player A finishes match declaring winner Side A with legitimate moves
         var response = service.finishPvpMatch(100L, "123456",
-                new MatchDtos.FinishPvpMatchRequest("A", "TARGET_REACHED", java.util.Map.of("sample", "replay")));
+                new MatchDtos.FinishPvpMatchRequest("A", "TARGET_REACHED", validWinningReplay));
 
         assertEquals(publicId.toString(), response.matchPublicId());
         assertEquals("FINISHED", response.status());
@@ -153,9 +168,166 @@ class MatchServiceTest {
         verify(jdbc).update(contains("UPDATE matches"), eq("A"), eq("TARGET_REACHED"), eq(555L));
 
         // 3. Test security: third-party user cannot finalize other users' match
-        org.junit.jupiter.api.Assertions.assertThrows(
-                org.springframework.web.server.ResponseStatusException.class,
-                () -> service.finishPvpMatch(999L, "123456", new MatchDtos.FinishPvpMatchRequest("A", "TARGET_REACHED", null))
+        assertThrows(
+                ResponseStatusException.class,
+                () -> service.finishPvpMatch(999L, "123456", new MatchDtos.FinishPvpMatchRequest("A", "TARGET_REACHED", validWinningReplay))
         );
+    }
+
+    @Test
+    void finishPvpMatchRejectsCheatingClaimWhenReplayMismatches() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        TransactionTemplate transaction = mock(TransactionTemplate.class);
+        UUID publicId = UUID.randomUUID();
+        doAnswer(invocation -> invocation.<TransactionCallback<?>>getArgument(0)
+                .doInTransaction(mock(TransactionStatus.class)))
+                .when(transaction).execute(any(TransactionCallback.class));
+
+        Map<String, Object> matchRow = new java.util.HashMap<>();
+        matchRow.put("id", 555L);
+        matchRow.put("public_id", publicId);
+        matchRow.put("match_type", "PVP");
+        matchRow.put("status", "READY");
+        matchRow.put("user_a_id", 100L);
+        matchRow.put("user_b_id", 200L);
+        matchRow.put("room_code", "123456");
+
+        when(jdbc.queryForList(contains("SELECT id, public_id, match_type"), any(Object[].class)))
+                .thenReturn(List.of(matchRow));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(100L)))
+                .thenReturn(Map.of("id", 100L, "pvp_elo", 1200));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(200L)))
+                .thenReturn(Map.of("id", 200L, "pvp_elo", 1200));
+
+        MatchService service = new MatchService(jdbc, transaction, new ObjectMapper());
+
+        // Replay clearly shows Team B won by reaching base [8, 0]
+        Map<String, Object> replayShowingBWin = Map.of(
+                "moves", List.of(
+                        Map.of(
+                                "team", "B",
+                                "from", List.of(7, 0),
+                                "to", List.of(8, 0)
+                        )
+                )
+        );
+
+        // Cheating attempt: Player A claims winnerSide is "A", but replay proves B won
+        assertThrows(
+                ResponseStatusException.class,
+                () -> service.finishPvpMatch(100L, "123456",
+                        new MatchDtos.FinishPvpMatchRequest("A", "TARGET_REACHED", replayShowingBWin))
+        );
+    }
+
+    @Test
+    void finishPvpMatchAuthoritativelyAppliesResignation() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        TransactionTemplate transaction = mock(TransactionTemplate.class);
+        UUID publicId = UUID.randomUUID();
+        doAnswer(invocation -> invocation.<TransactionCallback<?>>getArgument(0)
+                .doInTransaction(mock(TransactionStatus.class)))
+                .when(transaction).execute(any(TransactionCallback.class));
+
+        Map<String, Object> matchRow = new java.util.HashMap<>();
+        matchRow.put("id", 555L);
+        matchRow.put("public_id", publicId);
+        matchRow.put("match_type", "PVP");
+        matchRow.put("status", "READY");
+        matchRow.put("user_a_id", 100L);
+        matchRow.put("user_b_id", 200L);
+        matchRow.put("room_code", "123456");
+
+        when(jdbc.queryForList(contains("SELECT id, public_id, match_type"), any(Object[].class)))
+                .thenReturn(List.of(matchRow));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(100L)))
+                .thenReturn(Map.of("id", 100L, "pvp_elo", 1200));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(200L)))
+                .thenReturn(Map.of("id", 200L, "pvp_elo", 1200));
+        when(jdbc.queryForObject(contains("SELECT created_month FROM matches"), any(RowMapper.class), eq(555L)))
+                .thenReturn(LocalDate.now());
+
+        MatchService service = new MatchService(jdbc, transaction, new ObjectMapper());
+
+        // Player A resigns -> Server MUST assign victory to Player B
+        var response = service.finishPvpMatch(100L, "123456",
+                new MatchDtos.FinishPvpMatchRequest("A", "RESIGN", null));
+
+        assertEquals("B", response.winnerSide(), "Server-Authoritative: Resigning player A cannot win, B wins");
+        assertEquals(-16, response.eloChange(), "Resigning player A loses -16 Elo");
+        assertEquals(1184, response.newElo(), "Resigning player A new Elo is 1184");
+    }
+
+    @Test
+    void finishPvpMatchRejectsWinClaimWithoutProof() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        TransactionTemplate transaction = mock(TransactionTemplate.class);
+        UUID publicId = UUID.randomUUID();
+        doAnswer(invocation -> invocation.<TransactionCallback<?>>getArgument(0)
+                .doInTransaction(mock(TransactionStatus.class)))
+                .when(transaction).execute(any(TransactionCallback.class));
+
+        Map<String, Object> matchRow = new java.util.HashMap<>();
+        matchRow.put("id", 555L);
+        matchRow.put("public_id", publicId);
+        matchRow.put("match_type", "PVP");
+        matchRow.put("status", "READY");
+        matchRow.put("user_a_id", 100L);
+        matchRow.put("user_b_id", 200L);
+        matchRow.put("room_code", "123456");
+
+        when(jdbc.queryForList(contains("SELECT id, public_id, match_type"), any(Object[].class)))
+                .thenReturn(List.of(matchRow));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(100L)))
+                .thenReturn(Map.of("id", 100L, "pvp_elo", 1200));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(200L)))
+                .thenReturn(Map.of("id", 200L, "pvp_elo", 1200));
+
+        MatchService service = new MatchService(jdbc, transaction, new ObjectMapper());
+
+        // Malicious client claims winner A with reason FINISHED and no moves
+        assertThrows(
+                ResponseStatusException.class,
+                () -> service.finishPvpMatch(100L, "123456",
+                        new MatchDtos.FinishPvpMatchRequest("A", "FINISHED", null))
+        );
+    }
+
+    @Test
+    void finishPvpMatchAuthoritativelyAppliesOpponentLeft() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        TransactionTemplate transaction = mock(TransactionTemplate.class);
+        UUID publicId = UUID.randomUUID();
+        doAnswer(invocation -> invocation.<TransactionCallback<?>>getArgument(0)
+                .doInTransaction(mock(TransactionStatus.class)))
+                .when(transaction).execute(any(TransactionCallback.class));
+
+        Map<String, Object> matchRow = new java.util.HashMap<>();
+        matchRow.put("id", 555L);
+        matchRow.put("public_id", publicId);
+        matchRow.put("match_type", "PVP");
+        matchRow.put("status", "READY");
+        matchRow.put("user_a_id", 100L);
+        matchRow.put("user_b_id", 200L);
+        matchRow.put("room_code", "123456");
+
+        when(jdbc.queryForList(contains("SELECT id, public_id, match_type"), any(Object[].class)))
+                .thenReturn(List.of(matchRow));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(100L)))
+                .thenReturn(Map.of("id", 100L, "pvp_elo", 1200));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(200L)))
+                .thenReturn(Map.of("id", 200L, "pvp_elo", 1200));
+        when(jdbc.queryForObject(contains("SELECT created_month FROM matches"), any(RowMapper.class), eq(555L)))
+                .thenReturn(LocalDate.now());
+
+        MatchService service = new MatchService(jdbc, transaction, new ObjectMapper());
+
+        // Player A claims win because opponent B left
+        var response = service.finishPvpMatch(100L, "123456",
+                new MatchDtos.FinishPvpMatchRequest("A", "OPPONENT_LEFT", null));
+
+        assertEquals("A", response.winnerSide(), "Player A wins due to opponent leaving");
+        assertEquals(16, response.eloChange(), "Winner A gains +16 Elo");
+        assertEquals(1216, response.newElo(), "Winner A new Elo is 1216");
     }
 }

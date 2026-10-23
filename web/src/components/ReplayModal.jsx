@@ -106,36 +106,102 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
 
   // Nhận diện vai trò người xem (Đội A hay Đội B) để khởi tạo góc nhìn bàn cờ
   const initialFlipped = useMemo(() => {
+    // 1. Chỉ định rõ ràng góc nhìn từ match perspective (nếu có)
     if (match?.viewerPerspective === 'RED' || match?.perspective === 'RED' || match?.perspective === 'B') {
       return true;
     }
     if (match?.viewerPerspective === 'BLUE' || match?.perspective === 'BLUE' || match?.perspective === 'A') {
       return false;
     }
+
+    // 2. Ưu tiên kiểm tra activeReplay (Nguồn sự thật thực tế của trận đấu) với người dùng hiện tại
+    try {
+      const uStr = localStorage.getItem('ottv2_last_active_user');
+      if (uStr) {
+        const u = JSON.parse(uStr);
+        const myIdentifiers = [
+          u.username,
+          u.studentCode,
+          u.displayName,
+          u.email ? u.email.split('@')[0] : null,
+        ].filter(Boolean).map((s) => String(s).toLowerCase().trim());
+        const myId = u.id ? String(u.id) : null;
+
+        if (activeReplay) {
+          // So khớp Side B (Đội Đỏ) trong Replay
+          const repSideBName = (activeReplay.sideB?.botName || activeReplay.sideB?.name || activeReplay.sideB?.username || '')
+            .toLowerCase()
+            .trim();
+          const repBUserId = activeReplay.sideB?.userId || activeReplay.sideB?.ownerId || activeReplay.sideB?.id;
+
+          const isRepSideB =
+            (myId && repBUserId && String(myId) === String(repBUserId)) ||
+            myIdentifiers.some((ident) => ident && repSideBName && (repSideBName === ident || repSideBName.includes(ident)));
+
+          if (isRepSideB) {
+            return true;
+          }
+
+          // So khớp Side A (Đội Xanh) trong Replay
+          const repSideAName = (activeReplay.sideA?.botName || activeReplay.sideA?.name || activeReplay.sideA?.username || '')
+            .toLowerCase()
+            .trim();
+          const repAUserId = activeReplay.sideA?.userId || activeReplay.sideA?.ownerId || activeReplay.sideA?.id;
+
+          const isRepSideA =
+            (myId && repAUserId && String(myId) === String(repAUserId)) ||
+            myIdentifiers.some((ident) => ident && repSideAName && (repSideAName === ident || repSideAName.includes(ident)));
+
+          if (isRepSideA) {
+            return false;
+          }
+        }
+
+        // 3. Fallback: Nếu Replay chưa tải xong hoặc không ghi nhận đấu thủ, kiểm tra match object
+        if (match?.userSide === 'B' || match?.side === 'B') {
+          return true;
+        }
+        if (match?.userSide === 'A' || match?.side === 'A') {
+          return false;
+        }
+
+        const sideBName = (match?.sideB?.botName || match?.sideB?.name || match?.opponent || '')
+          .toLowerCase()
+          .trim();
+        const bUserId = match?.sideB?.userId || match?.sideB?.ownerId;
+
+        const isSideB =
+          (myId && bUserId && String(myId) === String(bUserId)) ||
+          myIdentifiers.some((ident) => ident && sideBName && (sideBName === ident || sideBName.includes(ident)));
+
+        if (isSideB) {
+          return true;
+        }
+
+        const sideAName = (match?.sideA?.botName || match?.sideA?.name || '')
+          .toLowerCase()
+          .trim();
+        const aUserId = match?.sideA?.userId || match?.sideA?.ownerId;
+
+        const isSideA =
+          (myId && aUserId && String(myId) === String(aUserId)) ||
+          myIdentifiers.some((ident) => ident && sideAName && (sideAName === ident || sideAName.includes(ident)));
+
+        if (isSideA) {
+          return false;
+        }
+      }
+    } catch {}
+
     if (match?.userSide === 'B' || match?.side === 'B') {
       return true;
     }
     if (match?.userSide === 'A' || match?.side === 'A') {
       return false;
     }
-    try {
-      const uStr = localStorage.getItem('ottv2_current_user');
-      if (uStr) {
-        const u = JSON.parse(uStr);
-        const myName = u.username || u.studentCode || (u.email ? u.email.split('@')[0] : null);
-        const myId = u.id;
-        const bUser =
-          match?.sideB?.username ||
-          match?.sideB?.studentCode ||
-          (match?.sideB?.email ? match?.sideB?.email.split('@')[0] : null);
-        const bUserId = match?.sideB?.userId || match?.sideB?.ownerId;
-        if ((myName && bUser && myName === bUser) || (myId && bUserId && String(myId) === String(bUserId))) {
-          return true;
-        }
-      }
-    } catch {}
+
     return false;
-  }, [match]);
+  }, [match, activeReplay]);
 
   const [isFlipped, setIsFlipped] = useState(initialFlipped);
 
@@ -181,8 +247,8 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
       const w = String(match.winnerSide).toUpperCase();
       if (w === 'A' || w === 'B' || w === 'DRAW') return w;
     }
-    if (match?.userWon === true) return 'A';
-    if (match?.userWon === false) return 'B';
+    if (match?.userWon === true) return (match?.userSide === 'B' || match?.side === 'B') ? 'B' : 'A';
+    if (match?.userWon === false) return (match?.userSide === 'B' || match?.side === 'B') ? 'A' : 'B';
     if (match?.winnerId) {
       if (match.sideA?.id && match.winnerId === match.sideA.id) return 'A';
       if (match.sideB?.id && match.winnerId === match.sideB.id) return 'B';
@@ -201,19 +267,21 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
   }, [activeReplay, match]);
 
   const sideAName =
-    match?.sideA?.botName ||
-    match?.sideA?.name ||
     activeReplay?.sideA?.botName ||
     activeReplay?.sideA?.name ||
-    (match?.mode === 'PVP' ? 'Người chơi 1 (A)' : 'Đội Xanh (A)');
+    (match?.sideA?.botName && match?.sideA?.botName !== 'Bạn' ? match.sideA.botName : null) ||
+    match?.sideA?.name ||
+    match?.sideA?.botName ||
+    'Đội Xanh (A)';
 
   const sideBName =
-    match?.sideB?.botName ||
-    match?.sideB?.name ||
     activeReplay?.sideB?.botName ||
     activeReplay?.sideB?.name ||
+    (match?.sideB?.botName && match?.sideB?.botName !== 'Đối thủ' ? match.sideB.botName : null) ||
+    match?.sideB?.name ||
+    match?.sideB?.botName ||
     match?.opponent ||
-    (match?.mode === 'PVP' ? 'Người chơi 2 (B)' : 'Đội Đỏ (B)');
+    'Đội Đỏ (B)';
 
   const sideAElo = match?.sideA?.elo ?? match?.userElo ?? 1200;
   const sideBElo = match?.sideB?.elo ?? match?.opponentElo ?? 1200;
@@ -224,14 +292,30 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
     activeReplay?.matchType === 'TOURNAMENT' ||
     activeReplay?.mode === 'TOURNAMENT';
 
-  const isRankedMatch =
-    match?.isRanked !== false &&
-    activeReplay?.isRanked !== false &&
-    !isTournament;
+  const isPvpMatch =
+    match?.mode === 'PVP' ||
+    match?.mode === 'PVP_QUICK' ||
+    match?.mode === 'PRACTICE' ||
+    activeReplay?.mode === 'PVP' ||
+    activeReplay?.mode === 'PVP_QUICK' ||
+    Boolean(match?.opponentType === 'HUMAN' || match?.opponent);
 
-  // Biến động ELO chuẩn cho Summary Modal (K=32 Zero-Sum)
+  // Trận Giao Hữu (Casual / 0 ELO): khi isRanked === false, hoặc delta ELO === 0, hoặc mode là PRACTICE / CASUAL
+  const isCasualMatch =
+    !isTournament &&
+    (match?.isRanked === false ||
+      activeReplay?.isRanked === false ||
+      match?.mode === 'PRACTICE' ||
+      activeReplay?.mode === 'PRACTICE' ||
+      (match?.change === 0 && match?.eloChange === 0));
+
+  const isRankedPvP = isPvpMatch && !isCasualMatch && !isTournament;
+  const isRankedBot = !isPvpMatch && !isTournament && (match?.isRanked !== false && activeReplay?.isRanked !== false);
+  const isRankedMatch = isRankedPvP || isRankedBot;
+
+  // Biến động ELO chuẩn cho Summary Modal
   const { deltaEloA, deltaEloB } = useMemo(() => {
-    if (!isRankedMatch) {
+    if (isCasualMatch || !isRankedMatch) {
       return { deltaEloA: 0, deltaEloB: 0 };
     }
     if (match?.sideA?.eloChange !== undefined && match?.sideB?.eloChange !== undefined) {
@@ -239,15 +323,28 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
     }
     if (match?.change !== undefined && match?.change !== 0) {
       const change = match.change;
-      return { deltaEloA: change, deltaEloB: -change };
+      const isViewerB = match?.userSide === 'B';
+      return isViewerB
+        ? { deltaEloA: -change, deltaEloB: change }
+        : { deltaEloA: change, deltaEloB: -change };
     }
-    const expectedA = 1 / (1 + Math.pow(10, (sideBElo - sideAElo) / 400));
-    let scoreA = 0.5;
-    if (winnerCode === 'A') scoreA = 1.0;
-    else if (winnerCode === 'B') scoreA = 0.0;
-    const changeA = Math.round(32 * (scoreA - expectedA));
-    return { deltaEloA: changeA, deltaEloB: -changeA };
-  }, [isRankedMatch, match, sideAElo, sideBElo, winnerCode]);
+    if (match?.eloChange !== undefined && match?.eloChange !== 0) {
+      const change = match.eloChange;
+      const isViewerB = match?.userSide === 'B';
+      return isViewerB
+        ? { deltaEloA: -change, deltaEloB: change }
+        : { deltaEloA: change, deltaEloB: -change };
+    }
+    if (isRankedBot) {
+      const expectedA = 1 / (1 + Math.pow(10, (sideBElo - sideAElo) / 400));
+      let scoreA = 0.5;
+      if (winnerCode === 'A') scoreA = 1.0;
+      else if (winnerCode === 'B') scoreA = 0.0;
+      const changeA = Math.round(32 * (scoreA - expectedA));
+      return { deltaEloA: changeA, deltaEloB: -changeA };
+    }
+    return { deltaEloA: 0, deltaEloB: 0 };
+  }, [isCasualMatch, isRankedMatch, isRankedBot, match, sideAElo, sideBElo, winnerCode]);
 
   const getReasonLabel = (reason) => {
     switch (reason) {
@@ -271,7 +368,8 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
         return 'Bị Xử Thua (Truất Quyền)';
       case 'RESIGN':
       case 'SURRENDER':
-        return 'Đối Thủ Đầu Hàng';
+      case 'OPPONENT_LEFT':
+        return 'Đối Thủ Đầu Hàng / Bỏ Cuộc';
       case 'DRAW':
         return 'Hòa Trận';
       default:
@@ -1048,8 +1146,55 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
                   <span className="font-bold text-rose-400">{teamBPieces.length}/9 quân</span>
                 </div>
 
-                {/* Khối Thống Kê Biến Động ELO Ranked Bot hoặc Thông Báo Giải Đấu */}
-                {isRankedMatch ? (
+                {/* Khối Thống Kê Biến Động ELO: Phân tách rõ ràng PvP Giao Hữu, PvP Ranked, Ranked Bot & Giải Đấu */}
+                {isCasualMatch ? (
+                  <div className="pt-2 border-t border-zinc-800">
+                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-1">
+                      <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-400">
+                        <span>🤝</span>
+                        <span>Chế độ: PvP Giao Hữu (Không xếp hạng / 0 ELO)</span>
+                      </div>
+                      <p className="text-[10px] text-zinc-400">
+                        Trận đấu giao lưu rèn luyện kỹ năng, không tính điểm ELO xếp hạng.
+                      </p>
+                    </div>
+                  </div>
+                ) : isRankedPvP ? (
+                  <div className="pt-2 border-t border-zinc-800 space-y-2">
+                    <div className="flex items-center justify-between text-[11px] font-bold">
+                      <span className="text-zinc-400">⚡ Biến động ELO PvP Xếp Hạng:</span>
+                      <span className="text-cyan-400 font-mono">Ranked PvP</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="p-2 rounded-xl bg-blue-950/50 border border-blue-500/40 text-left space-y-0.5">
+                        <span className="text-[10px] text-blue-300 font-bold block truncate">{sideAName}</span>
+                        <div className="flex items-center gap-1.5 font-mono">
+                          <span className="text-white font-bold">{sideAElo}</span>
+                          <span className={`font-black ${deltaEloA >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {deltaEloA >= 0 ? `+${deltaEloA}` : deltaEloA}
+                          </span>
+                          <span className="text-zinc-400 text-[10px]">→ {sideAElo + deltaEloA}</span>
+                        </div>
+                      </div>
+
+                      <div className="p-2 rounded-xl bg-rose-950/50 border border-rose-500/40 text-left space-y-0.5">
+                        <span className="text-[10px] text-rose-300 font-bold block truncate">{sideBName}</span>
+                        <div className="flex items-center gap-1.5 font-mono">
+                          <span className="text-white font-bold">{sideBElo}</span>
+                          <span className={`font-black ${deltaEloB >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {deltaEloB >= 0 ? `+${deltaEloB}` : deltaEloB}
+                          </span>
+                          <span className="text-zinc-400 text-[10px]">→ {sideBElo + deltaEloB}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] text-zinc-500 italic text-center">
+                      * Điểm số ELO PvP được ghi nhận chính thức vào hệ thống xếp hạng người chơi.
+                    </p>
+                  </div>
+                ) : isRankedBot ? (
                   <div className="pt-2 border-t border-zinc-800 space-y-2">
                     <div className="flex items-center justify-between text-[11px] font-bold">
                       <span className="text-zinc-400">⚡ Biến động ELO Ranked Bot:</span>

@@ -159,10 +159,13 @@ export async function api(path, options = {}) {
     // Valid response confirms backend 8080 is online
     window.dispatchEvent(new CustomEvent('ottv2_backend_offline', { detail: { offline: false } }));
 
-    // Global 401 / 403 Handler (Xử lý tập trung Zombie Session & Hết hạn phiên)
-    if (response.status === 401 || response.status === 403) {
-      const isAuthPath = path.includes('/api/auth/login') || path.includes('/api/auth/register') || path.includes('/api/auth/me');
-      if (!isAuthPath) {
+    // Global 401 Handler (Xử lý tập trung Zombie Session & Hết hạn phiên)
+    // Lưu ý: 403 (Forbidden) có thể là lỗi logic nghiệp vụ (anti-cheat trận đấu, quyền hạn phòng)
+    // nên KHÔNG ĐƯỢC force logout làm mất phiên đăng nhập hợp lệ của người dùng!
+    if (response.status === 401 || (response.status === 403 && (path.includes('/api/auth/me') || path.includes('/api/profile')))) {
+      const isAuthPath = path.includes('/api/auth/login') || path.includes('/api/auth/register');
+      const isMatchOrRoomPath = path.includes('/api/matches/') || path.includes('/api/room/');
+      if (!isAuthPath && !isMatchOrRoomPath) {
         try {
           localStorage.removeItem('ottv2_last_active_user');
           localStorage.removeItem('ottv2_auth_token');

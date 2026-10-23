@@ -1171,23 +1171,35 @@ function AppContent() {
       });
     }
 
+    const mySideCode = mySide || (isHost ? 'A' : 'B');
+    const myName = user?.displayName || user?.username || 'Bạn';
+    const oppName = opponentName || 'Đối thủ';
+    const defaultSideA = mySideCode === 'A' ? { botName: myName, userId: user?.id } : { botName: oppName };
+    const defaultSideB = mySideCode === 'B' ? { botName: myName, userId: user?.id } : { botName: oppName };
+
+    const sideA = finalReplay?.sideA || defaultSideA;
+    const sideB = finalReplay?.sideB || defaultSideB;
+
     const matchRecord = {
       id: finalMatchId,
       replayId: finalMatchId,
       opponent: opponentName,
       opponentElo: targetRating,
       opponentType,
-      sideA: finalReplay?.sideA || { botName: `${user?.displayName || 'Bạn'}` },
-      sideB: finalReplay?.sideB || { botName: opponentName || 'Đối thủ' },
+      userSide: mySideCode,
+      side: mySideCode,
+      sideA,
+      sideB,
       status: 'FINISHED',
-      winner: winner === 'A' ? 'USER' : winner === 'B' ? 'OPPONENT' : 'DRAW',
+      winner: winnerSide,
+      winnerSide,
       userWon,
-      change: eloChange,
-      newElo: updatedElo,
+      change: isRankedMatch ? (matchResult.change ?? matchResult.eloChange ?? 0) : 0,
+      newElo: matchResult.newElo ?? pvpElo,
       reason: winReason,
       isRanked: isRankedMatch,
       resultVerified: true,
-      mode: isSparring ? 'PRACTICE' : 'PVP',
+      mode: isSparring ? 'PRACTICE' : (isRankedMatch ? 'PVP' : 'CASUAL'),
       createdAt: new Date().toISOString(),
       playedAt: new Date().toISOString(),
       timestamp: new Date().toLocaleTimeString(),

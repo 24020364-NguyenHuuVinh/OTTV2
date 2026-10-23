@@ -98,4 +98,14 @@ public class RoomSession {
     public boolean isFull() {
         return guestName != null && !guestName.isBlank();
     }
+
+    private volatile String playerLeft;
+
+    public String getPlayerLeft() {
+        return playerLeft;
+    }
+
+    public void setPlayerLeft(String playerLeft) {
+        this.playerLeft = playerLeft;
+    }
 }

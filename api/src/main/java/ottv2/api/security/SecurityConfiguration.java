@@ -38,7 +38,7 @@ public class SecurityConfiguration {
             TokenSessionService tokenSessionService
     ) throws Exception {
         var csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
-        csrfTokenRepository.setCookieCustomizer(cookie -> cookie.sameSite("None").secure(true));
+        csrfTokenRepository.setCookieCustomizer(cookie -> cookie.sameSite("Lax"));
 
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
