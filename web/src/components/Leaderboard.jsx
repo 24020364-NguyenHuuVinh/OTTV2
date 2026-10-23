@@ -1,19 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { isOpponentUnlocked } from '../utils/gameRules.js';
-import { SPARRING_MACHINES } from '../utils/sparringAi.js';
 import { buildApiUrl } from '../utils/api.js';
 import BotDetailModal from './BotDetailModal.jsx';
 import MatchmakingModal from './MatchmakingModal.jsx';
-
-const MOCK_BOTS = [
-  { level: 1, name: 'DeepRPS-Grandmaster', code: 'SYSTEM-01', botName: 'DeepLearning Engine', elo: 2450, winRate: 92, matches: 540, avatarSeed: 'DeepRPS', playstyle: '🎯 Săn Ô Đích Aggressive & Ép Góc' },
-  { level: 2, name: 'Minimax-AlphaBeta', code: 'SYSTEM-02', botName: 'C++ Tree Search', elo: 2310, winRate: 88, matches: 480, avatarSeed: 'Minimax', playstyle: '⚡ Tính toán vét cạn 6 nước' },
-  { level: 3, name: 'HeuristicHunter', code: 'SYSTEM-03', botName: 'Java Fast Bot', elo: 2150, winRate: 81, matches: 390, avatarSeed: 'Hunter', playstyle: '⚔️ Săn lùng diệt quân chủ lực' },
-  { level: 4, name: 'GreedyTargetBot', code: 'SYSTEM-04', botName: 'Python Direct Route', elo: 1850, winRate: 72, matches: 310, avatarSeed: 'Greedy', playstyle: '🚀 Lao thẳng tới ô đích I1/A9' },
-  { level: 5, name: 'TacticalGuardBot', code: 'SYSTEM-05', botName: 'Zone Defender', elo: 1550, winRate: 60, matches: 250, avatarSeed: 'Guard', playstyle: '🛡️ Phòng ngự chặt phản công nhanh' },
-  { level: 6, name: 'PawnAdvancerBot', code: 'SYSTEM-06', botName: 'Step by Step AI', elo: 1350, winRate: 52, matches: 220, avatarSeed: 'Pawn', playstyle: '♟️ Dâng đều đội hình 3 hàng' },
-  { level: 7, name: 'RandomDefenseBot', code: 'SYSTEM-07', botName: 'Baseline Test Bot', elo: 1180, winRate: 45, matches: 200, avatarSeed: 'Baseline', playstyle: '🎲 Di chuyển ngẫu nhiên cơ bản' },
-];
 
 export default function Leaderboard({
   onChallenge,
@@ -369,35 +358,7 @@ export default function Leaderboard({
     dedupedRealUsers.push(u);
   }
 
-  // 4. Chuẩn hóa mảng SPARRING_MACHINES (Đảm bảo cờ isMachine: true, định danh duy nhất)
-  const mappedSparringMachines = SPARRING_MACHINES.map((m, idx) => ({
-    id: `sys_machine_${m.level || idx + 1}`,
-    level: m.level || idx + 1,
-    username: `machine_${m.level || idx + 1}`,
-    displayName: m.name,
-    name: m.name,
-    code: m.code,
-    isMachine: true, // CỜ ĐỊNH DANH MÁY LUYỆN TẬP
-    pvpElo: m.elo,
-    botElo: m.elo,
-    elo: m.elo,
-    description: m.description || m.algorithm || 'Sparring AI',
-    winRate: m.winRate,
-    matchesCount: m.matches || 0,
-    matches: m.matches || 0,
-    wins: Math.round(((m.matches || 0) * (m.winRate || 50)) / 100),
-    losses: Math.round(((m.matches || 0) * (100 - (m.winRate || 50))) / 100),
-    draws: 0,
-    distinctOpponents: 10,
-    provisional: false, // Sparring AI là bot tiêu chuẩn ổn định
-    botsCount: 0,
-    avatarSeed: m.avatarSeed,
-    isOnline: true, // 12 Máy luyện tập luôn online
-    type: 'BOT',
-    isSparring: true,
-  }));
-
-  // 5. Danh sách BXH Bot từ Database (Per-Bot Rating)
+  // 4. Danh sách BXH Bot từ Database (Per-Bot Rating)
   const mappedLadderBots = dbLadderBots.map((b) => {
     const isMine = Boolean(currentUser && (
       (b.ownerId && currentUser.id && String(b.ownerId) === String(currentUser.id)) ||
@@ -440,40 +401,7 @@ export default function Leaderboard({
     };
   });
 
-  // 6. Danh sách BXH Bot bổ sung (Mock Bots)
-  const mappedMockBots = MOCK_BOTS.map((b, idx) => ({
-    id: `sys_bot_${idx + 1}`,
-    level: b.level || idx + 1,
-    username: `bot_${idx + 1}`,
-    displayName: b.name,
-    botName: b.name,
-    name: b.name,
-    ownerDisplayName: 'Hệ thống',
-    language: 'PYTHON',
-    code: b.code,
-    isMachine: true,
-    isBotEntity: true,
-    pvpElo: b.elo,
-    botElo: b.elo,
-    elo: b.elo,
-    description: b.playstyle || b.botName || 'Bot Engine',
-    winRate: b.winRate,
-    matchesCount: b.matches || 0,
-    matches: b.matches || 0,
-    wins: Math.round(((b.matches || 0) * (b.winRate || 50)) / 100),
-    losses: Math.round(((b.matches || 0) * (100 - (b.winRate || 50))) / 100),
-    draws: 0,
-    distinctOpponents: 10,
-    isProvisional: false,
-    provisional: false,
-    botsCount: 0,
-    avatarSeed: b.avatarSeed,
-    isOnline: true,
-    type: 'BOT',
-    isSparring: false,
-  }));
-
-  // 7. Phân tách dữ liệu theo Tab:
+  // 5. Phân tách dữ liệu theo Tab:
   // - Tab PvP Rating: CHỈ lấy danh sách người chơi thật từ Database.
   // - Tab Bot Rating: Hoàn toàn xếp hạng theo thực thể Bot độc lập.
   //   Quy tắc:
@@ -564,8 +492,6 @@ export default function Leaderboard({
     const allCandidateBots = [
       ...mappedLadderBots,
       ...myExtraBots,
-      ...mappedSparringMachines,
-      ...mappedMockBots,
     ];
 
     // Lọc bot chính thức: đã hoàn tất >= 10 trận Ranked VÀ gặp >= 5 đối thủ
