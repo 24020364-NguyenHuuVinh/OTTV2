@@ -898,6 +898,51 @@ function AppContent() {
 
     if (targetId) {
       try {
+        let replayMatch = match;
+        if (isAuthoritativeBotMatch) {
+          try {
+            const matchResponse = await api(`/api/matches/${targetId}`);
+            if (matchResponse?.ok) {
+              const matchDetails = await matchResponse.json();
+              if (matchDetails?.sideA && matchDetails?.sideB) {
+                const ownedBotIds = new Set((bots || []).map((bot) => String(bot.id)));
+                const viewerId = user?.id != null ? String(user.id) : null;
+                const sideAOwnerId = matchDetails.sideA.ownerId != null ? String(matchDetails.sideA.ownerId) : null;
+                const sideBOwnerId = matchDetails.sideB.ownerId != null ? String(matchDetails.sideB.ownerId) : null;
+                const viewerSide = (viewerId && sideAOwnerId === viewerId) || ownedBotIds.has(String(matchDetails.sideA.botId))
+                  ? 'A'
+                  : ((viewerId && sideBOwnerId === viewerId) || ownedBotIds.has(String(matchDetails.sideB.botId)) ? 'B' : null);
+                const sideAEloBefore = matchDetails.sideA.eloBefore ?? matchDetails.sideA.elo;
+                const sideBEloBefore = matchDetails.sideB.eloBefore ?? matchDetails.sideB.elo;
+                const sideAEloChange = Number.isFinite(sideAEloBefore) && Number.isFinite(matchDetails.sideA.eloAfter)
+                  ? matchDetails.sideA.eloAfter - sideAEloBefore
+                  : undefined;
+                const sideBEloChange = Number.isFinite(sideBEloBefore) && Number.isFinite(matchDetails.sideB.eloAfter)
+                  ? matchDetails.sideB.eloAfter - sideBEloBefore
+                  : undefined;
+                replayMatch = {
+                  ...match,
+                  matchPublicId: targetId,
+                  sideA: {
+                    ...matchDetails.sideA,
+                    elo: sideAEloBefore,
+                    eloChange: sideAEloChange,
+                  },
+                  sideB: {
+                    ...matchDetails.sideB,
+                    elo: sideBEloBefore,
+                    eloChange: sideBEloChange,
+                  },
+                  userSide: viewerSide || match?.userSide,
+                  viewerPerspective: viewerSide === 'B' ? 'RED' : (viewerSide === 'A' ? 'BLUE' : match?.viewerPerspective),
+                };
+              }
+            }
+          } catch (metadataError) {
+            console.warn('Không tải được thông tin bot/ELO của replay:', metadataError);
+          }
+        }
+
         const response = await api(`/api/matches/${targetId}/replay`);
         if (response && response.ok) {
           const buffer = await response.arrayBuffer();
@@ -942,7 +987,7 @@ function AppContent() {
               (parsed.moves && parsed.moves.length > 0) ||
               (parsed.movesHistory && parsed.movesHistory.length > 0))
           ) {
-            setSelectedMatch(match);
+            setSelectedMatch(replayMatch);
             setReplayData(parsed);
             return;
           }

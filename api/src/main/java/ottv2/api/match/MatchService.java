@@ -34,9 +34,11 @@ public class MatchService {
             SELECT m.public_id, m.status, m.seed, m.winner_side, m.end_reason, m.total_turns,
                    m.queued_at, m.finished_at, m.created_month,
                    a.bot_id AS a_bot_id, ba.name AS a_bot_name, a.submission_id AS a_submission_id, a.fault AS a_fault,
-                   a.source_sha256 AS a_sha, a.version_no AS a_ver,
+                   a.source_sha256 AS a_sha, a.version_no AS a_ver, ba.owner_id AS a_owner_id,
+                   a.elo_before AS a_elo_before, a.elo_after AS a_elo_after,
                    b.bot_id AS b_bot_id, bb.name AS b_bot_name, b.submission_id AS b_submission_id, b.fault AS b_fault,
-                   b.source_sha256 AS b_sha, b.version_no AS b_ver
+                   b.source_sha256 AS b_sha, b.version_no AS b_ver, bb.owner_id AS b_owner_id,
+                   b.elo_before AS b_elo_before, b.elo_after AS b_elo_after
             FROM matches m
             JOIN match_participants a ON a.match_id=m.id AND a.created_month=m.created_month AND a.side='A'
             JOIN bots ba ON ba.id=a.bot_id
@@ -541,9 +543,11 @@ public class MatchService {
                 rs.getString("winner_side"), rs.getString("end_reason"), (Integer) rs.getObject("total_turns"),
                 rs.getTimestamp("queued_at").toInstant(), finished == null ? null : finished.toInstant(),
                 new Participant(rs.getLong("a_bot_id"), rs.getString("a_bot_name"), rs.getLong("a_submission_id"), rs.getString("a_fault"),
-                        rs.getString("a_sha"), (Integer) rs.getObject("a_ver")),
+                        rs.getString("a_sha"), (Integer) rs.getObject("a_ver"), rs.getLong("a_owner_id"),
+                        (Integer) rs.getObject("a_elo_before"), (Integer) rs.getObject("a_elo_after")),
                 new Participant(rs.getLong("b_bot_id"), rs.getString("b_bot_name"), rs.getLong("b_submission_id"), rs.getString("b_fault"),
-                        rs.getString("b_sha"), (Integer) rs.getObject("b_ver")));
+                        rs.getString("b_sha"), (Integer) rs.getObject("b_ver"), rs.getLong("b_owner_id"),
+                        (Integer) rs.getObject("b_elo_before"), (Integer) rs.getObject("b_elo_after")));
     }
 
     private String writeJson(Object value) {

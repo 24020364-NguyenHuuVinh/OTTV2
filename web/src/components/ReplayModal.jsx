@@ -269,6 +269,7 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
   const sideAName =
     activeReplay?.sideA?.botName ||
     activeReplay?.sideA?.name ||
+    activeReplay?.teams?.A ||
     (match?.sideA?.botName && match?.sideA?.botName !== 'Bạn' ? match.sideA.botName : null) ||
     match?.sideA?.name ||
     match?.sideA?.botName ||
@@ -277,14 +278,17 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
   const sideBName =
     activeReplay?.sideB?.botName ||
     activeReplay?.sideB?.name ||
+    activeReplay?.teams?.B ||
     (match?.sideB?.botName && match?.sideB?.botName !== 'Đối thủ' ? match.sideB.botName : null) ||
     match?.sideB?.name ||
     match?.sideB?.botName ||
     match?.opponent ||
     'Đội Đỏ (B)';
 
-  const sideAElo = match?.sideA?.elo ?? match?.userElo ?? 1200;
-  const sideBElo = match?.sideB?.elo ?? match?.opponentElo ?? 1200;
+  const replayMode = String(match?.mode || match?.matchType || activeReplay?.mode || activeReplay?.matchType || '').toUpperCase();
+  const isBotReplay = replayMode === 'BOT' || replayMode === 'LADDER';
+  const sideAElo = match?.sideA?.eloBefore ?? match?.sideA?.elo ?? (isBotReplay ? null : activeReplay?.sideA?.eloBefore ?? activeReplay?.sideA?.elo ?? match?.userElo ?? 1200);
+  const sideBElo = match?.sideB?.eloBefore ?? match?.sideB?.elo ?? (isBotReplay ? null : activeReplay?.sideB?.eloBefore ?? activeReplay?.sideB?.elo ?? match?.opponentElo ?? 1200);
 
   const isTournament =
     match?.matchType === 'TOURNAMENT' ||
@@ -292,13 +296,15 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
     activeReplay?.matchType === 'TOURNAMENT' ||
     activeReplay?.mode === 'TOURNAMENT';
 
-  const isPvpMatch =
+  const isPvpMatch = !isBotReplay && (
     match?.mode === 'PVP' ||
     match?.mode === 'PVP_QUICK' ||
     match?.mode === 'PRACTICE' ||
     activeReplay?.mode === 'PVP' ||
     activeReplay?.mode === 'PVP_QUICK' ||
-    Boolean(match?.opponentType === 'HUMAN' || match?.opponent);
+    match?.opponentType === 'HUMAN' ||
+    Boolean(match?.opponent)
+  );
 
   // Trận Giao Hữu (Casual / 0 ELO): khi isRanked === false, hoặc delta ELO === 0, hoặc mode là PRACTICE / CASUAL
   const isCasualMatch =
@@ -318,6 +324,13 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
     if (isCasualMatch || !isRankedMatch) {
       return { deltaEloA: 0, deltaEloB: 0 };
     }
+    // Ranked Bot không suy ra điểm bằng K=32 ở phía giao diện. Chỉ dùng số đã lưu từ server.
+    if (isRankedBot) {
+      if (match?.sideA?.eloChange != null && match?.sideB?.eloChange != null) {
+        return { deltaEloA: Number(match.sideA.eloChange), deltaEloB: Number(match.sideB.eloChange) };
+      }
+      return { deltaEloA: 0, deltaEloB: 0 };
+    }
     if (match?.sideA?.eloChange !== undefined && match?.sideB?.eloChange !== undefined) {
       return { deltaEloA: match.sideA.eloChange, deltaEloB: match.sideB.eloChange };
     }
@@ -334,14 +347,6 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
       return isViewerB
         ? { deltaEloA: -change, deltaEloB: change }
         : { deltaEloA: change, deltaEloB: -change };
-    }
-    if (isRankedBot) {
-      const expectedA = 1 / (1 + Math.pow(10, (sideBElo - sideAElo) / 400));
-      let scoreA = 0.5;
-      if (winnerCode === 'A') scoreA = 1.0;
-      else if (winnerCode === 'B') scoreA = 0.0;
-      const changeA = Math.round(32 * (scoreA - expectedA));
-      return { deltaEloA: changeA, deltaEloB: -changeA };
     }
     return { deltaEloA: 0, deltaEloB: 0 };
   }, [isCasualMatch, isRankedMatch, isRankedBot, match, sideAElo, sideBElo, winnerCode]);
@@ -438,6 +443,69 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
       isDraw,
     };
   }, [isRankedPvP, activeReplay, match, sideAElo, sideBElo, deltaEloA, deltaEloB, sideAName, sideBName, winnerCode]);
+
+  const botViewerMatchData = useMemo(() => {
+    if (!isRankedBot) return null;
+
+    let viewerSide = match?.userSide || match?.side;
+    if (viewerSide !== 'A' && viewerSide !== 'B') viewerSide = null;
+
+    let currentUserId = null;
+    try {
+      const rawUser = localStorage.getItem('ottv2_last_active_user');
+      if (rawUser) {
+        const currentUser = JSON.parse(rawUser);
+        if (currentUser?.id != null) currentUserId = String(currentUser.id);
+      }
+    } catch {}
+
+    const participantMatchesViewer = (participant) => {
+      const ownerId = participant?.ownerId ?? participant?.userId;
+      return currentUserId != null && ownerId != null && String(ownerId) === currentUserId;
+    };
+
+    if (!viewerSide) {
+      if (participantMatchesViewer(match?.sideA) || participantMatchesViewer(activeReplay?.sideA)) viewerSide = 'A';
+      else if (participantMatchesViewer(match?.sideB) || participantMatchesViewer(activeReplay?.sideB)) viewerSide = 'B';
+    }
+    if (!viewerSide) return null;
+
+    const ownSide = viewerSide === 'A' ? match?.sideA : match?.sideB;
+    const ownHistoryChange = match?.change ?? match?.eloChange;
+    const ownHistoryAfter = match?.newElo ?? match?.userElo;
+    const hasHistoryRating = ownHistoryChange != null && ownHistoryAfter != null &&
+      Number.isFinite(Number(ownHistoryChange)) && Number.isFinite(Number(ownHistoryAfter));
+
+    let oldElo = null;
+    let newElo = null;
+    let delta = null;
+    if (hasHistoryRating) {
+      delta = Number(ownHistoryChange);
+      newElo = Number(ownHistoryAfter);
+      oldElo = newElo - delta;
+    } else {
+      const before = ownSide?.eloBefore ?? ownSide?.elo;
+      const after = ownSide?.eloAfter;
+      if (before != null && after != null && Number.isFinite(Number(before)) && Number.isFinite(Number(after))) {
+        oldElo = Number(before);
+        newElo = Number(after);
+        delta = newElo - oldElo;
+      }
+    }
+
+    const isDraw = winnerCode === 'DRAW';
+    return {
+      viewerSide,
+      botName: viewerSide === 'A' ? sideAName : sideBName,
+      opponentName: viewerSide === 'A' ? sideBName : sideAName,
+      oldElo,
+      newElo,
+      delta,
+      hasRating: oldElo != null && newElo != null && delta != null,
+      isWin: !isDraw && winnerCode === viewerSide,
+      isDraw,
+    };
+  }, [isRankedBot, match, activeReplay, winnerCode, sideAName, sideBName]);
 
   const getReasonLabel = (reason) => {
     switch (reason) {
@@ -735,7 +803,7 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
               <div className="flex justify-between items-center">
                 <span className="text-zinc-500">Kết quả:</span>
                 <span className={`font-bold ${winnerCode === 'A' ? 'text-blue-400' : winnerCode === 'B' ? 'text-rose-400' : 'text-amber-400'}`}>
-                  {winnerCode === 'A' ? 'Đội Xanh (A) Thắng' : winnerCode === 'B' ? 'Đội Đỏ (B) Thắng' : 'Hòa'}
+                  {winnerCode === 'A' ? `${sideAName} (A) Thắng` : winnerCode === 'B' ? `${sideBName} (B) Thắng` : 'Hòa'}
                 </span>
               </div>
             )}
@@ -761,9 +829,9 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4 animate-fadeIn">
-      <div className="bg-zinc-850 border border-zinc-700 w-full max-w-6xl rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[96vh] overflow-y-auto space-y-4">
+      <div className="relative bg-zinc-850 border border-zinc-700 w-full max-w-6xl rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[96vh] overflow-y-auto space-y-4">
         {/* Top Header */}
-        <div className="flex flex-wrap items-center justify-between border-b border-zinc-750 pb-3 gap-3">
+        <div className="flex flex-wrap items-center justify-between border-b border-zinc-750 pb-3 pr-12 gap-3">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {match?.isLiveSpectator ? (
               <span className="text-[10px] font-mono uppercase font-black text-rose-300 bg-rose-500/20 px-2.5 py-1 rounded-lg border border-rose-500/40 flex items-center gap-1.5 animate-pulse">
@@ -782,7 +850,7 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
                 <span className="w-2 h-2 rounded-full bg-blue-400" />
                 <span className="text-xs sm:text-sm font-black text-blue-300">{sideAName}</span>
                 <span className="text-[10px] font-mono font-bold text-blue-200 bg-blue-900/80 px-1.5 py-0.5 rounded-lg border border-blue-400/30">
-                  ⚡ {sideAElo} ELO
+                  ⚡ {sideAElo ?? '—'} ELO
                 </span>
               </div>
 
@@ -794,7 +862,7 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
                 <span className="w-2 h-2 rounded-full bg-rose-400" />
                 <span className="text-xs sm:text-sm font-black text-rose-300">{sideBName}</span>
                 <span className="text-[10px] font-mono font-bold text-rose-200 bg-rose-900/80 px-1.5 py-0.5 rounded-lg border border-rose-400/30">
-                  ⚡ {sideBElo} ELO
+                  ⚡ {sideBElo ?? '—'} ELO
                 </span>
               </div>
             </div>
@@ -803,14 +871,14 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
             {winnerCode === 'A' && (
               <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-500/40 text-blue-300 font-bold text-xs">
                 <span>👑</span>
-                <span>Đội Xanh (A) Thắng</span>
+                <span>{sideAName} (A) Thắng</span>
                 <span className="text-zinc-400 font-normal hidden md:inline">({getReasonLabel(reasonCode)})</span>
               </span>
             )}
             {winnerCode === 'B' && (
               <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/15 border border-rose-500/40 text-rose-300 font-bold text-xs">
                 <span>👑</span>
-                <span>Đội Đỏ (B) Thắng</span>
+                <span>{sideBName} (B) Thắng</span>
                 <span className="text-zinc-400 font-normal hidden md:inline">({getReasonLabel(reasonCode)})</span>
               </span>
             )}
@@ -889,15 +957,18 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
               </>
             )}
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 text-sm ml-1"
-            >
-              ✕
-            </button>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Thoát replay"
+          title="Thoát replay"
+          className="absolute top-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-xl border border-rose-400/60 bg-rose-500/25 text-2xl font-black leading-none text-rose-100 shadow-lg shadow-rose-950/40 transition hover:bg-rose-500/50 hover:text-white focus:outline-none focus:ring-2 focus:ring-rose-300"
+        >
+          ×
+        </button>
 
         {totalTurns === 0 && (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-center text-xs text-amber-200">
@@ -1305,35 +1376,50 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
                   <div className="pt-2 border-t border-zinc-800 space-y-2">
                     <div className="flex items-center justify-between text-[11px] font-bold">
                       <span className="text-zinc-400">⚡ Biến động ELO Ranked Bot:</span>
-                      <span className="text-amber-400 font-mono">K=32 Zero-Sum</span>
+                      <span className="text-amber-400 font-mono">Bot của bạn</span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="p-2 rounded-xl bg-blue-950/50 border border-blue-500/40 text-left space-y-0.5">
-                        <span className="text-[10px] text-blue-300 font-bold block truncate">{sideAName}</span>
-                        <div className="flex items-center gap-1.5 font-mono">
-                          <span className="text-white font-bold">{sideAElo}</span>
-                          <span className={`font-black ${deltaEloA >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                            {deltaEloA >= 0 ? `+${deltaEloA}` : deltaEloA}
-                          </span>
-                          <span className="text-zinc-400 text-[10px]">→ {sideAElo + deltaEloA}</span>
+                    {botViewerMatchData?.hasRating ? (
+                      <div className={`p-3 rounded-2xl border text-left flex items-center justify-between ${
+                        botViewerMatchData.isWin
+                          ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-100'
+                          : botViewerMatchData.isDraw
+                          ? 'bg-amber-950/40 border-amber-500/50 text-amber-100'
+                          : 'bg-rose-950/40 border-rose-500/50 text-rose-100'
+                      }`}>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-black font-mono tracking-wide ${
+                              botViewerMatchData.delta > 0
+                                ? 'bg-emerald-500/20 text-emerald-300'
+                                : botViewerMatchData.delta < 0
+                                ? 'bg-rose-500/20 text-rose-300'
+                                : 'bg-zinc-700/60 text-zinc-300'
+                            }`}>
+                              {botViewerMatchData.delta > 0 ? '+' : ''}{botViewerMatchData.delta} ELO
+                            </span>
+                            <span className="text-white font-mono font-bold">
+                              {botViewerMatchData.oldElo} <span className="text-zinc-400">➜</span> {botViewerMatchData.newElo}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-zinc-400 font-medium">
+                            Bot: <strong className="text-zinc-200">{botViewerMatchData.botName}</strong>
+                            {' · '}Đối đầu với: <strong className="text-zinc-200">{botViewerMatchData.opponentName}</strong>
+                          </p>
                         </div>
-                      </div>
 
-                      <div className="p-2 rounded-xl bg-rose-950/50 border border-rose-500/40 text-left space-y-0.5">
-                        <span className="text-[10px] text-rose-300 font-bold block truncate">{sideBName}</span>
-                        <div className="flex items-center gap-1.5 font-mono">
-                          <span className="text-white font-bold">{sideBElo}</span>
-                          <span className={`font-black ${deltaEloB >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                            {deltaEloB >= 0 ? `+${deltaEloB}` : deltaEloB}
-                          </span>
-                          <span className="text-zinc-400 text-[10px]">→ {sideBElo + deltaEloB}</span>
+                        <div className="text-3xl">
+                          {botViewerMatchData.isWin ? '📈' : botViewerMatchData.isDraw ? '🤝' : '📉'}
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-2xl text-center text-xs text-zinc-400">
+                        Không có dữ liệu ELO chính thức cho bot này ở trận đấu.
+                      </div>
+                    )}
 
                     <p className="text-[10px] text-zinc-500 italic text-center">
-                      * Điểm số ELO được cập nhật độc lập cho Bot, không ảnh hưởng đến ELO PvP của người chơi.
+                      * Chỉ hiển thị biến động ELO thực tế của bot thuộc tài khoản đang xem.
                     </p>
                   </div>
                 ) : (

@@ -132,14 +132,31 @@ public class ProfileService {
         boolean isProvisional = stats.pvpMatchesCount() < 10 || stats.pvpDistinctOpponents() < 5;
 
         List<EloHistoryItem> eloHistory = jdbc.query("""
-                SELECT id, opponent, opponent_elo, mode, user_won, elo_change, new_elo,
-                       to_char(created_at, 'HH24:MI:SS') AS timestamp_str,
-                       COALESCE(replay_id, id::text) AS replay_id,
-                       COALESCE(is_ranked, false) AS is_ranked,
-                       COALESCE(winner, '') AS winner
-                FROM user_matches
-                WHERE user_id = ?
-                ORDER BY created_at DESC, id DESC
+                SELECT um.id, um.opponent,
+                       CASE WHEN UPPER(um.mode) IN ('BOT', 'LADDER') THEN (
+                           SELECT opponent_participant.elo_before
+                           FROM matches ladder_match
+                           JOIN match_participants own_participant
+                             ON own_participant.match_id=ladder_match.id
+                            AND own_participant.created_month=ladder_match.created_month
+                           JOIN bots own_bot ON own_bot.id=own_participant.bot_id
+                           JOIN match_participants opponent_participant
+                             ON opponent_participant.match_id=own_participant.match_id
+                            AND opponent_participant.created_month=own_participant.created_month
+                            AND opponent_participant.side <> own_participant.side
+                           WHERE ladder_match.public_id::text=um.replay_id
+                             AND own_bot.owner_id=um.user_id
+                           ORDER BY ladder_match.created_month DESC, ladder_match.id DESC
+                           LIMIT 1
+                       ) ELSE um.opponent_elo END AS opponent_elo,
+                       um.mode, um.user_won, um.elo_change, um.new_elo,
+                       to_char(um.created_at, 'HH24:MI:SS') AS timestamp_str,
+                       COALESCE(um.replay_id, um.id::text) AS replay_id,
+                       COALESCE(um.is_ranked, false) AS is_ranked,
+                       COALESCE(um.winner, '') AS winner
+                FROM user_matches um
+                WHERE um.user_id = ?
+                ORDER BY um.created_at DESC, um.id DESC
                 LIMIT 50
                 """, (rs, rowNum) -> new EloHistoryItem(
                 rs.getLong("id"),

@@ -11,9 +11,14 @@ public final class MatchDtos {
     public record MatchResponse(UUID id, String status, Long seed, String winnerSide,
                                 String endReason, Integer totalTurns, Instant queuedAt,
                                 Instant finishedAt, Participant sideA, Participant sideB) { }
-    public record Participant(long botId, String botName, long submissionId, String fault, String sha256, Integer versionNo) {
+    public record Participant(long botId, String botName, long submissionId, String fault, String sha256, Integer versionNo,
+                              Long ownerId, Integer eloBefore, Integer eloAfter) {
+        public Participant(long botId, String botName, long submissionId, String fault, String sha256, Integer versionNo) {
+            this(botId, botName, submissionId, fault, sha256, versionNo, null, null, null);
+        }
+
         public Participant(long botId, String botName, long submissionId, String fault) {
-            this(botId, botName, submissionId, fault, null, null);
+            this(botId, botName, submissionId, fault, null, null, null, null, null);
         }
     }
     public record PlayableSubmission(long id, long botId, String botName, int versionNo,

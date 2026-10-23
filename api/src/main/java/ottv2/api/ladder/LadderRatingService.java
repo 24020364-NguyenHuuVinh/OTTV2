@@ -107,8 +107,8 @@ public class LadderRatingService {
         } catch (Exception ignored) {}
         String replayId = publicId != null ? publicId.toString() : String.valueOf(matchId);
 
-        updateUserStatsAndHistory(game.botA(), game.botB(), a.elo(), change.ratingA(), outcomeA, replayId);
-        updateUserStatsAndHistory(game.botB(), game.botA(), b.elo(), change.ratingB(), -outcomeA, replayId);
+        updateUserStatsAndHistory(game.botA(), game.botB(), a.elo(), b.elo(), change.ratingA(), outcomeA, replayId);
+        updateUserStatsAndHistory(game.botB(), game.botA(), b.elo(), a.elo(), change.ratingB(), -outcomeA, replayId);
 
         log.info("Ranked Bot Match #{} completed: Bot A (ID={}) ELO {} -> {}, Bot B (ID={}) ELO {} -> {}",
                 matchId, game.botA(), a.elo(), change.ratingA(), game.botB(), b.elo(), change.ratingB());
@@ -121,7 +121,7 @@ public class LadderRatingService {
         }
     }
 
-    private void updateUserStatsAndHistory(long botId, long opponentBotId, int eloBefore, int eloAfter, int outcome, String replayId) {
+    private void updateUserStatsAndHistory(long botId, long opponentBotId, int eloBefore, int opponentElo, int eloAfter, int outcome, String replayId) {
         try {
             List<BotOwner> myInfo = jdbc.query("SELECT b.owner_id, b.name FROM bots b WHERE b.id=?",
                     (rs, row) -> new BotOwner(rs.getLong(1), rs.getString(2)), botId);
@@ -140,7 +140,7 @@ public class LadderRatingService {
                                              user_won, winner, reason, elo_change, new_elo, is_ranked, match_type, replay_id)
                     VALUES (?, 'LADDER', ?, ?, 'BOT', ?, ?, 'LADDER_SERIES', ?, ?, TRUE, 'RANKED', ?)
                     """,
-                    ownerId, oppBotName, eloBefore, userWon, winner, change, eloAfter, replayId);
+                    ownerId, oppBotName, opponentElo, userWon, winner, change, eloAfter, replayId);
 
             // Update user bot_wins/bot_losses
             if (outcome > 0) {
