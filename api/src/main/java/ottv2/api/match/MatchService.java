@@ -284,9 +284,10 @@ public class MatchService {
                     Integer dbElo = jdbc.queryForObject("SELECT pvp_elo FROM users WHERE id = ?", Integer.class, currentUserId);
                     if (dbElo != null) newElo = dbElo;
                 }
+                int oldElo = newElo - eloChange;
                 return new PvpMatchFinishResponse(publicId.toString(), "FINISHED",
                         (String) match.get("winner_side"), (String) match.get("end_reason"),
-                        eloChange, newElo, isRanked);
+                        eloChange, newElo, isRanked, oldElo, null, 1200, 0, 1200);
             }
 
             // 4. Query current Elo and user details from users table with row-level locks
@@ -328,12 +329,52 @@ public class MatchService {
             int changeB = 0;
 
             if (isRanked) {
-                double scoreA = "A".equals(winnerSide) ? 1.0 : ("B".equals(winnerSide) ? 0.0 : 0.5);
-                var ratingChange = new RatingCalculator.Elo(32).calculate(eloA, eloB, scoreA);
-                newEloA = ratingChange.ratingA();
-                newEloB = ratingChange.ratingB();
-                changeA = newEloA - eloA;
-                changeB = newEloB - eloB;
+                // Đếm số trận PvP xếp hạng hợp lệ đã hoàn thành trước trận này của từng người chơi để áp dụng K-Factor động
+                Integer countAObj = jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM user_matches WHERE user_id = ? AND is_ranked = TRUE AND UPPER(mode) = 'PVP'",
+                        Integer.class, userAId);
+                Integer countBObj = jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM user_matches WHERE user_id = ? AND is_ranked = TRUE AND UPPER(mode) = 'PVP'",
+                        Integer.class, userBId);
+                int countA = countAObj != null ? countAObj : 0;
+                int countB = countBObj != null ? countBObj : 0;
+
+                int kA = determinePvpKFactor(countA);
+                int kB = determinePvpKFactor(countB);
+
+                double expectedA = 1.0 / (1.0 + Math.pow(10.0, (eloB - eloA) / 400.0));
+                double expectedB = 1.0 - expectedA;
+
+                if ("A".equals(winnerSide)) {
+                    // Người thắng A nhận thưởng Elo chuẩn theo K_A
+                    changeA = (int) Math.round(kA * (1.0 - expectedA));
+                    newEloA = Math.max(1100, eloA + changeA);
+                    changeA = newEloA - eloA;
+
+                    // Người thua B chỉ chịu 75% mức phạt Elo chuẩn theo K_B
+                    int rawLossB = - (int) Math.round(0.75 * kB * expectedB);
+                    newEloB = Math.max(1100, eloB + rawLossB);
+                    changeB = newEloB - eloB;
+                } else if ("B".equals(winnerSide)) {
+                    // Người thắng B nhận thưởng Elo chuẩn theo K_B
+                    changeB = (int) Math.round(kB * (1.0 - expectedB));
+                    newEloB = Math.max(1100, eloB + changeB);
+                    changeB = newEloB - eloB;
+
+                    // Người thua A chỉ chịu 75% mức phạt Elo chuẩn theo K_A
+                    int rawLossA = - (int) Math.round(0.75 * kA * expectedA);
+                    newEloA = Math.max(1100, eloA + rawLossA);
+                    changeA = newEloA - eloA;
+                } else {
+                    // Hòa (DRAW)
+                    int rawChangeA = (int) Math.round(kA * (0.5 - expectedA));
+                    newEloA = Math.max(1100, eloA + rawChangeA);
+                    changeA = newEloA - eloA;
+
+                    int rawChangeB = (int) Math.round(kB * (0.5 - expectedB));
+                    newEloB = Math.max(1100, eloB + rawChangeB);
+                    changeB = newEloB - eloB;
+                }
 
                 // Update users table atomically
                 jdbc.update("UPDATE users SET pvp_elo = ? WHERE id = ?", newEloA, userAId);
@@ -446,10 +487,25 @@ public class MatchService {
 
             int myChange = (currentUserId == userAId) ? changeA : changeB;
             int myNewElo = (currentUserId == userAId) ? newEloA : newEloB;
+            int myOldElo = (currentUserId == userAId) ? eloA : eloB;
+            String oppName = (currentUserId == userAId) ? nameB : nameA;
+            int oppElo = (currentUserId == userAId) ? eloB : eloA;
+            int oppChange = (currentUserId == userAId) ? changeB : changeA;
+            int oppNewElo = (currentUserId == userAId) ? newEloB : newEloA;
 
             return new PvpMatchFinishResponse(publicId.toString(), "FINISHED", winnerSide, reason,
-                    myChange, myNewElo, isRanked);
+                    myChange, myNewElo, isRanked, myOldElo, oppName, oppElo, oppChange, oppNewElo);
         });
+    }
+
+    public static int determinePvpKFactor(int completedRankedMatches) {
+        if (completedRankedMatches < 20) {
+            return 40;
+        } else if (completedRankedMatches < 70) {
+            return 30;
+        } else {
+            return 20;
+        }
     }
 
     private void insertUserMatch(long userId, String mode, String opponent, int oppElo, String oppType,

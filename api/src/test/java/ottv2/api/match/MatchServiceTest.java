@@ -156,13 +156,13 @@ class MatchServiceTest {
         assertEquals(publicId.toString(), response.matchPublicId());
         assertEquals("FINISHED", response.status());
         assertEquals("A", response.winnerSide());
-        assertEquals(16, response.eloChange(), "Winner A gains +16 Elo");
-        assertEquals(1216, response.newElo(), "Winner A new Elo is 1216");
+        assertEquals(20, response.eloChange(), "Winner A gains +20 Elo with K=40");
+        assertEquals(1220, response.newElo(), "Winner A new Elo is 1220");
         assertEquals(true, response.isRanked());
 
-        // Verify users table updated atomically with Zero-Sum Elo
-        verify(jdbc).update("UPDATE users SET pvp_elo = ? WHERE id = ?", 1216, 100L);
-        verify(jdbc).update("UPDATE users SET pvp_elo = ? WHERE id = ?", 1184, 200L);
+        // Verify users table updated atomically with new Elo (Winner A +20, Loser B -15)
+        verify(jdbc).update("UPDATE users SET pvp_elo = ? WHERE id = ?", 1220, 100L);
+        verify(jdbc).update("UPDATE users SET pvp_elo = ? WHERE id = ?", 1185, 200L);
 
         // Verify match status set to FINISHED
         verify(jdbc).update(contains("UPDATE matches"), eq("A"), eq("TARGET_REACHED"), eq(555L));
@@ -254,8 +254,8 @@ class MatchServiceTest {
                 new MatchDtos.FinishPvpMatchRequest("A", "RESIGN", null));
 
         assertEquals("B", response.winnerSide(), "Server-Authoritative: Resigning player A cannot win, B wins");
-        assertEquals(-16, response.eloChange(), "Resigning player A loses -16 Elo");
-        assertEquals(1184, response.newElo(), "Resigning player A new Elo is 1184");
+        assertEquals(-15, response.eloChange(), "Resigning player A loses -15 Elo with K=40");
+        assertEquals(1185, response.newElo(), "Resigning player A new Elo is 1185");
     }
 
     @Test
@@ -327,7 +327,57 @@ class MatchServiceTest {
                 new MatchDtos.FinishPvpMatchRequest("A", "OPPONENT_LEFT", null));
 
         assertEquals("A", response.winnerSide(), "Player A wins due to opponent leaving");
-        assertEquals(16, response.eloChange(), "Winner A gains +16 Elo");
-        assertEquals(1216, response.newElo(), "Winner A new Elo is 1216");
+        assertEquals(20, response.eloChange(), "Winner A gains +20 Elo with K=40");
+        assertEquals(1220, response.newElo(), "Winner A new Elo is 1220");
+    }
+
+    @Test
+    void determinePvpKFactorFollowsMatchCountProgression() {
+        assertEquals(40, MatchService.determinePvpKFactor(0));
+        assertEquals(40, MatchService.determinePvpKFactor(19));
+        assertEquals(30, MatchService.determinePvpKFactor(20));
+        assertEquals(30, MatchService.determinePvpKFactor(69));
+        assertEquals(20, MatchService.determinePvpKFactor(70));
+        assertEquals(20, MatchService.determinePvpKFactor(150));
+    }
+
+    @Test
+    void finishPvpMatchEnforces1100EloFloor() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        TransactionTemplate transaction = mock(TransactionTemplate.class);
+        UUID publicId = UUID.randomUUID();
+        doAnswer(invocation -> invocation.<TransactionCallback<?>>getArgument(0)
+                .doInTransaction(mock(TransactionStatus.class)))
+                .when(transaction).execute(any(TransactionCallback.class));
+
+        Map<String, Object> matchRow = new java.util.HashMap<>();
+        matchRow.put("id", 777L);
+        matchRow.put("public_id", publicId);
+        matchRow.put("match_type", "PVP");
+        matchRow.put("status", "READY");
+        matchRow.put("user_a_id", 100L);
+        matchRow.put("user_b_id", 200L);
+        matchRow.put("room_code", "123456");
+
+        when(jdbc.queryForList(contains("SELECT id, public_id, match_type"), any(Object[].class)))
+                .thenReturn(List.of(matchRow));
+        // User A has 1105 Elo (near floor 1100), User B has 1200 Elo
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(100L)))
+                .thenReturn(Map.of("id", 100L, "pvp_elo", 1105));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(200L)))
+                .thenReturn(Map.of("id", 200L, "pvp_elo", 1200));
+        when(jdbc.queryForObject(contains("SELECT created_month FROM matches"), any(RowMapper.class), eq(777L)))
+                .thenReturn(LocalDate.now());
+
+        MatchService service = new MatchService(jdbc, transaction, new ObjectMapper());
+
+        // Player A resigns -> B wins, A should be clamped at 1100 (delta = 1100 - 1105 = -5)
+        var response = service.finishPvpMatch(100L, "123456",
+                new MatchDtos.FinishPvpMatchRequest("A", "RESIGN", null));
+
+        assertEquals("B", response.winnerSide());
+        assertEquals(1100, response.newElo(), "Elo floor of 1100 must be enforced");
+        assertEquals(-5, response.eloChange(), "Actual delta must be clamped to -5");
+        verify(jdbc).update("UPDATE users SET pvp_elo = ? WHERE id = ?", 1100, 100L);
     }
 }

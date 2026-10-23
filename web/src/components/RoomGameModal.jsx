@@ -151,6 +151,7 @@ export default function RoomGameModal({
   const [winner, setWinner] = useState(null);
   const [winReason, setWinReason] = useState(null);
   const [showWinModal, setShowWinModal] = useState(false);
+  const [serverEloResult, setServerEloResult] = useState(null);
   const winnerRef = useRef(winner);
   winnerRef.current = winner;
   const [copied, setCopied] = useState(false);
@@ -533,6 +534,22 @@ export default function RoomGameModal({
                 }
                 if (Array.isArray(data.nextPieces)) {
                   setPieces(data.nextPieces);
+                }
+
+                if (data.sideA && data.sideB) {
+                  const isMeSideA = (mySideRef.current === 'A');
+                  const mySideData = isMeSideA ? data.sideA : data.sideB;
+                  const isWin = winningSide === mySideRef.current;
+                  const isDraw = winningSide === 'DRAW';
+                  setServerEloResult({
+                    isRanked: data.isRanked !== false,
+                    isWin,
+                    isDraw,
+                    oldElo: mySideData.eloBefore,
+                    newElo: mySideData.eloAfter,
+                    delta: mySideData.eloChange,
+                    opponentName: resolvedOpponentName,
+                  });
                 }
 
                 if (!winnerRef.current) {
@@ -1625,17 +1642,51 @@ export default function RoomGameModal({
                   </p>
                 </div>
               ) : (
-                <div className="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-2xl text-xs text-left">
-                  <div className="flex items-center gap-2 font-bold text-indigo-400">
-                    <span className="px-1.5 py-0.5 rounded bg-indigo-500/20 border border-indigo-500/30 text-[10px] font-mono">
-                      RANKED PVP
-                    </span>
-                    <span>Trận Đấu Xếp Hạng Người Chơi</span>
+                serverEloResult && serverEloResult.isRanked ? (
+                  <div className={`p-3 rounded-2xl border text-left flex items-center justify-between ${
+                    serverEloResult.isWin
+                      ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-100'
+                      : serverEloResult.isDraw
+                      ? 'bg-amber-950/40 border-amber-500/50 text-amber-100'
+                      : 'bg-rose-950/40 border-rose-500/50 text-rose-100'
+                  }`}>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-black font-mono tracking-wide ${
+                          serverEloResult.isWin
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                            : serverEloResult.isDraw
+                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                            : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
+                        }`}>
+                          {serverEloResult.delta >= 0 ? `+${serverEloResult.delta}` : serverEloResult.delta} ELO
+                        </span>
+                        <span className="font-mono text-xs font-bold text-white">
+                          {serverEloResult.oldElo} <span className="text-zinc-400">➜</span> {serverEloResult.newElo}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-400 font-medium">
+                        Đối đầu với: <strong className="text-zinc-200">{serverEloResult.opponentName}</strong>
+                      </p>
+                    </div>
+
+                    <div className="text-3xl">
+                      {serverEloResult.isWin ? '📈' : serverEloResult.isDraw ? '🤝' : '📉'}
+                    </div>
                   </div>
-                  <p className="text-zinc-300 text-[11px] mt-1">
-                    Điểm PvP ELO đã được cập nhật sau trận đấu này.
-                  </p>
-                </div>
+                ) : (
+                  <div className="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-2xl text-xs text-left">
+                    <div className="flex items-center gap-2 font-bold text-indigo-400">
+                      <span className="px-1.5 py-0.5 rounded bg-indigo-500/20 border border-indigo-500/30 text-[10px] font-mono">
+                        RANKED PVP
+                      </span>
+                      <span>Trận Đấu Xếp Hạng Người Chơi</span>
+                    </div>
+                    <p className="text-zinc-300 text-[11px] mt-1">
+                      Điểm PvP ELO đã được cập nhật sau trận đấu này.
+                    </p>
+                  </div>
+                )
               )}
 
               {/* Action Buttons */}

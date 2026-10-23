@@ -37,6 +37,23 @@ public final class MatchDtos {
             String reason,
             int eloChange,
             int newElo,
-            boolean isRanked
-    ) { }
+            boolean isRanked,
+            int oldElo,
+            String opponentName,
+            int opponentElo,
+            int opponentEloChange,
+            int opponentNewElo
+    ) {
+        public PvpMatchFinishResponse(
+                String matchPublicId,
+                String status,
+                String winnerSide,
+                String reason,
+                int eloChange,
+                int newElo,
+                boolean isRanked
+        ) {
+            this(matchPublicId, status, winnerSide, reason, eloChange, newElo, isRanked, newElo - eloChange, null, 1200, 0, 1200);
+        }
+    }
 }

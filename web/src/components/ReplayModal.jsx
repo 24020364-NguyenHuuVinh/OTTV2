@@ -346,6 +346,99 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
     return { deltaEloA: 0, deltaEloB: 0 };
   }, [isCasualMatch, isRankedMatch, isRankedBot, match, sideAElo, sideBElo, winnerCode]);
 
+  // Biến động ELO cá nhân hóa cho người xem hiện tại
+  const viewerMatchData = useMemo(() => {
+    if (!isRankedPvP) return null;
+
+    let viewerSide = null;
+    let myId = null;
+    let myIdentifiers = [];
+    try {
+      const uStr = localStorage.getItem('ottv2_last_active_user');
+      if (uStr) {
+        const u = JSON.parse(uStr);
+        myId = u.id ? String(u.id) : null;
+        myIdentifiers = [
+          u.username,
+          u.studentCode,
+          u.displayName,
+          u.email ? u.email.split('@')[0] : null,
+        ].filter(Boolean).map((s) => String(s).toLowerCase().trim());
+      }
+    } catch {}
+
+    // 1. Kiểm tra trực tiếp trong activeReplay
+    if (activeReplay) {
+      const repSideBName = (activeReplay.sideB?.botName || activeReplay.sideB?.name || activeReplay.sideB?.username || '')
+        .toLowerCase()
+        .trim();
+      const repBUserId = activeReplay.sideB?.userId || activeReplay.sideB?.ownerId || activeReplay.sideB?.id;
+      const isRepSideB =
+        (myId && repBUserId && String(myId) === String(repBUserId)) ||
+        myIdentifiers.some((ident) => ident && repSideBName && (repSideBName === ident || repSideBName.includes(ident)));
+
+      if (isRepSideB) {
+        viewerSide = 'B';
+      } else {
+        const repSideAName = (activeReplay.sideA?.botName || activeReplay.sideA?.name || activeReplay.sideA?.username || '')
+          .toLowerCase()
+          .trim();
+        const repAUserId = activeReplay.sideA?.userId || activeReplay.sideA?.ownerId || activeReplay.sideA?.id;
+        const isRepSideA =
+          (myId && repAUserId && String(myId) === String(repAUserId)) ||
+          myIdentifiers.some((ident) => ident && repSideAName && (repSideAName === ident || repSideAName.includes(ident)));
+        if (isRepSideA) {
+          viewerSide = 'A';
+        }
+      }
+    }
+
+    // 2. Fallback nếu chưa xác định được từ activeReplay
+    if (!viewerSide) {
+      if (match?.userSide === 'B' || match?.side === 'B') {
+        viewerSide = 'B';
+      } else if (match?.userSide === 'A' || match?.side === 'A') {
+        viewerSide = 'A';
+      } else {
+        const bName = (match?.sideB?.botName || match?.sideB?.name || match?.opponent || '').toLowerCase().trim();
+        const bUserId = match?.sideB?.userId || match?.sideB?.ownerId;
+        const isB = (myId && bUserId && String(myId) === String(bUserId)) ||
+          myIdentifiers.some((ident) => ident && bName && (bName === ident || bName.includes(ident)));
+        if (isB) {
+          viewerSide = 'B';
+        } else {
+          const aName = (match?.sideA?.botName || match?.sideA?.name || '').toLowerCase().trim();
+          const aUserId = match?.sideA?.userId || match?.sideA?.ownerId;
+          const isA = (myId && aUserId && String(myId) === String(aUserId)) ||
+            myIdentifiers.some((ident) => ident && aName && (aName === ident || aName.includes(ident)));
+          if (isA) viewerSide = 'A';
+        }
+      }
+    }
+
+    if (!viewerSide) {
+      return null;
+    }
+
+    const isSideA = viewerSide === 'A';
+    const oldElo = isSideA ? sideAElo : sideBElo;
+    const delta = isSideA ? deltaEloA : deltaEloB;
+    const newElo = oldElo + delta;
+    const opponentName = isSideA ? sideBName : sideAName;
+    const isWin = winnerCode === viewerSide;
+    const isDraw = winnerCode === 'DRAW';
+
+    return {
+      viewerSide,
+      oldElo,
+      delta,
+      newElo,
+      opponentName,
+      isWin,
+      isDraw,
+    };
+  }, [isRankedPvP, activeReplay, match, sideAElo, sideBElo, deltaEloA, deltaEloB, sideAName, sideBName, winnerCode]);
+
   const getReasonLabel = (reason) => {
     switch (reason) {
       case 'TARGET_REACHED':
@@ -1166,29 +1259,43 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
                       <span className="text-cyan-400 font-mono">Ranked PvP</span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="p-2 rounded-xl bg-blue-950/50 border border-blue-500/40 text-left space-y-0.5">
-                        <span className="text-[10px] text-blue-300 font-bold block truncate">{sideAName}</span>
-                        <div className="flex items-center gap-1.5 font-mono">
-                          <span className="text-white font-bold">{sideAElo}</span>
-                          <span className={`font-black ${deltaEloA >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                            {deltaEloA >= 0 ? `+${deltaEloA}` : deltaEloA}
-                          </span>
-                          <span className="text-zinc-400 text-[10px]">→ {sideAElo + deltaEloA}</span>
+                    {viewerMatchData ? (
+                      <div className={`p-3 rounded-2xl border text-left flex items-center justify-between ${
+                        viewerMatchData.isWin
+                          ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-100'
+                          : viewerMatchData.isDraw
+                          ? 'bg-amber-950/40 border-amber-500/50 text-amber-100'
+                          : 'bg-rose-950/40 border-rose-500/50 text-rose-100'
+                      }`}>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-black font-mono tracking-wide ${
+                              viewerMatchData.isWin
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                : viewerMatchData.isDraw
+                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                                : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
+                            }`}>
+                              {viewerMatchData.delta >= 0 ? `+${viewerMatchData.delta}` : viewerMatchData.delta} ELO
+                            </span>
+                            <span className="font-mono text-xs font-bold text-white">
+                              {viewerMatchData.oldElo} <span className="text-zinc-400">➜</span> {viewerMatchData.newElo}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-zinc-400 font-medium">
+                            Đối đầu với: <strong className="text-zinc-200">{viewerMatchData.opponentName}</strong>
+                          </p>
                         </div>
-                      </div>
 
-                      <div className="p-2 rounded-xl bg-rose-950/50 border border-rose-500/40 text-left space-y-0.5">
-                        <span className="text-[10px] text-rose-300 font-bold block truncate">{sideBName}</span>
-                        <div className="flex items-center gap-1.5 font-mono">
-                          <span className="text-white font-bold">{sideBElo}</span>
-                          <span className={`font-black ${deltaEloB >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                            {deltaEloB >= 0 ? `+${deltaEloB}` : deltaEloB}
-                          </span>
-                          <span className="text-zinc-400 text-[10px]">→ {sideBElo + deltaEloB}</span>
+                        <div className="text-3xl">
+                          {viewerMatchData.isWin ? '📈' : viewerMatchData.isDraw ? '🤝' : '📉'}
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-2xl text-center text-xs text-zinc-400">
+                        👁️ Bạn đang xem trận đấu với tư cách Khán Giả
+                      </div>
+                    )}
 
                     <p className="text-[10px] text-zinc-500 italic text-center">
                       * Điểm số ELO PvP được ghi nhận chính thức vào hệ thống xếp hạng người chơi.

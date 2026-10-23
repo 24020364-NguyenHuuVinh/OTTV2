@@ -62,10 +62,10 @@ function AppContent() {
 
   const [eloToast, setEloToast] = useState(null);
 
-  // Auto-dismiss eloToast after duration (default 3000ms)
+  // Auto-dismiss eloToast after duration (default 4000ms)
   useEffect(() => {
     if (!eloToast) return undefined;
-    const duration = eloToast.autoClose || eloToast.duration || 3000;
+    const duration = eloToast.autoClose || eloToast.duration || 4000;
     const timer = setTimeout(() => {
       setEloToast(null);
     }, duration);
@@ -79,6 +79,18 @@ function AppContent() {
   const [roomGameConfig, setRoomGameConfig] = useState(null); // { roomCode, isHost }
   const [incomingChallenge, setIncomingChallenge] = useState(null);
   const [vsMatchInfo, setVsMatchInfo] = useState(null);
+
+  const handleCloseRoomGame = useCallback(() => {
+    setRoomGameConfig(null);
+    try {
+      const raw = sessionStorage.getItem('ottv2_pending_elo_toast');
+      if (raw) {
+        sessionStorage.removeItem('ottv2_pending_elo_toast');
+        const toastData = JSON.parse(raw);
+        setEloToast(toastData);
+      }
+    } catch {}
+  }, []);
 
   // App data
   const [bots, setBots] = useState([]);
@@ -1133,21 +1145,21 @@ function AppContent() {
               }
               if (finishRes && finishRes.isRanked) {
                 const diff = finishRes.eloChange;
-                setEloToast({
+                const oldRating = finishRes.oldElo ?? (finishRes.newElo - diff);
+                const diffStr = diff > 0 ? `+${diff}` : `${diff}`;
+                const toastPayload = {
                   type: diff > 0 ? 'WIN' : (diff < 0 ? 'LOSE' : 'DRAW'),
                   text: diff > 0
-                    ? `🎉 Chiến thắng! PvP ELO +${diff} (${finishRes.newElo} ELO)`
+                    ? `🎉 Chiến thắng! ${diffStr} ELO PvP (${oldRating} ➜ ${finishRes.newElo})`
                     : diff < 0
-                    ? `💔 Thất bại! PvP ELO ${diff} (${finishRes.newElo} ELO)`
-                    : `🤝 Hòa trận! PvP ELO giữ nguyên (${finishRes.newElo} ELO)`,
-                });
-              } else {
-                setEloToast({
-                  type: userWon ? 'WIN' : 'LOSE',
-                  text: userWon
-                    ? `🎉 Chiến thắng! (Trận giao hữu: PvP ELO giữ nguyên ${finishRes?.newElo || pvpElo})`
-                    : `💔 Thất bại! (Trận giao hữu: PvP ELO giữ nguyên ${finishRes?.newElo || pvpElo})`,
-                });
+                    ? `💔 Thất bại! ${diffStr} ELO PvP (${oldRating} ➜ ${finishRes.newElo})`
+                    : `🤝 Hòa trận! 0 ELO PvP (${oldRating} ➜ ${finishRes.newElo})`,
+                  autoClose: 4000,
+                  duration: 4000,
+                };
+                try {
+                  sessionStorage.setItem('ottv2_pending_elo_toast', JSON.stringify(toastPayload));
+                } catch {}
               }
               refreshData();
             } else {
@@ -1163,12 +1175,6 @@ function AppContent() {
     } else {
       // 2. Trận đấu tập với Bot/Máy hoặc offline: Ghi nhận lịch sử cá nhân (không đổi ELO)
       recordPracticeMatch();
-      setEloToast({
-        type: userWon ? 'WIN' : 'LOSE',
-        text: userWon
-          ? `🎉 Bạn đã chiến thắng ${opponentName || 'Máy'}! (Trận tập luyện: PvP ELO giữ nguyên ${pvpElo})`
-          : `💔 Bạn đã thất bại trước ${opponentName || 'Máy'}! (Trận tập luyện: PvP ELO giữ nguyên ${pvpElo})`,
-      });
     }
 
     const mySideCode = mySide || (isHost ? 'A' : 'B');
@@ -1671,6 +1677,7 @@ function AppContent() {
               setPvpGameConfig={setPvpGameConfig}
               roomGameConfig={roomGameConfig}
               setRoomGameConfig={setRoomGameConfig}
+              handleCloseRoomGame={handleCloseRoomGame}
               handleOpenReplay={handleOpenReplay}
               handlePvpMatchFinished={handlePvpMatchFinished}
               outletContext={outletContext}

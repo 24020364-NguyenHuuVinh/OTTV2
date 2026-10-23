@@ -34,6 +34,7 @@ export default function Layout({
   setPvpGameConfig,
   roomGameConfig,
   setRoomGameConfig,
+  handleCloseRoomGame,
   handleOpenReplay,
   handlePvpMatchFinished,
   outletContext,
@@ -77,7 +78,9 @@ export default function Layout({
               : 'bg-zinc-850 border-zinc-700 text-zinc-200'
           }`}
         >
-          <span className="text-xl">{eloToast.type === 'WIN' ? '🏆' : eloToast.type === 'LOSE' ? '⚠️' : 'ℹ️'}</span>
+          {!(eloToast.text && (eloToast.text.startsWith('🎉') || eloToast.text.startsWith('💔') || eloToast.text.startsWith('🤝') || eloToast.text.startsWith('⚠️') || eloToast.text.startsWith('🏆') || eloToast.text.startsWith('ℹ️'))) && (
+            <span className="text-xl">{eloToast.type === 'WIN' ? '🎉' : eloToast.type === 'LOSE' ? '💔' : 'ℹ️'}</span>
+          )}
           <p className="text-xs font-semibold flex-1 leading-relaxed">{eloToast.text}</p>
           <button
             type="button"
@@ -145,7 +148,7 @@ export default function Layout({
       </ErrorBoundary>
 
       {/* 6. Modal Chơi Qua Mã Phòng & Ghép Trận PvP */}
-      <ErrorBoundary onReset={() => setRoomGameConfig(null)}>
+      <ErrorBoundary onReset={() => (handleCloseRoomGame ? handleCloseRoomGame() : setRoomGameConfig(null))}>
         {roomGameConfig && (
           <RoomGameModal
             roomCode={roomGameConfig.roomCode}
@@ -157,7 +160,7 @@ export default function Layout({
             userName={user?.displayName || user?.studentCode || 'Người chơi'}
             pvpElo={pvpElo}
             targetOpponent={roomGameConfig.targetOpponent}
-            onClose={() => setRoomGameConfig(null)}
+            onClose={handleCloseRoomGame || (() => setRoomGameConfig(null))}
             onMatchFinished={handlePvpMatchFinished}
             onOpenReplay={({ matchInfo, replay }) => {
               handleOpenReplay(matchInfo, replay);
