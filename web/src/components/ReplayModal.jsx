@@ -665,7 +665,10 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
         t?.events?.some((ev) => ev.type === 'CAPTURED' || ev.type === 'CAPTURE') ||
         Boolean(capturedId);
       if (isCapture) {
-        list.push(t.t ?? t.turn ?? (idx + 1));
+        list.push({
+          step: idx + 1,
+          round: t.t ?? t.turn ?? Math.ceil((idx + 1) / 2),
+        });
       }
     });
     return list;
@@ -714,7 +717,7 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
       fromStr = posToLabel(fromCoord[0], fromCoord[1]);
     } else {
       // Find previous position of piece p
-      const prevPieces = matchFrame(activeReplay, turnNum - 1).pieces;
+      const prevPieces = matchFrame(activeReplay, idx).pieces;
       const pc = prevPieces.find((p) => p.id === pieceId);
       if (pc) {
         fromStr = posToLabel(pc.row, pc.col);
@@ -1121,14 +1124,16 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
                 {/* Combat Capture Markers */}
                 <div className="relative w-full h-2 pointer-events-none">
                   {captureTurns.map((ct) => {
-                    const posPct = totalTurns > 0 ? (ct / totalTurns) * 100 : 0;
+                    const stepNum = typeof ct === 'object' ? ct.step : ct;
+                    const roundNum = typeof ct === 'object' ? ct.round : ct;
+                    const posPct = totalTurns > 0 ? (stepNum / totalTurns) * 100 : 0;
                     return (
                       <span
-                        key={ct}
+                        key={`capture-step-${stepNum}`}
                         style={{ left: `${posPct}%` }}
                         className="absolute -top-1 w-2 h-2 rounded-full bg-rose-500 ring-1 ring-black shadow cursor-pointer pointer-events-auto"
-                        title={`Lượt ${ct}: Giao tranh ăn quân`}
-                        onClick={() => handleJumpToTurn(ct)}
+                        title={`Nước #${stepNum} (Hiệp ${roundNum}): Giao tranh ăn quân`}
+                        onClick={() => handleJumpToTurn(stepNum)}
                       />
                     );
                   })}
@@ -1235,16 +1240,17 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
 
               <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 font-mono text-xs">
                 {turnsList.map((t, idx) => {
-                  const turnNum = t.t ?? t.turn ?? (idx + 1);
-                  const isCurrent = turnNum === step;
+                  const stepIndex = idx + 1;
+                  const roundNum = t.t ?? t.turn;
+                  const isCurrent = stepIndex === step;
                   const isCapture =
                     t.events?.some((ev) => ev.type === 'CAPTURED' || ev.type === 'CAPTURE') ||
                     Boolean(t.capturedPieceId);
 
                   return (
                     <div
-                      key={turnNum}
-                      onClick={() => handleJumpToTurn(turnNum)}
+                      key={`turn-step-${stepIndex}`}
+                      onClick={() => handleJumpToTurn(stepIndex)}
                       className={`p-2 rounded-xl border cursor-pointer transition-all ${
                         isCurrent
                           ? 'bg-emerald-950/40 border-emerald-500 text-white shadow'
@@ -1254,7 +1260,9 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-zinc-500">Lượt #{turnNum}</span>
+                        <span className="text-[10px] font-bold text-zinc-500">
+                          Nước #{stepIndex}{roundNum ? ` (Hiệp ${roundNum})` : ''}
+                        </span>
                         <span
                           className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                             t.team === 'A' ? 'text-blue-400' : 'text-rose-400'

@@ -15,6 +15,7 @@ export default function MatchmakingModal({
   const [selectedPvpTcKey, setSelectedPvpTcKey] = useState('blitz_3_2');
   const [isSearching, setIsSearching] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const rankedBots = (myBots || []).filter((bot) => bot?.ladderEnabled);
 
   const PVP_TC_OPTIONS = {
     blitz_3_2: { label: 'Chớp 3+2', desc: '03:00 + 2s', icon: '⚡' },
@@ -23,13 +24,15 @@ export default function MatchmakingModal({
     auto: { label: 'Tự Động', desc: 'Ghép bất kỳ ai', icon: '🎲' },
   };
 
-  // Khởi tạo bot được chọn (ưu tiên bot có ladderEnabled = true)
+  // Ranked queue only accepts bots explicitly enabled for the ladder.
   useEffect(() => {
-    if (myBots && myBots.length > 0) {
-      const activeBot = myBots.find((b) => b.ladderEnabled) || myBots[0];
-      setSelectedBotId(String(activeBot.id));
+    if (rankedBots.length > 0) {
+      const selectedIsEligible = rankedBots.some((bot) => String(bot.id) === String(selectedBotId));
+      if (!selectedIsEligible) setSelectedBotId(String(rankedBots[0].id));
+    } else {
+      setSelectedBotId('');
     }
-  }, [myBots]);
+  }, [myBots, selectedBotId]);
 
   // Bộ đếm thời gian tìm kiếm
   useEffect(() => {
@@ -157,8 +160,8 @@ export default function MatchmakingModal({
   if (!isOpen) return null;
 
   const handleStartSearch = async () => {
-    if (mode === 'BOT' && (!myBots || myBots.length === 0)) {
-      if (onToast) onToast({ type: 'LOSE', text: '⚠️ Bạn chưa có Bot nào để tham gia đấu Ranked!' });
+    if (mode === 'BOT' && rankedBots.length === 0) {
+      if (onToast) onToast({ type: 'LOSE', text: '⚠️ Chưa có bot nào bật “Đang Đấu Ranked”. Hãy bật chế độ này trong Bot Của Tôi trước!' });
       return;
     }
 
@@ -437,9 +440,9 @@ export default function MatchmakingModal({
                   <span>🤖 Chọn Bot Tham Gia Thi Đấu Ranked:</span>
                   <span className="text-[10px] text-zinc-500">Mỗi bot có ELO riêng</span>
                 </label>
-                {myBots.length === 0 ? (
+                {rankedBots.length === 0 ? (
                   <div className="p-3 bg-rose-950/40 border border-rose-500/30 rounded-xl text-xs text-rose-300">
-                    ⚠️ Bạn chưa có Bot nào. Vui lòng vào trang <strong>Battle Code</strong> để tạo và nộp mã nguồn bot trước!
+                    ⚠️ Chỉ bot đang bật <strong>Đang Đấu Ranked</strong> mới xuất hiện ở đây. Hãy bật chế độ này trong tab <strong>Bot Của Tôi</strong>.
                   </div>
                 ) : (
                   <div className="relative">
@@ -448,9 +451,9 @@ export default function MatchmakingModal({
                       onChange={(e) => setSelectedBotId(e.target.value)}
                       className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold focus:outline-none focus:border-emerald-500 transition-colors"
                     >
-                      {myBots.map((b) => (
+                      {rankedBots.map((b) => (
                         <option key={b.id} value={b.id}>
-                          {b.name} ({b.elo ?? 1200} ELO) - {b.ladderEnabled ? '⭐ Đang Đấu Ranked' : '⚪ Bot'}
+                          {b.name} ({b.elo ?? 1200} ELO) - ⭐ Đang Đấu Ranked
                         </option>
                       ))}
                     </select>
@@ -464,7 +467,7 @@ export default function MatchmakingModal({
               <button
                 type="button"
                 onClick={handleStartSearch}
-                disabled={mode === 'BOT' && myBots.length === 0}
+                disabled={mode === 'BOT' && (rankedBots.length === 0 || !selectedBotId)}
                 className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-500 to-blue-600 hover:from-emerald-500 hover:via-teal-400 hover:to-blue-500 text-white font-black text-sm shadow-xl shadow-emerald-950/50 flex items-center justify-center gap-2 transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <span>🔍</span>

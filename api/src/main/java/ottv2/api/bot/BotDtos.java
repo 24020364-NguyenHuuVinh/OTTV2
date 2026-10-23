@@ -1,6 +1,7 @@
 package ottv2.api.bot;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
@@ -9,7 +10,12 @@ import java.util.UUID;
 
 public final class BotDtos {
     private BotDtos() { }
-    public record CreateBotRequest(@NotBlank @Size(max = 64) String name) { }
+    public record CreateBotRequest(
+            @NotBlank(message = "Tên bot không được để trống")
+            @Size(min = 3, max = 20, message = "Tên bot phải từ 3 đến 20 ký tự")
+            @Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Tên bot chỉ chứa chữ cái, số, dấu gạch dưới hoặc gạch ngang")
+            String name
+    ) { }
     public record SetLadderActiveRequest(Boolean active) { }
     public record BotResponse(
             long id,
@@ -39,6 +45,9 @@ public final class BotDtos {
             String result,
             String opponentBotName,
             String opponentOwnerName,
+            Integer opponentElo,
+            Integer eloBefore,
+            Integer eloAfter,
             Instant playedAt
     ) { }
 

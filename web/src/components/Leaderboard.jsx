@@ -59,13 +59,13 @@ export default function Leaderboard({
       }
 
       const matchMode = category === 'BOT' ? 'BOT' : 'PVP';
-      const activeLadderBot = myBots.find((b) => b.ladderEnabled) || myBots[0] || null;
+      const activeLadderBot = myBots.find((b) => b.ladderEnabled) || null;
 
       if (matchMode === 'BOT' && !activeLadderBot) {
         if (onToast) {
           onToast({
             type: 'LOSE',
-            text: '⚠️ Bạn chưa có Bot nào để ghép trận! Vui lòng vào Battle Code tạo bot trước.'
+            text: '⚠️ Chưa có bot nào bật “Đang Đấu Ranked”. Hãy bật chế độ này trong Bot Của Tôi trước.'
           });
         }
         setIsMatching(false);

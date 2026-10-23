@@ -923,79 +923,11 @@ export default function Profile({
         </div>
       )}
 
-      {/* Lịch sử Bot dùng cùng bố cục từng trận như PvP, nhưng chỉ hiện ELO của bot sở hữu. */}
-      {activeTab === 'BOT' && (
-        <div className="bg-zinc-850 p-6 rounded-3xl border border-zinc-750 space-y-3 shadow-xl">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
-              <span>📜</span>
-              <span>Lịch Sử Đấu Bot (10 trận gần đây)</span>
-            </h3>
-            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
-              🤖 Ranked Bot
-            </span>
-          </div>
-
-          {displayHistory.length === 0 ? (
-            <p className="text-xs text-zinc-500 py-6 text-center">
-              Chưa có trận Ranked Bot nào được ghi nhận.
-            </p>
-          ) : (
-            <div className="max-h-72 overflow-y-auto divide-y divide-zinc-800 text-xs">
-              {displayHistory.map((item, idx) => {
-                const opponentName = item.opponent || item.sideA?.botName || item.sideB?.botName || 'Đối thủ';
-                const opponentElo = Number(item.opponentElo) > 0 ? Number(item.opponentElo) : null;
-                const isDraw = String(item.winner || item.winnerSide || '').toUpperCase() === 'DRAW';
-                const userWon = !isDraw && (item.userWon ?? (item.winner === 'USER' || item.winner === item.userSide));
-                const hasChange = item.change != null || item.eloChange != null;
-                const change = item.change ?? item.eloChange;
-                const hasNewElo = item.newElo != null;
-                const timestamp = item.timestamp || (item.createdAt ? new Date(item.createdAt).toLocaleTimeString() : '');
-
-                return (
-                  <div key={item.id || idx} className="py-2.5 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isDraw ? 'bg-amber-400' : userWon ? 'bg-emerald-400' : 'bg-rose-400'}`} />
-                      <span className="text-white font-bold truncate">{opponentName}</span>
-                      {opponentElo != null && <span className="text-zinc-500 text-[11px] flex-shrink-0">({opponentElo} ELO)</span>}
-                      <span className="text-[10px] px-1.5 py-0.5 rounded font-bold border bg-emerald-500/10 text-emerald-400 border-emerald-500/30 flex-shrink-0">
-                        Ranked Bot
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      <div className="flex items-center gap-3 font-mono">
-                        <span className={`font-bold tabular-nums ${!hasChange ? 'text-zinc-500' : change > 0 ? 'text-emerald-400' : change < 0 ? 'text-rose-400' : 'text-zinc-400'}`}>
-                          {hasChange ? `${change > 0 ? '+' : ''}${change} ELO` : 'ELO —'}
-                        </span>
-                        <span className="text-zinc-400 tabular-nums">{hasNewElo ? `${item.newElo} ELO` : '— ELO'}</span>
-                        {timestamp && (
-                          <span className="text-zinc-600 text-[10px] hidden sm:inline">{timestamp}</span>
-                        )}
-                      </div>
-                      {onOpenReplay && (
-                        <button
-                          type="button"
-                          onClick={() => onOpenReplay(item, item.replayData || item.replay || null)}
-                          className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-200 transition-colors flex items-center gap-1"
-                        >
-                          <span>▶️</span>
-                          <span>Xem Replay</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Modal Chi Tiết Bot */}
       {selectedBotIdForDetail && (
         <BotDetailModal
           botId={selectedBotIdForDetail}
+          currentUser={user}
           onClose={() => setSelectedBotIdForDetail(null)}
           onOpenReplay={onOpenReplay}
         />

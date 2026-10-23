@@ -1053,21 +1053,7 @@ function AppContent() {
           return next;
         });
       } catch (err) {
-        targetBotId = Date.now();
-        const created = {
-          id: targetBotId,
-          name: newBotName,
-          ladderEnabled: true,
-          sourceCode: source,
-          language: language || 'PYTHON',
-        };
-        setBots((prev) => {
-          const next = [created, ...prev];
-          if (user?.email) {
-            localStorage.setItem(`ottv2_bots_${user.email}`, JSON.stringify(next));
-          }
-          return next;
-        });
+        throw new Error(`Không thể tạo bot trên máy chủ: ${err.message || 'Vui lòng thử lại.'}`);
       }
     } else {
       const existing = bots.find((b) => String(b.id) === String(botId));
@@ -1078,14 +1064,15 @@ function AppContent() {
 
     saveBotSource(targetBotId, targetBotName, source, language);
 
-    try {
-      await api(`/api/bots/${targetBotId}/submissions`, {
-        method: 'POST',
-        headers: await csrfHeaders(),
-        body: JSON.stringify({ language, source }),
-      });
-    } catch {}
+    const response = await api(`/api/bots/${targetBotId}/submissions`, {
+      method: 'POST',
+      headers: await csrfHeaders(),
+      body: JSON.stringify({ language, source }),
+    });
+    if (!response) throw new Error('Máy chủ không xác nhận yêu cầu biên dịch.');
+    const submission = await response.json();
     refreshData();
+    return { botId: targetBotId, submissionId: submission.id, submission };
   }
 
   const handlePvpMatchFinished = (matchResult) => {

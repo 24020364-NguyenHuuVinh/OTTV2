@@ -16,7 +16,6 @@ export default function BotDetailModal({
   const [bot, setBot] = useState(initialBotData);
   const [isLoading, setIsLoading] = useState(!initialBotData?.recentMatches);
   const [error, setError] = useState(null);
-  const [copiedSha, setCopiedSha] = useState(false);
 
   useEffect(() => {
     const id = botId || initialBotData?.id || initialBotData?.botId;
@@ -46,13 +45,6 @@ export default function BotDetailModal({
         setIsLoading(false);
       });
   }, [botId, initialBotData?.id, initialBotData?.botId]);
-
-  const handleCopySha = (sha) => {
-    if (!sha) return;
-    navigator.clipboard?.writeText(sha);
-    setCopiedSha(true);
-    setTimeout(() => setCopiedSha(false), 2000);
-  };
 
   const getLangBadge = (lang) => {
     const upper = (lang || 'PYTHON').toUpperCase();
@@ -139,9 +131,6 @@ export default function BotDetailModal({
                   )}
                 </div>
 
-                <span className="px-2.5 py-1 rounded-xl text-xs font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
-                  v{bot?.versionNo || 1}
-                </span>
               </div>
 
               {/* Statistics Grid */}
@@ -172,53 +161,36 @@ export default function BotDetailModal({
                 </div>
               </div>
 
-              {/* Version & Checksum Card */}
-              <div className="bg-zinc-850/60 rounded-2xl p-4 border border-zinc-800 space-y-2">
-                <p className="text-xs font-bold text-zinc-300 flex items-center justify-between">
-                  <span>🔒 Phiên Bản & Mã Checksum Đóng Băng:</span>
-                  <span className="text-[11px] text-zinc-500 font-normal">Chống gian lận mã nguồn</span>
-                </p>
-                <div className="flex items-center justify-between gap-2 bg-zinc-900 p-2.5 rounded-xl border border-zinc-800 font-mono text-xs">
-                  <span className="text-zinc-400 truncate">
-                    SHA-256: <strong className="text-emerald-400">{bot?.sourceSha256 || 'N/A'}</strong>
-                  </span>
-                  {bot?.sourceSha256 && bot.sourceSha256 !== 'N/A' && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopySha(bot.sourceSha256)}
-                      className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-[11px] text-zinc-300 flex-shrink-0"
-                    >
-                      {copiedSha ? '✓ Đã Chép' : 'Sao Chép'}
-                    </button>
-                  )}
-                </div>
-                <p className="text-[10px] text-zinc-500">
-                  * Hệ thống sandbox tự động cô lập thực thi và bảo vệ quyền sở hữu trí tuệ mã nguồn của lập trình viên.
-                </p>
-              </div>
-
               {/* Recent Matches */}
               <div className="space-y-3">
-                <h4 className="text-xs font-bold text-zinc-300 flex items-center gap-1.5">
-                  <span>⚔️</span>
-                  <span>10 Trận Đấu Gần Nhất:</span>
-                </h4>
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="text-xs font-bold text-zinc-300 flex items-center gap-1.5">
+                    <span>📜</span>
+                    <span>Lịch Sử Đấu Bot (10 trận gần đây)</span>
+                  </h4>
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+                    🤖 Ranked Bot
+                  </span>
+                </div>
 
                 {!bot?.recentMatches || bot.recentMatches.length === 0 ? (
                   <div className="text-center py-8 text-zinc-500 text-xs bg-zinc-850/40 rounded-2xl border border-zinc-800">
                     Chưa có lịch sử trận đấu nào được ghi nhận cho Bot này.
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
                     {bot.recentMatches.map((m, idx) => {
                       const isWin = m.result === 'WIN';
                       const isDraw = m.result === 'DRAW';
                       const isLoss = m.result === 'LOSS';
+                      const hasElo = m.eloBefore != null && m.eloAfter != null;
+                      const eloChange = hasElo ? m.eloAfter - m.eloBefore : null;
+                      const playedAt = m.playedAt ? new Date(m.playedAt) : null;
 
                       return (
                         <div
                           key={m.matchPublicId || idx}
-                          className="p-3 rounded-2xl bg-zinc-850/70 border border-zinc-800 flex items-center justify-between gap-3 text-xs"
+                          className="p-3 rounded-2xl bg-zinc-850/70 border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             {/* Result pill */}
@@ -239,6 +211,9 @@ export default function BotDetailModal({
                             <div className="min-w-0">
                               <p className="font-bold text-white truncate flex items-center gap-1.5">
                                 <span>vs {m.opponentBotName || 'Đối thủ ẩn danh'}</span>
+                                {m.opponentElo != null && (
+                                  <span className="text-[10px] text-zinc-400 font-mono">({m.opponentElo} ELO)</span>
+                                )}
                                 {m.opponentOwnerName && (
                                   <span className="text-[10px] text-zinc-400 font-normal">
                                     ({m.opponentOwnerName})
@@ -246,35 +221,42 @@ export default function BotDetailModal({
                                 )}
                               </p>
                               <p className="text-[10px] text-zinc-500 font-mono">
-                                {m.matchType || 'MATCH'} ·{' '}
-                                {m.playedAt ? new Date(m.playedAt).toLocaleDateString() : 'Vừa xong'}
+                                {m.matchType === 'LADDER' ? 'Ranked Bot' : (m.matchType || 'MATCH')} ·{' '}
+                                {playedAt ? playedAt.toLocaleString() : 'Vừa xong'}
                               </p>
                             </div>
                           </div>
 
-                          {/* Replay action */}
-                          {(m.matchPublicId || m.publicId || m.id) && onOpenReplay && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                onClose?.();
-                                const targetMatchId = m.matchPublicId || m.publicId || m.id;
-                                onOpenReplay?.({
-                                  id: targetMatchId,
-                                  matchPublicId: targetMatchId,
-                                  replayId: targetMatchId,
-                                  mode: 'BOT',
-                                  matchType: m.matchType,
-                                  playerA: bot?.name || 'Bot A',
-                                  playerB: m.opponentBotName || 'Đối Thủ',
-                                });
-                              }}
-                              className="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-emerald-600 hover:text-white text-zinc-300 font-bold text-[11px] transition-colors border border-zinc-700/60 flex items-center gap-1 flex-shrink-0"
-                            >
-                              <span>▶️</span>
-                              <span>Replay</span>
-                            </button>
-                          )}
+                          <div className="flex items-center justify-between sm:justify-end gap-3 pl-9 sm:pl-0 flex-shrink-0">
+                            <div className="flex items-center gap-3 font-mono">
+                              <span className={`font-bold tabular-nums ${eloChange == null ? 'text-zinc-500' : eloChange > 0 ? 'text-emerald-400' : eloChange < 0 ? 'text-rose-400' : 'text-zinc-400'}`}>
+                                {eloChange == null ? 'ELO —' : `${eloChange > 0 ? '+' : ''}${eloChange} ELO`}
+                              </span>
+                              <span className="text-zinc-400 tabular-nums">{m.eloAfter != null ? `${m.eloAfter} ELO` : '— ELO'}</span>
+                            </div>
+                            {(m.matchPublicId || m.publicId || m.id) && onOpenReplay && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onClose?.();
+                                  const targetMatchId = m.matchPublicId || m.publicId || m.id;
+                                  onOpenReplay?.({
+                                    id: targetMatchId,
+                                    matchPublicId: targetMatchId,
+                                    replayId: targetMatchId,
+                                    mode: 'BOT',
+                                    matchType: m.matchType,
+                                    playerA: bot?.name || 'Bot A',
+                                    playerB: m.opponentBotName || 'Đối Thủ',
+                                  });
+                                }}
+                                className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-[11px] font-semibold text-zinc-200 transition-colors flex items-center gap-1"
+                              >
+                                <span>▶️</span>
+                                <span>Xem Replay</span>
+                              </button>
+                            )}
+                          </div>
                         </div>
                       );
                     })}

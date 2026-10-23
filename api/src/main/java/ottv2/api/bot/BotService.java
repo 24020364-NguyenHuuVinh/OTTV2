@@ -245,6 +245,9 @@ public class BotService {
             List<BotDtos.BotMatchSummary> recentMatches = jdbc.query("""
                     SELECT m.public_id, m.match_type, m.status, m.winner_side, m.finished_at,
                            mp_self.side AS self_side,
+                           mp_self.elo_before AS self_elo_before,
+                           mp_self.elo_after AS self_elo_after,
+                           mp_opp.elo_before AS opponent_elo,
                            b_opp.name AS opp_bot_name,
                            COALESCE(u_opp.display_name, u_opp.student_code) AS opp_owner_name
                     FROM match_participants mp_self
@@ -273,6 +276,9 @@ public class BotService {
                         result,
                         rsm.getString("opp_bot_name"),
                         rsm.getString("opp_owner_name"),
+                        (Integer) rsm.getObject("opponent_elo"),
+                        (Integer) rsm.getObject("self_elo_before"),
+                        (Integer) rsm.getObject("self_elo_after"),
                         ts != null ? ts.toInstant() : null
                 );
             }, id);
