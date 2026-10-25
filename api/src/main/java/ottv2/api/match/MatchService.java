@@ -441,6 +441,19 @@ public class MatchService {
                     wsEvent.put("winReason", reason);
                     wsEvent.put("isRanked", isRanked);
 
+                    Map<String, Object> sideAData = new HashMap<>();
+                    sideAData.put("eloBefore", eloA);
+                    sideAData.put("eloAfter", newEloA);
+                    sideAData.put("eloChange", changeA);
+
+                    Map<String, Object> sideBData = new HashMap<>();
+                    sideBData.put("eloBefore", eloB);
+                    sideBData.put("eloAfter", newEloB);
+                    sideBData.put("eloChange", changeB);
+
+                    wsEvent.put("sideA", sideAData);
+                    wsEvent.put("sideB", sideBData);
+
                     // Extract final move from replayData if available to guarantee board sync
                     if (request != null && request.replayData() != null) {
                         try {

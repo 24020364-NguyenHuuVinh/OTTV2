@@ -262,7 +262,7 @@ export default function GameModes({
       setIsCreating(true);
       setErrorNotice('');
       const data = await createRoomApi('Chủ Phòng');
-      onStartRoomGame?.({ roomCode: data.code, isHost: true, isQuickMatch: false });
+      onStartRoomGame?.({ roomCode: data.code, isHost: true, isQuickMatch: false, playerToken: data.playerToken });
     } catch (err) {
       console.error('Lỗi tạo phòng:', err);
       alert('Không thể tạo phòng lúc này. Vui lòng kiểm tra kết nối mạng!');
@@ -283,6 +283,7 @@ export default function GameModes({
         isHost: false,
         isQuickMatch: false,
         timeControl: data.timeControl,
+        playerToken: data.playerToken,
       });
     } catch (err) {
       console.error('Lỗi vào phòng:', err);

@@ -160,6 +160,7 @@ export default function Layout({
             userName={user?.displayName || user?.studentCode || 'Người chơi'}
             pvpElo={pvpElo}
             targetOpponent={roomGameConfig.targetOpponent}
+            playerToken={roomGameConfig.playerToken}
             onClose={handleCloseRoomGame || (() => setRoomGameConfig(null))}
             onMatchFinished={handlePvpMatchFinished}
             onOpenReplay={({ matchInfo, replay }) => {

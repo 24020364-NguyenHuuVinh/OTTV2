@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client/dist/sockjs';
-import { buildWsUrl, createStompWebSocket } from '../utils/api.js';
+import { buildApiUrl, buildWsUrl, createStompWebSocket } from '../utils/api.js';
+import { joinRoomApi, getRoomApi } from '../utils/roomApi.js';
 import InteractiveBoard from './InteractiveBoard.jsx';
 import {
   INITIAL_PIECES,
@@ -59,6 +60,7 @@ function getBestBotMove(currentPieces) {
 
 export default function RoomGameModal({
   roomCode,
+  playerToken = null,
   matchId = null,
   isHost = false,
   onClose,
@@ -189,6 +191,40 @@ export default function RoomGameModal({
   }, [targetOpponent]);
 
   // Mutable refs to keep STOMP WebSocket connection isolated from component re-renders
+  const playerTokenRef = useRef(playerToken);
+  useEffect(() => {
+    if (playerToken) {
+      playerTokenRef.current = playerToken;
+    }
+  }, [playerToken]);
+
+  // If entering room without playerToken, fetch or join room to retrieve playerToken
+  useEffect(() => {
+    if (!playerTokenRef.current && !isSparring && !isSpectator && roomCode) {
+      if (isHost) {
+        getRoomApi(roomCode, { username: userName })
+          .then((res) => {
+            if (res?.playerToken) {
+              playerTokenRef.current = res.playerToken;
+            }
+          })
+          .catch((err) => {
+            console.warn('[RoomGameModal] Host token sync failed:', err);
+          });
+      } else {
+        joinRoomApi(roomCode, userName)
+          .then((res) => {
+            if (res?.playerToken) {
+              playerTokenRef.current = res.playerToken;
+            }
+          })
+          .catch((err) => {
+            console.warn('[RoomGameModal] Auto-join room token fetch failed:', err);
+          });
+      }
+    }
+  }, [roomCode, isHost, isSparring, isSpectator, userName]);
+
   const isHostRef = useRef(isHost);
   isHostRef.current = isHost;
 
@@ -433,6 +469,7 @@ export default function RoomGameModal({
                         roomCode: String(roomCode),
                         sender: mySideRef.current || 'A',
                         senderName: userNameRef.current || 'Chủ Phòng',
+                        playerToken: playerTokenRef.current,
                         timeControl: selectedTcRef.current || null,
                         ready: true,
                         startTime: startTimeRef.current || Date.now(),
@@ -556,6 +593,9 @@ export default function RoomGameModal({
                   winnerRef.current = winningSide;
                   setWinner(winningSide);
                   setWinReason(endReason);
+                  if (endReason === 'OPPONENT_LEFT' || endReason === 'RESIGN' || endReason === 'FORFEIT') {
+                    setRoomState('OPPONENT_LEFT');
+                  }
                   if (winningSide === mySideRef.current) {
                     playVictorySound();
                   } else if (winningSide === 'DRAW') {
@@ -602,6 +642,8 @@ export default function RoomGameModal({
                   setRoomState('OPPONENT_LEFT');
                   const remainingSide = mySideRef.current || 'A';
                   winnerRef.current = remainingSide;
+                  setWinner(remainingSide);
+                  setWinReason('OPPONENT_LEFT');
                   handleFinishGame(remainingSide, 'OPPONENT_LEFT');
                   playVictorySound();
                 }
@@ -627,6 +669,7 @@ export default function RoomGameModal({
                   roomCode: String(roomCode),
                   sender: mySideRef.current || 'B',
                   senderName: userNameRef.current || 'Khách',
+                  playerToken: playerTokenRef.current,
                   ready: true,
                   timeControl: selectedTcRef.current || null,
                   startTime: startTimeRef.current || Date.now(),
@@ -642,6 +685,7 @@ export default function RoomGameModal({
                   roomCode: String(roomCode),
                   sender: mySideRef.current || 'A',
                   senderName: userNameRef.current || 'Chủ Phòng',
+                  playerToken: playerTokenRef.current,
                   ready: true,
                   timeControl: selectedTcRef.current || null,
                   startTime: startTimeRef.current || Date.now(),
@@ -682,6 +726,7 @@ export default function RoomGameModal({
                 type: 'PLAYER_LEFT',
                 roomCode: String(roomCode),
                 sender: mySideRef.current || 'A',
+                playerToken: playerTokenRef.current,
               }),
             });
           }
@@ -692,6 +737,41 @@ export default function RoomGameModal({
       setWsConnected(false);
     };
   }, [roomCode, isSparring]);
+
+  // Bắt sự kiện thoát tab/reload trang giữa trận để giải phóng và thông báo cho đối thủ ngay tức thì
+  useEffect(() => {
+    if (isSparring || isSpectator) return undefined;
+    const handleBeforeUnload = () => {
+      if (roomState === 'PLAYING' && !winnerRef.current && opponentTypeRef.current === 'HUMAN') {
+        try {
+          if (stompClientRef.current?.connected) {
+            stompClientRef.current.publish({
+              destination: `/app/room/${roomCode}/action`,
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({
+                type: 'PLAYER_LEFT',
+                roomCode: String(roomCode),
+                sender: mySideRef.current || 'A',
+                playerToken: playerTokenRef.current,
+                reason: 'OPPONENT_LEFT',
+              }),
+            });
+          }
+          if (navigator.sendBeacon) {
+            const payload = JSON.stringify({ sender: mySideRef.current || 'A', roomCode });
+            navigator.sendBeacon(buildApiUrl(`/api/rooms/${roomCode}/leave`), new Blob([payload], { type: 'application/json' }));
+          }
+        } catch (_) {}
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handleBeforeUnload);
+    };
+  }, [roomCode, roomState, isSparring, isSpectator]);
 
   // Autonomous move loop for Sparring AI (Máy 1..12) or generic Fallback Bot
   useEffect(() => {
@@ -899,6 +979,7 @@ export default function RoomGameModal({
             type: 'MAKE_MOVE',
             roomCode,
             sender: mySide,
+            playerToken: playerTokenRef.current,
             from: fromPos,
             to: toPos,
             pieceId: selectedPiece.id,
@@ -959,6 +1040,7 @@ export default function RoomGameModal({
             type: 'RESTART_GAME',
             roomCode,
             sender: mySide,
+            playerToken: playerTokenRef.current,
           }),
         });
         console.log('[STOMP SEND] /app/room/' + roomCode + '/action (RESTART_GAME)');
@@ -983,6 +1065,7 @@ export default function RoomGameModal({
               type: 'CLOCK_SYNC',
               roomCode,
               sender: mySide,
+              playerToken: playerTokenRef.current,
               timeLeftA,
               timeLeftB,
               currentTurn,
@@ -1058,6 +1141,23 @@ export default function RoomGameModal({
       );
       if (!confirmed) return;
       const opponentSide = mySide === 'A' ? 'B' : 'A';
+      if (stompClientRef.current?.connected) {
+        try {
+          stompClientRef.current.publish({
+            destination: `/app/room/${roomCode}/action`,
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              type: 'PLAYER_LEFT',
+              roomCode: String(roomCode),
+              sender: mySideRef.current || mySide || 'A',
+              playerToken: playerTokenRef.current,
+              reason: 'RESIGN',
+            }),
+          });
+        } catch (e) {
+          console.warn('Lỗi gửi STOMP action PLAYER_LEFT:', e);
+        }
+      }
       handleFinishGame(opponentSide, 'RESIGN');
     }
     onClose();
@@ -1609,9 +1709,9 @@ export default function RoomGameModal({
                   : winReason === 'TARGET_REACHED'
                   ? 'Đã thâm nhập thành công vào Ô Đích đối phương!'
                   : winReason === 'RESIGN' || winReason === 'FORFEIT'
-                  ? 'Đối thủ đã xin đầu hàng!'
+                  ? 'Đối thủ đã xin đầu hàng / hủy trận!'
                   : winReason === 'OPPONENT_LEFT'
-                  ? 'Đối thủ đã rời khỏi phòng đấu / bỏ cuộc!'
+                  ? 'Đối thủ đã rời khỏi phòng đấu / hủy trận!'
                   : 'Đã tiêu diệt toàn bộ quân cờ của đối phương!'}
               </p>
 

@@ -129,7 +129,7 @@ public class ProfileService {
         int losses = stats.losses();
         int winRate = matchesCount > 0 ? (int) Math.round((double) wins / matchesCount * 100) : 0;
         int distinctOpponents = stats.distinctOpponents();
-        boolean isProvisional = stats.pvpMatchesCount() < 10 || stats.pvpDistinctOpponents() < 5;
+        boolean isProvisional = stats.pvpMatchesCount() < 10 && stats.pvpDistinctOpponents() < 5;
 
         List<EloHistoryItem> eloHistory = jdbc.query("""
                 SELECT um.id, um.opponent,
@@ -150,7 +150,8 @@ public class ProfileService {
                            LIMIT 1
                        ) ELSE um.opponent_elo END AS opponent_elo,
                        um.mode, um.user_won, um.elo_change, um.new_elo,
-                       to_char(um.created_at, 'HH24:MI:SS') AS timestamp_str,
+                       to_char(um.created_at, 'DD/MM/YYYY HH24:MI:SS') AS timestamp_str,
+                       to_char(um.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS created_at_iso,
                        COALESCE(um.replay_id, um.id::text) AS replay_id,
                        COALESCE(um.is_ranked, false) AS is_ranked,
                        COALESCE(um.winner, '') AS winner
@@ -169,7 +170,8 @@ public class ProfileService {
                 rs.getString("timestamp_str"),
                 rs.getString("replay_id"),
                 rs.getBoolean("is_ranked"),
-                rs.getString("winner")
+                rs.getString("winner"),
+                rs.getString("created_at_iso")
         ), userId);
 
         return new ProfileResponse(

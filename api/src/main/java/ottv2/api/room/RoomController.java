@@ -13,8 +13,11 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import ottv2.api.security.ApiPrincipal;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,12 +43,24 @@ public class RoomController {
         this(roomService, null, null);
     }
 
+    public ResponseEntity<?> createRoom(Map<String, ?> body) {
+        return createRoom(body != null ? new HashMap<>(body) : null, null);
+    }
+
     @PostMapping("/api/rooms/create")
-    public ResponseEntity<?> createRoom(@RequestBody(required = false) Map<String, Object> body) {
+    public ResponseEntity<?> createRoom(@RequestBody(required = false) Map<String, Object> body,
+                                        @AuthenticationPrincipal ApiPrincipal principal) {
         String hostName = body != null && body.get("hostName") != null ? String.valueOf(body.get("hostName")) : "Chủ Phòng";
         Object timeControl = body != null ? body.get("timeControl") : null;
 
         RoomSession room = roomService.createRoom(hostName, timeControl);
+        if (principal != null) {
+            room.setHostUserId(principal.id());
+            room.setHostUsername(principal.username());
+            if ("Chủ Phòng".equals(hostName) && principal.username() != null) {
+                room.setHostName(principal.username());
+            }
+        }
 
         Map<String, Object> response = new HashMap<>();
         response.put("code", room.getCode());
@@ -53,6 +68,7 @@ public class RoomController {
         response.put("status", room.getStatus().name());
         response.put("isHost", true);
         response.put("hostName", room.getHostName());
+        response.put("playerToken", room.getHostPlayerToken());
         response.put("createdAt", room.getCreatedAt().toString());
         if (room.getTimeControl() != null) {
             response.put("timeControl", room.getTimeControl());
@@ -60,11 +76,24 @@ public class RoomController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    public ResponseEntity<?> joinRoom(String code, Map<String, ?> body) {
+        return joinRoom(code, body != null ? new HashMap<>(body) : null, null);
+    }
+
     @PostMapping("/api/rooms/join/{code}")
-    public ResponseEntity<?> joinRoom(@PathVariable String code, @RequestBody(required = false) Map<String, Object> body) {
+    public ResponseEntity<?> joinRoom(@PathVariable String code,
+                                      @RequestBody(required = false) Map<String, Object> body,
+                                      @AuthenticationPrincipal ApiPrincipal principal) {
         String guestName = body != null && body.get("guestName") != null ? String.valueOf(body.get("guestName")) : "Khách";
         try {
             RoomSession room = roomService.joinRoom(code, guestName);
+            if (principal != null) {
+                room.setGuestUserId(principal.id());
+                room.setGuestUsername(principal.username());
+                if ("Khách".equals(guestName) && principal.username() != null) {
+                    room.setGuestName(principal.username());
+                }
+            }
 
             // Bắn (broadcast) sự kiện MATCH_START vào topic /topic/room/{code}
             // để Chủ phòng đang chờ tự động nhận diện và chuyển sang màn hình bàn cờ cùng lúc với Khách
@@ -90,6 +119,7 @@ public class RoomController {
             response.put("isHost", false);
             response.put("hostName", room.getHostName());
             response.put("guestName", room.getGuestName());
+            response.put("playerToken", room.getGuestPlayerToken());
             if (room.getTimeControl() != null) {
                 response.put("timeControl", room.getTimeControl());
             }
@@ -107,8 +137,15 @@ public class RoomController {
         }
     }
 
+    public ResponseEntity<?> getRoom(String code) {
+        return getRoom(code, null, null, null);
+    }
+
     @GetMapping("/api/rooms/{code}")
-    public ResponseEntity<?> getRoom(@PathVariable String code) {
+    public ResponseEntity<?> getRoom(@PathVariable String code,
+                                    @AuthenticationPrincipal ApiPrincipal principal,
+                                    @RequestParam(required = false) Long userId,
+                                    @RequestParam(required = false) String username) {
         RoomSession room = roomService.getRoom(code);
         if (room == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
@@ -125,7 +162,71 @@ public class RoomController {
         if (room.getTimeControl() != null) {
             response.put("timeControl", room.getTimeControl());
         }
+
+        // Kiểm tra quyền hạn của người gọi (qua Principal hoặc userId/username) để trả về playerToken tương ứng
+        boolean isA = false;
+        boolean isB = false;
+
+        if (principal != null) {
+            String pName = principal.username();
+            Long pId = principal.id();
+            if ((pId != null && pId.equals(room.getHostUserId())) ||
+                (pName != null && (pName.equalsIgnoreCase(room.getHostUsername()) || pName.equalsIgnoreCase(room.getHostName())))) {
+                isA = true;
+            } else if ((pId != null && pId.equals(room.getGuestUserId())) ||
+                       (pName != null && (pName.equalsIgnoreCase(room.getGuestUsername()) || pName.equalsIgnoreCase(room.getGuestName())))) {
+                isB = true;
+            }
+        }
+
+        if (!isA && !isB) {
+            if (userId != null && userId.equals(room.getHostUserId())) {
+                isA = true;
+            } else if (userId != null && userId.equals(room.getGuestUserId())) {
+                isB = true;
+            } else if (username != null && !username.isBlank()) {
+                String u = username.trim();
+                if (u.equalsIgnoreCase(room.getHostUsername()) || u.equalsIgnoreCase(room.getHostName())) {
+                    isA = true;
+                } else if (u.equalsIgnoreCase(room.getGuestUsername()) || u.equalsIgnoreCase(room.getGuestName())) {
+                    isB = true;
+                }
+            }
+        }
+
+        if (isA) {
+            response.put("isHost", true);
+            response.put("playerToken", room.getHostPlayerToken());
+        } else if (isB) {
+            response.put("isHost", false);
+            response.put("playerToken", room.getGuestPlayerToken());
+        }
+
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/api/rooms/{code}/leave")
+    public ResponseEntity<?> leaveRoomHttp(@PathVariable String code,
+                                           @RequestBody(required = false) Map<String, Object> body,
+                                           @AuthenticationPrincipal ApiPrincipal principal) {
+        RoomSession room = roomService.getRoom(code);
+        if (room != null) {
+            String sender = body != null && body.get("sender") != null ? String.valueOf(body.get("sender")).trim().toUpperCase() : "A";
+            room.setPlayerLeft(sender);
+            if (messagingTemplate != null) {
+                try {
+                    Map<String, Object> event = new HashMap<>();
+                    event.put("type", "PLAYER_LEFT");
+                    event.put("roomCode", code);
+                    event.put("sender", sender);
+                    event.put("reason", "OPPONENT_LEFT");
+                    messagingTemplate.convertAndSend((String) ("/topic/room/" + code), (Object) event);
+                } catch (Exception e) {
+                    log.warn("Lỗi broadcast PLAYER_LEFT via HTTP leave: {}", e.getMessage());
+                }
+            }
+        }
+        return ResponseEntity.ok(Map.of("status", "LEFT"));
     }
 
     @SuppressWarnings("unchecked")
@@ -179,45 +280,99 @@ public class RoomController {
     // STOMP Message Handler: Lắng nghe ở @MessageMapping("/room/{code}/move") và broadcast lại nước đi cho cả 2 người qua @SendTo("/topic/room/{code}")
     @MessageMapping("/room/{code}/move")
     @SendTo("/topic/room/{code}")
-    public Map<String, Object> handleMove(@DestinationVariable String code, @Payload(required = false) Object rawPayload) {
+    public Map<String, Object> handleMove(@DestinationVariable String code,
+                                          @Payload(required = false) Object rawPayload,
+                                          Principal principal) {
         try {
             RoomSession room = roomService.getRoom(code);
-            if (room != null) {
-                room.updateLastActive();
+            if (room == null) {
+                log.warn("[STOMP MOVE SECURITY] Bị từ chối: Phòng '{}' không tồn tại!", code);
+                return null;
             }
+            if (room.getStatus() == RoomSession.Status.FINISHED) {
+                log.warn("[STOMP MOVE SECURITY] Bị từ chối: Phòng '{}' đã kết thúc!", code);
+                return null;
+            }
+
             Map<String, Object> moveData = parsePayload(rawPayload);
-            log.info("[STOMP MOVE] Room {}: pieceId={}, from={}, to={}", code, moveData.get("pieceId"), moveData.get("from"), moveData.get("to"));
+            String sender = moveData.get("sender") != null ? String.valueOf(moveData.get("sender")).trim().toUpperCase() : "";
+            if (!"A".equals(sender) && !"B".equals(sender)) {
+                log.warn("[STOMP MOVE SECURITY] Bị từ chối: Phòng '{}' sender không hợp lệ '{}'", code, sender);
+                return null;
+            }
+
+            String playerToken = moveData.get("playerToken") != null ? String.valueOf(moveData.get("playerToken")).trim() : null;
+            if (!room.isSenderAuthorized(sender, playerToken, principal)) {
+                log.warn("[STOMP MOVE SECURITY] Bị từ chối: Sender '{}' không có quyền đi cờ trong phòng '{}' (sai playerToken/principal)", sender, code);
+                return null;
+            }
+
+            room.updateLastActive();
+            log.info("[STOMP MOVE] Room {}: sender={}, pieceId={}, from={}, to={}", code, sender, moveData.get("pieceId"), moveData.get("from"), moveData.get("to"));
+            moveData.remove("playerToken");
             return moveData;
         } catch (Exception e) {
             log.error("Lỗi khi xử lý STOMP move phòng {}: {}", code, e.getMessage(), e);
-            return Map.of("error", e.getMessage() != null ? e.getMessage() : "Unknown error");
+            return null;
         }
+    }
+
+    public Map<String, Object> handleMove(String code, Object rawPayload) {
+        return handleMove(code, rawPayload, null);
     }
 
     // STOMP Message Handler: Lắng nghe các action khác (ready, clock_sync, restart, chat, leave)
     @MessageMapping("/room/{code}/action")
     @SendTo("/topic/room/{code}")
-    public Map<String, Object> handleAction(@DestinationVariable String code, @Payload(required = false) Object rawPayload) {
+    public Map<String, Object> handleAction(@DestinationVariable String code,
+                                            @Payload(required = false) Object rawPayload,
+                                            Principal principal) {
         try {
             RoomSession room = roomService.getRoom(code);
-            if (room != null) {
-                room.updateLastActive();
+            if (room == null) {
+                log.warn("[STOMP ACTION SECURITY] Bị từ chối: Phòng '{}' không tồn tại!", code);
+                return null;
             }
-            Map<String, Object> actionData = parsePayload(rawPayload);
-            String actionType = actionData.get("type") != null ? String.valueOf(actionData.get("type")) : "";
-            log.info("[STOMP ACTION] Room {}: type={}, sender={}", code, actionType, actionData.get("sender"));
 
-            if ("PLAYER_LEFT".equalsIgnoreCase(actionType) && room != null) {
-                String sender = actionData.get("sender") != null ? String.valueOf(actionData.get("sender")).trim().toUpperCase() : "";
-                if ("A".equals(sender) || "B".equals(sender)) {
-                    room.setPlayerLeft(sender);
+            Map<String, Object> actionData = parsePayload(rawPayload);
+            String actionType = actionData.get("type") != null ? String.valueOf(actionData.get("type")).trim() : "";
+            String sender = actionData.get("sender") != null ? String.valueOf(actionData.get("sender")).trim().toUpperCase() : "";
+
+            if (!"A".equals(sender) && !"B".equals(sender) && !"SERVER".equals(sender)) {
+                log.warn("[STOMP ACTION SECURITY] Bị từ chối: Phòng '{}' sender không hợp lệ '{}'", code, sender);
+                return null;
+            }
+
+            String playerToken = actionData.get("playerToken") != null ? String.valueOf(actionData.get("playerToken")).trim() : null;
+            if (!"SERVER".equals(sender) && !room.isSenderAuthorized(sender, playerToken, principal)) {
+                log.warn("[STOMP ACTION SECURITY] Bị từ chối: Sender '{}' không có quyền gửi action '{}' trong phòng '{}' (sai playerToken/principal)", sender, actionType, code);
+                return null;
+            }
+
+            room.updateLastActive();
+            log.info("[STOMP ACTION] Room {}: type={}, sender={}", code, actionType, sender);
+
+            if ("PLAYER_LEFT".equalsIgnoreCase(actionType)) {
+                room.setPlayerLeft(sender);
+            }
+            actionData.remove("playerToken");
+            actionData.put("roomCode", code);
+            if (messagingTemplate != null) {
+                try {
+                    messagingTemplate.convertAndSend((String) ("/topic/room/" + code), (Object) actionData);
+                } catch (Exception e) {
+                    log.warn("Lỗi messagingTemplate khi gửi action: {}", e.getMessage());
                 }
             }
             return actionData;
         } catch (Exception e) {
             log.error("Lỗi khi xử lý STOMP action phòng {}: {}", code, e.getMessage(), e);
-            return Map.of("error", e.getMessage() != null ? e.getMessage() : "Unknown error");
+            return null;
         }
+    }
+
+    public Map<String, Object> handleAction(String code, Object rawPayload) {
+        return handleAction(code, rawPayload, null);
     }
 
     // Bắt và xử lý tập trung mọi ngoại lệ STOMP trong controller để không bị ngắt kết nối WebSocket session

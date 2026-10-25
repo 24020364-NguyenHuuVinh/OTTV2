@@ -823,7 +823,7 @@ export default function BattleCode({
                       </p>
                       <p className="text-[10px] text-zinc-400 font-mono truncate">
                         Chủ sở hữu: <span className="text-emerald-300 font-semibold">{user?.displayName || user?.studentCode || 'Bạn'}</span>
-                        {ownOfficialRank ? ` · Hạng #${ownOfficialRank}` : ' · Chưa đủ 10 trận Ranked'}
+                        {ownOfficialRank ? ` · Hạng #${ownOfficialRank}` : ' · Chưa đủ 10 trận hoặc 5 đối thủ'}
                       </p>
                     </div>
                   </div>

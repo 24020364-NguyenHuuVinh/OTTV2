@@ -3,6 +3,7 @@ package ottv2.api.room;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
@@ -35,6 +36,12 @@ class RoomWebSocketIntegrationTest {
 
     @LocalServerPort
     private int port;
+
+    @Autowired
+    private RoomService roomService;
+
+    @Autowired
+    private RoomController roomController;
 
     private List<StompSession> activeSessions;
 
@@ -95,7 +102,8 @@ class RoomWebSocketIntegrationTest {
         assertTrue(session.isConnected(), "STOMP session should be connected");
 
         BlockingQueue<Map<String, Object>> messages = new LinkedBlockingQueue<>();
-        String roomCode = "test-action-1";
+        RoomSession room = roomService.createRoom("TestHost1", null);
+        String roomCode = room.getCode();
 
         session.subscribe("/topic/room/" + roomCode, new StompFrameHandler() {
             @Override
@@ -115,7 +123,7 @@ class RoomWebSocketIntegrationTest {
         headers.setDestination("/app/room/" + roomCode + "/action");
         headers.set("content-type", "application/json");
 
-        String payload = "{\"type\":\"READY_CHANGE\",\"roomCode\":\"" + roomCode + "\",\"sender\":\"A\",\"ready\":true}";
+        String payload = "{\"type\":\"READY_CHANGE\",\"roomCode\":\"" + roomCode + "\",\"sender\":\"A\",\"playerToken\":\"" + room.getHostPlayerToken() + "\",\"ready\":true}";
         session.send(headers, payload.getBytes(StandardCharsets.UTF_8));
 
         Map<String, Object> received = messages.poll(5, TimeUnit.SECONDS);
@@ -175,7 +183,8 @@ class RoomWebSocketIntegrationTest {
 
         assertTrue(session.isConnected());
 
-        String roomCode = "test-move-3";
+        RoomSession room = roomService.createRoom("TestHost3", null);
+        String roomCode = room.getCode();
         BlockingQueue<Map<String, Object>> messages = new LinkedBlockingQueue<>();
 
         session.subscribe("/topic/room/" + roomCode, new StompFrameHandler() {
@@ -191,12 +200,12 @@ class RoomWebSocketIntegrationTest {
             }
         });
 
-        // Send move
+        // Send move with valid playerToken
         StompHeaders headers = new StompHeaders();
         headers.setDestination("/app/room/" + roomCode + "/move");
         headers.set("content-type", "application/json");
 
-        String payload = "{\"type\":\"MAKE_MOVE\",\"roomCode\":\"" + roomCode + "\",\"sender\":\"A\",\"pieceId\":1,\"from\":[8,0],\"to\":[7,0]}";
+        String payload = "{\"type\":\"MAKE_MOVE\",\"roomCode\":\"" + roomCode + "\",\"sender\":\"A\",\"playerToken\":\"" + room.getHostPlayerToken() + "\",\"pieceId\":1,\"from\":[8,0],\"to\":[7,0]}";
         session.send(headers, payload.getBytes(StandardCharsets.UTF_8));
 
         Map<String, Object> received = messages.poll(5, TimeUnit.SECONDS);
@@ -204,6 +213,7 @@ class RoomWebSocketIntegrationTest {
         assertEquals("MAKE_MOVE", received.get("type"));
         assertEquals(roomCode, received.get("roomCode"));
         assertEquals(1, received.get("pieceId"));
+        assertNull(received.get("playerToken"), "playerToken must NOT be leaked into broadcast message");
 
         assertTrue(session.isConnected(), "Session must remain connected after sending move");
     }
@@ -220,7 +230,10 @@ class RoomWebSocketIntegrationTest {
         assertTrue(hostSession.isConnected());
         assertTrue(guestSession.isConnected());
 
-        String roomCode = "test-pvp-999";
+        RoomSession room = roomService.createRoom("TestHost4", null);
+        roomService.joinRoom(room.getCode(), "GuestUser");
+        String roomCode = room.getCode();
+
         BlockingQueue<Map<String, Object>> hostReceived = new LinkedBlockingQueue<>();
         BlockingQueue<Map<String, Object>> guestReceived = new LinkedBlockingQueue<>();
 
@@ -250,12 +263,12 @@ class RoomWebSocketIntegrationTest {
             }
         });
 
-        // Guest sends PLAYER_JOINED
+        // Guest sends PLAYER_JOINED with valid guest playerToken
         StompHeaders guestHeaders = new StompHeaders();
         guestHeaders.setDestination("/app/room/" + roomCode + "/action");
         guestHeaders.set("content-type", "application/json");
 
-        String joinPayload = "{\"type\":\"PLAYER_JOINED\",\"roomCode\":\"" + roomCode + "\",\"sender\":\"B\",\"senderName\":\"GuestUser\",\"ready\":true}";
+        String joinPayload = "{\"type\":\"PLAYER_JOINED\",\"roomCode\":\"" + roomCode + "\",\"sender\":\"B\",\"playerToken\":\"" + room.getGuestPlayerToken() + "\",\"senderName\":\"GuestUser\",\"ready\":true}";
         guestSession.send(guestHeaders, joinPayload.getBytes(StandardCharsets.UTF_8));
 
         // Both host and guest should receive the event
@@ -265,6 +278,7 @@ class RoomWebSocketIntegrationTest {
         assertNotNull(msgForHost, "Host should receive PLAYER_JOINED event");
         assertEquals("PLAYER_JOINED", msgForHost.get("type"));
         assertEquals("GuestUser", msgForHost.get("senderName"));
+        assertNull(msgForHost.get("playerToken"), "Token must not be leaked");
 
         assertNotNull(msgForGuest, "Guest should receive PLAYER_JOINED event");
         assertEquals("PLAYER_JOINED", msgForGuest.get("type"));
@@ -272,5 +286,119 @@ class RoomWebSocketIntegrationTest {
         // Both sessions remain connected
         assertTrue(hostSession.isConnected(), "Host session must remain connected");
         assertTrue(guestSession.isConnected(), "Guest session must remain connected");
+    }
+
+    @Test
+    void testUnauthorizedMoveAndActionRejected() throws Exception {
+        String url = "http://localhost:" + port + "/api/ws";
+        BlockingQueue<Throwable> errors = new LinkedBlockingQueue<>();
+        StompSession session = connectClient(url, errors);
+
+        assertTrue(session.isConnected());
+
+        RoomSession room = roomService.createRoom("SecureHost", null);
+        String roomCode = room.getCode();
+
+        BlockingQueue<Map<String, Object>> messages = new LinkedBlockingQueue<>();
+        session.subscribe("/topic/room/" + roomCode, new StompFrameHandler() {
+            @Override
+            public Type getPayloadType(StompHeaders headers) {
+                return Map.class;
+            }
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public void handleFrame(StompHeaders headers, Object payload) {
+                messages.add((Map<String, Object>) payload);
+            }
+        });
+
+        // 1. Attack attempt: attacker tries to inject fake move without playerToken
+        StompHeaders moveHeaders = new StompHeaders();
+        moveHeaders.setDestination("/app/room/" + roomCode + "/move");
+        moveHeaders.set("content-type", "application/json");
+        String fakeMovePayload = "{\"type\":\"MAKE_MOVE\",\"roomCode\":\"" + roomCode + "\",\"sender\":\"A\",\"pieceId\":1,\"from\":[8,0],\"to\":[7,0]}";
+        session.send(moveHeaders, fakeMovePayload.getBytes(StandardCharsets.UTF_8));
+
+        // Verify that server dropped it (nothing broadcast to subscribers)
+        Map<String, Object> receivedMove = messages.poll(1, TimeUnit.SECONDS);
+        assertNull(receivedMove, "Unauthorized move without playerToken MUST NOT be broadcast");
+
+        // 2. Attack attempt: attacker tries to inject fake PLAYER_LEFT forfeit with invalid token
+        StompHeaders actionHeaders = new StompHeaders();
+        actionHeaders.setDestination("/app/room/" + roomCode + "/action");
+        actionHeaders.set("content-type", "application/json");
+        String fakeLeftPayload = "{\"type\":\"PLAYER_LEFT\",\"roomCode\":\"" + roomCode + "\",\"sender\":\"A\",\"playerToken\":\"hacked-token\"}";
+        session.send(actionHeaders, fakeLeftPayload.getBytes(StandardCharsets.UTF_8));
+
+        Map<String, Object> receivedAction = messages.poll(1, TimeUnit.SECONDS);
+        assertNull(receivedAction, "Unauthorized action with wrong playerToken MUST NOT be broadcast");
+
+        // Connection must still be healthy
+        assertTrue(session.isConnected(), "Session must remain connected after unauthorized attempts");
+        assertTrue(errors.isEmpty(), "No fatal transport exceptions");
+    }
+
+    @Test
+    void testAuthorizedHostMoveWithPlayerTokenBroadcastsSuccessfully() throws Exception {
+        String url = "http://localhost:" + port + "/api/ws";
+        BlockingQueue<Throwable> errors = new LinkedBlockingQueue<>();
+        StompSession hostSession = connectClient(url, errors);
+        StompSession guestSession = connectClient(url, errors);
+
+        RoomSession room = roomService.createRoom("HostPlayer", null);
+        roomService.joinRoom(room.getCode(), "GuestPlayer");
+        String roomCode = room.getCode();
+
+        BlockingQueue<Map<String, Object>> guestReceived = new LinkedBlockingQueue<>();
+        guestSession.subscribe("/topic/room/" + roomCode, new StompFrameHandler() {
+            @Override
+            public Type getPayloadType(StompHeaders headers) {
+                return Map.class;
+            }
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public void handleFrame(StompHeaders headers, Object payload) {
+                guestReceived.add((Map<String, Object>) payload);
+            }
+        });
+
+        // Host sends valid move with hostPlayerToken
+        StompHeaders moveHeaders = new StompHeaders();
+        moveHeaders.setDestination("/app/room/" + roomCode + "/move");
+        moveHeaders.set("content-type", "application/json");
+
+        String validMove = "{\"type\":\"MAKE_MOVE\",\"roomCode\":\"" + roomCode + "\",\"sender\":\"A\",\"playerToken\":\""
+                + room.getHostPlayerToken() + "\",\"pieceId\":1,\"from\":{\"r\":8,\"c\":0},\"to\":{\"r\":7,\"c\":0}}";
+        hostSession.send(moveHeaders, validMove.getBytes(StandardCharsets.UTF_8));
+
+        Map<String, Object> receivedMove = guestReceived.poll(5, TimeUnit.SECONDS);
+        assertNotNull(receivedMove, "Guest must receive the move sent by Host with valid token");
+        assertEquals("A", receivedMove.get("sender"));
+        assertNull(receivedMove.get("playerToken"), "Token must be stripped before broadcast");
+    }
+
+    @Test
+    void testGetRoomTokenRecovery() {
+        RoomSession room = roomService.createRoom("RecoveryHost", null);
+        room.setHostUserId(99L);
+        room.setHostUsername("RecoveryHost");
+
+        // 1. Calling getRoom with matching host info returns host token
+        org.springframework.http.ResponseEntity<?> res = roomController.getRoom(room.getCode(), null, 99L, "RecoveryHost");
+        assertTrue(res.getStatusCode().is2xxSuccessful());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) res.getBody();
+        assertNotNull(body);
+        assertEquals(Boolean.TRUE, body.get("isHost"));
+        assertEquals(room.getHostPlayerToken(), body.get("playerToken"));
+
+        // 2. Calling getRoom without matching identity does NOT expose playerToken
+        org.springframework.http.ResponseEntity<?> anonRes = roomController.getRoom(room.getCode(), null, null, null);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> anonBody = (Map<String, Object>) anonRes.getBody();
+        assertNotNull(anonBody);
+        assertNull(anonBody.get("playerToken"), "Anonymous requester must NOT see playerToken");
     }
 }

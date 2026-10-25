@@ -78,6 +78,7 @@ export async function createRoomApi(hostName = 'Chủ Phòng', timeControl = nul
     isHost: true,
     status: data.status || 'WAITING',
     timeControl: data.timeControl || timeControl,
+    playerToken: data.playerToken,
   };
 }
 
@@ -85,7 +86,7 @@ export async function createRoomApi(hostName = 'Chủ Phòng', timeControl = nul
  * Join an existing PvP room by 6-digit code
  * @param {string} code
  * @param {string} guestName
- * @returns {Promise<{code: string, roomCode: string, isHost: boolean, status: string, timeControl: any}>}
+ * @returns {Promise<{code: string, roomCode: string, isHost: boolean, status: string, timeControl: any, playerToken?: string}>}
  */
 export async function joinRoomApi(code, guestName = 'Khách') {
   const cleanCode = (code || '').trim().toUpperCase();
@@ -122,18 +123,35 @@ export async function joinRoomApi(code, guestName = 'Khách') {
     status: data.status || 'PLAYING',
     hostName: data.hostName,
     timeControl: data.timeControl,
+    playerToken: data.playerToken,
   };
 }
 
 /**
  * Get room info by code
  * @param {string} code
+ * @param {{userId?: number|string, username?: string}} [userParams]
  */
-export async function getRoomApi(code) {
+export async function getRoomApi(code, userParams = {}) {
   const cleanCode = (code || '').trim().toUpperCase();
-  const response = await fetchWithTimeout(`/api/rooms/${encodeURIComponent(cleanCode)}`, {
+  const token = typeof window !== 'undefined'
+    ? (localStorage.getItem('ottv2_auth_token') || localStorage.getItem('ottv2_jwt_token'))
+    : '';
+
+  const headers = { ...DEFAULT_HEADERS };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+    headers['X-Auth-Token'] = token;
+  }
+
+  const query = new URLSearchParams();
+  if (userParams?.userId) query.set('userId', String(userParams.userId));
+  if (userParams?.username) query.set('username', String(userParams.username));
+  const queryString = query.toString() ? `?${query.toString()}` : '';
+
+  const response = await fetchWithTimeout(`/api/rooms/${encodeURIComponent(cleanCode)}${queryString}`, {
     method: 'GET',
-    headers: { ...DEFAULT_HEADERS },
+    headers,
   });
   if (!response.ok) {
     return null;

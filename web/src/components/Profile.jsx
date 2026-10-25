@@ -227,7 +227,22 @@ export default function Profile({
               change: isRanked ? (item.change ?? item.eloChange) : 0,
               newElo: item.newElo,
               timestamp: item.timestamp,
-              createdAt: item.createdAt || localMatch?.createdAt || (item.timestamp ? `1970-01-01T${item.timestamp}` : new Date().toISOString()),
+              createdAt: (() => {
+                let resolved = item.createdAt || localMatch?.createdAt;
+                if (resolved && String(resolved).startsWith('1970-01-01')) {
+                  resolved = null;
+                }
+                if (!resolved && item.timestamp && item.timestamp.includes('/')) {
+                  const parts = item.timestamp.split(' ');
+                  if (parts.length === 2) {
+                    const dateParts = parts[0].split('/');
+                    if (dateParts.length === 3) {
+                      resolved = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}T${parts[1]}`;
+                    }
+                  }
+                }
+                return resolved || new Date().toISOString();
+              })(),
               status: 'FINISHED',
               sideA,
               sideB,
@@ -405,9 +420,14 @@ export default function Profile({
   ).length;
 
   // PHÂN TÁCH TRIỆT ĐỂ THEO TAB: Lọc mảng theo activeTab và lấy đúng 10 trận mới nhất
-  const sortedHistory = [...(matchHistory || [])].sort(
-    (a, b) => new Date(b.createdAt || b.playedAt || 0) - new Date(a.createdAt || a.playedAt || 0)
-  );
+  const sortedHistory = [...(matchHistory || [])].sort((a, b) => {
+    const timeB = new Date(b.createdAt || b.playedAt || 0).getTime();
+    const timeA = new Date(a.createdAt || a.playedAt || 0).getTime();
+    if (!isNaN(timeB) && !isNaN(timeA) && timeB !== timeA) {
+      return timeB - timeA;
+    }
+    return (Number(b.id) || 0) - (Number(a.id) || 0);
+  });
   const displayHistory = sortedHistory
     .filter(
       (m) =>
@@ -869,7 +889,20 @@ export default function Profile({
                   : (item.change !== 0 && item.eloChange !== 0 && item.mode !== 'PRACTICE' && item.mode !== 'CASUAL');
                 const change = item.change ?? item.eloChange ?? (isItemRanked ? (userWon ? 16 : -16) : 0);
                 const itemNewElo = item.newElo ?? pvpElo;
-                const timestamp = item.timestamp || (item.createdAt ? new Date(item.createdAt).toLocaleTimeString() : '');
+                let formattedTimestamp = item.timestamp || '';
+                if (item.createdAt) {
+                  const d = new Date(item.createdAt);
+                  if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const year = d.getFullYear();
+                    const hours = String(d.getHours()).padStart(2, '0');
+                    const minutes = String(d.getMinutes()).padStart(2, '0');
+                    const seconds = String(d.getSeconds()).padStart(2, '0');
+                    formattedTimestamp = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+                  }
+                }
+                const timestamp = formattedTimestamp;
 
                 return (
                   <div key={item.id || idx} className="py-2.5 flex items-center justify-between">

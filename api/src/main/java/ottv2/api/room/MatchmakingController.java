@@ -144,6 +144,7 @@ public class MatchmakingController {
         res.put("code", roomCode);
         res.put("isHost", true);
         res.put("hostName", fromUser);
+        res.put("playerToken", room.getHostPlayerToken());
         res.put("targetUsername", targetUsername);
         res.put("timeControl", timeControl);
         return ResponseEntity.ok(res);
@@ -292,6 +293,7 @@ public class MatchmakingController {
         response.put("roomCode", room.getCode());
         response.put("code", room.getCode());
         response.put("isHost", true);
+        response.put("playerToken", room.getHostPlayerToken());
         response.put("opponent", chosenOpponent);
         response.put("timeControl", defaultTc);
         response.put("isRanked", isRankedMatch && !isMachine);

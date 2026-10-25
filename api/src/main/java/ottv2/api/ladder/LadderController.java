@@ -105,7 +105,7 @@ public class LadderController {
             int draws = rs.getInt("draws");
             int elo = rs.getInt("elo");
             double winRate = games > 0 ? Math.round(((double) wins / games) * 1000.0) / 10.0 : 0.0;
-            boolean provisional = games < 10 || distinctOpponents < 5;
+            boolean provisional = games < 10 && distinctOpponents < 5;
             String language = rs.getString("language");
             if (language == null) language = "PYTHON";
 

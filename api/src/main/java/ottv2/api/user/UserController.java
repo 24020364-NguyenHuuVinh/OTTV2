@@ -80,7 +80,7 @@ public class UserController {
             int draws = rs.getInt("draws_count");
             int distinctOpponents = rs.getInt("distinct_opponents");
             int winRate = matches > 0 ? (int) Math.round((double) wins / matches * 100) : 0;
-            boolean provisional = matches < 10 || distinctOpponents < 5;
+            boolean provisional = matches < 10 && distinctOpponents < 5;
             String studentCode = rs.getString("student_code");
             String email = rs.getString("email");
             String displayName = rs.getString("display_name");

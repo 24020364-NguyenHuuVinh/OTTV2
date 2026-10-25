@@ -31,6 +31,8 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
 
   const [activeReplay, setActiveReplay] = useState(() => getInitialReplay());
   const [isLoadingReplay, setIsLoadingReplay] = useState(false);
+  const [matchDetailsData, setMatchDetailsData] = useState(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
   useEffect(() => {
     const immediate = getInitialReplay();
@@ -221,6 +223,51 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
   const isScrubbingRef = useRef(false);
   const hasPlayedEndSoundRef = useRef(false);
 
+  // Tự động nạp thông tin chính thức của trận đấu (MatchResponse chứa sideA/sideB với eloBefore, eloAfter, ownerId)
+  useEffect(() => {
+    const targetPublicId =
+      match?.matchPublicId ||
+      match?.publicId ||
+      match?.replayId ||
+      (match?.id ? String(match.id) : null);
+
+    if (!targetPublicId) return undefined;
+
+    let cancelled = false;
+    let detailRetryTimer = null;
+
+    const fetchDetails = async () => {
+      try {
+        setIsLoadingDetails(true);
+        const res = await api(`/api/matches/${targetPublicId}`);
+        if (res?.ok) {
+          const data = await res.json();
+          if (data && !cancelled) {
+            setMatchDetailsData(data);
+            if (data.sideA?.eloAfter != null || data.sideB?.eloAfter != null || data.status === 'FINISHED') {
+              setIsLoadingDetails(false);
+              return;
+            }
+          }
+        }
+      } catch (err) {
+        // bỏ qua khi đang live
+      } finally {
+        if (!cancelled) setIsLoadingDetails(false);
+      }
+      if (!cancelled && (match?.isLiveSpectator || showSummaryModal)) {
+        detailRetryTimer = window.setTimeout(fetchDetails, 2000);
+      }
+    };
+
+    fetchDetails();
+
+    return () => {
+      cancelled = true;
+      if (detailRetryTimer) window.clearTimeout(detailRetryTimer);
+    };
+  }, [match?.matchPublicId, match?.publicId, match?.id, match?.isLiveSpectator, showSummaryModal]);
+
   const turnsList =
     activeReplay?.turns ||
     activeReplay?.moves ||
@@ -236,6 +283,10 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
       if (w === 'A' || w === 'B' || w === 'DRAW') return w;
       if (w === 'USER') return 'A';
       if (w === 'OPPONENT') return 'B';
+    }
+    if (matchDetailsData?.winnerSide) {
+      const w = String(matchDetailsData.winnerSide).toUpperCase();
+      if (w === 'A' || w === 'B' || w === 'DRAW') return w;
     }
     if (match?.winner) {
       const w = String(match.winner).toUpperCase();
@@ -254,22 +305,24 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
       if (match.sideB?.id && match.winnerId === match.sideB.id) return 'B';
     }
     return 'DRAW';
-  }, [activeReplay, match]);
+  }, [activeReplay, match, matchDetailsData]);
 
   const reasonCode = useMemo(() => {
     return (
       activeReplay?.result?.reason ||
+      matchDetailsData?.endReason ||
       match?.winReason ||
       match?.reason ||
       match?.endReason ||
       'FINISHED'
     );
-  }, [activeReplay, match]);
+  }, [activeReplay, match, matchDetailsData]);
 
   const sideAName =
     activeReplay?.sideA?.botName ||
     activeReplay?.sideA?.name ||
     activeReplay?.teams?.A ||
+    matchDetailsData?.sideA?.botName ||
     (match?.sideA?.botName && match?.sideA?.botName !== 'Bạn' ? match.sideA.botName : null) ||
     match?.sideA?.name ||
     match?.sideA?.botName ||
@@ -279,6 +332,7 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
     activeReplay?.sideB?.botName ||
     activeReplay?.sideB?.name ||
     activeReplay?.teams?.B ||
+    matchDetailsData?.sideB?.botName ||
     (match?.sideB?.botName && match?.sideB?.botName !== 'Đối thủ' ? match.sideB.botName : null) ||
     match?.sideB?.name ||
     match?.sideB?.botName ||
@@ -447,32 +501,62 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
   const botViewerMatchData = useMemo(() => {
     if (!isRankedBot) return null;
 
+    const mergedSideA = {
+      ...(activeReplay?.sideA || {}),
+      ...(match?.sideA || {}),
+      ...(matchDetailsData?.sideA || {}),
+    };
+    const mergedSideB = {
+      ...(activeReplay?.sideB || {}),
+      ...(match?.sideB || {}),
+      ...(matchDetailsData?.sideB || {}),
+    };
+
     let viewerSide = match?.userSide || match?.side;
     if (viewerSide !== 'A' && viewerSide !== 'B') viewerSide = null;
 
     let currentUserId = null;
+    let currentUserBots = [];
     try {
       const rawUser = localStorage.getItem('ottv2_last_active_user');
       if (rawUser) {
         const currentUser = JSON.parse(rawUser);
         if (currentUser?.id != null) currentUserId = String(currentUser.id);
+        if (currentUser?.email) {
+          const userBotsRaw = localStorage.getItem(`ottv2_bots_${currentUser.email}`);
+          if (userBotsRaw) currentUserBots = JSON.parse(userBotsRaw);
+        }
+      }
+      if (currentUserBots.length === 0) {
+        const generalBotsRaw = localStorage.getItem('ottv2_user_bots');
+        if (generalBotsRaw) currentUserBots = JSON.parse(generalBotsRaw);
       }
     } catch {}
 
+    const ownedBotIds = new Set(currentUserBots.map((b) => String(b.id)));
+
     const participantMatchesViewer = (participant) => {
-      const ownerId = participant?.ownerId ?? participant?.userId;
-      return currentUserId != null && ownerId != null && String(ownerId) === currentUserId;
+      if (!participant) return false;
+      const ownerId = participant.ownerId ?? participant.userId;
+      if (currentUserId != null && ownerId != null && String(ownerId) === currentUserId) {
+        return true;
+      }
+      if (participant.botId != null && ownedBotIds.has(String(participant.botId))) {
+        return true;
+      }
+      return false;
     };
 
     if (!viewerSide) {
-      if (participantMatchesViewer(match?.sideA) || participantMatchesViewer(activeReplay?.sideA)) viewerSide = 'A';
-      else if (participantMatchesViewer(match?.sideB) || participantMatchesViewer(activeReplay?.sideB)) viewerSide = 'B';
+      if (participantMatchesViewer(mergedSideA)) viewerSide = 'A';
+      else if (participantMatchesViewer(mergedSideB)) viewerSide = 'B';
     }
     if (!viewerSide) return null;
 
-    const ownSide = viewerSide === 'A' ? match?.sideA : match?.sideB;
-    const ownHistoryChange = match?.change ?? match?.eloChange;
-    const ownHistoryAfter = match?.newElo ?? match?.userElo;
+    const ownSide = viewerSide === 'A' ? mergedSideA : mergedSideB;
+
+    const ownHistoryChange = match?.change ?? match?.eloChange ?? ownSide?.eloChange;
+    const ownHistoryAfter = match?.newElo ?? match?.userElo ?? ownSide?.eloAfter;
     const hasHistoryRating = ownHistoryChange != null && ownHistoryAfter != null &&
       Number.isFinite(Number(ownHistoryChange)) && Number.isFinite(Number(ownHistoryAfter));
 
@@ -496,8 +580,8 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
     const isDraw = winnerCode === 'DRAW';
     return {
       viewerSide,
-      botName: viewerSide === 'A' ? sideAName : sideBName,
-      opponentName: viewerSide === 'A' ? sideBName : sideAName,
+      botName: viewerSide === 'A' ? (mergedSideA?.botName || sideAName) : (mergedSideB?.botName || sideBName),
+      opponentName: viewerSide === 'A' ? (mergedSideB?.botName || sideBName) : (mergedSideA?.botName || sideAName),
       oldElo,
       newElo,
       delta,
@@ -505,7 +589,12 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
       isWin: !isDraw && winnerCode === viewerSide,
       isDraw,
     };
-  }, [isRankedBot, match, activeReplay, winnerCode, sideAName, sideBName]);
+  }, [isRankedBot, match, activeReplay, matchDetailsData, winnerCode, sideAName, sideBName]);
+
+  const activeUserViewerSide = botViewerMatchData?.viewerSide || viewerMatchData?.viewerSide || match?.userSide || null;
+  const isUserWin = Boolean(activeUserViewerSide && winnerCode === activeUserViewerSide);
+  const isUserLoss = Boolean(activeUserViewerSide && winnerCode !== 'DRAW' && winnerCode !== activeUserViewerSide);
+  const isMatchDraw = winnerCode === 'DRAW';
 
   const getReasonLabel = (reason) => {
     switch (reason) {
@@ -587,15 +676,23 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
     // Play victory / defeat / draw sound once at the end of the match
     if (step >= totalTurns && totalTurns > 0 && !hasPlayedEndSoundRef.current) {
       hasPlayedEndSoundRef.current = true;
-      if (winnerCode === 'A') {
-        playVictorySound();
-      } else if (winnerCode === 'B') {
-        playDefeatSound();
+      if (activeUserViewerSide) {
+        if (isUserWin) {
+          playVictorySound();
+        } else if (isMatchDraw) {
+          playDrawSound();
+        } else {
+          playDefeatSound();
+        }
       } else {
-        playDrawSound();
+        if (winnerCode === 'DRAW') {
+          playDrawSound();
+        } else {
+          playVictorySound();
+        }
       }
     }
-  }, [step, totalTurns, speed, activeReplay, match, winnerCode]);
+  }, [step, totalTurns, speed, activeReplay, match, winnerCode, activeUserViewerSide, isUserWin, isMatchDraw]);
 
   // Auto playback interval with dynamic speed
   useEffect(() => {
@@ -683,9 +780,14 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
       isScrubbingRef.current = false;
       if (!hasPlayedEndSoundRef.current && totalTurns > 0) {
         hasPlayedEndSoundRef.current = true;
-        if (winnerCode === 'A') playVictorySound();
-        else if (winnerCode === 'B') playDefeatSound();
-        else playDrawSound();
+        if (activeUserViewerSide) {
+          if (isUserWin) playVictorySound();
+          else if (isMatchDraw) playDrawSound();
+          else playDefeatSound();
+        } else {
+          if (winnerCode === 'DRAW') playDrawSound();
+          else playVictorySound();
+        }
       }
     }, 60);
   };
@@ -1288,10 +1390,34 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
             <div className="bg-zinc-850 border border-zinc-700 w-full max-w-md rounded-3xl p-6 text-center space-y-4 shadow-2xl">
               <div className="text-5xl">
-                {winnerCode === 'A' ? '🏆' : winnerCode === 'B' ? '⚔️' : '🤝'}
+                {activeUserViewerSide
+                  ? isUserWin
+                    ? '🎉'
+                    : isMatchDraw
+                    ? '🤝'
+                    : '💀'
+                  : winnerCode === 'A'
+                  ? '🏆'
+                  : winnerCode === 'B'
+                  ? '⚔️'
+                  : '🤝'}
               </div>
-              <h3 className="text-2xl font-black text-white">
-                {winnerCode === 'DRAW'
+              <h3 className={`text-2xl font-black ${
+                activeUserViewerSide
+                  ? isUserWin
+                    ? 'text-emerald-400'
+                    : isMatchDraw
+                    ? 'text-amber-400'
+                    : 'text-rose-400'
+                  : 'text-white'
+              }`}>
+                {activeUserViewerSide
+                  ? isUserWin
+                    ? 'BẠN ĐÃ CHIẾN THẮNG!'
+                    : isMatchDraw
+                    ? 'TRẬN ĐẤU HÒA!'
+                    : 'BẠN ĐÃ THẤT BẠI!'
+                  : winnerCode === 'DRAW'
                   ? 'Trận Đấu Bất Phân Thắng Bại!'
                   : winnerCode === 'A'
                   ? `Đội Xanh (${sideAName}) Thắng Lợi!`
@@ -1384,7 +1510,9 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
                   <div className="pt-2 border-t border-zinc-800 space-y-2">
                     <div className="flex items-center justify-between text-[11px] font-bold">
                       <span className="text-zinc-400">⚡ Biến động ELO Ranked Bot:</span>
-                      <span className="text-amber-400 font-mono">Bot của bạn</span>
+                      <span className="text-amber-400 font-mono">
+                        {activeUserViewerSide ? 'Bot của bạn' : 'Khán giả'}
+                      </span>
                     </div>
 
                     {botViewerMatchData?.hasRating ? (
@@ -1420,9 +1548,14 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
                           {botViewerMatchData.isWin ? '📈' : botViewerMatchData.isDraw ? '🤝' : '📉'}
                         </div>
                       </div>
+                    ) : activeUserViewerSide ? (
+                      <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-2xl text-center text-xs text-zinc-400 flex items-center justify-center gap-2">
+                        <span className="inline-block w-3.5 h-3.5 border-2 border-zinc-500 border-t-amber-400 rounded-full animate-spin" />
+                        <span>Đang đồng bộ điểm số ELO từ máy chủ...</span>
+                      </div>
                     ) : (
                       <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-2xl text-center text-xs text-zinc-400">
-                        Không có dữ liệu ELO chính thức cho bot này ở trận đấu.
+                        👁️ Bạn đang xem trận đấu với tư cách Khán Giả
                       </div>
                     )}
 

@@ -161,7 +161,7 @@ function AppContent() {
     botWins,
     botLosses,
     distinctOpponents: serverStats.distinctOpponents || 0,
-    isProvisional: serverStats.isProvisional ?? ((pvpMatchesCount < 10) || (pvpDistinctOpponents < 5)),
+    isProvisional: serverStats.isProvisional ?? ((pvpMatchesCount < 10) && (pvpDistinctOpponents < 5)),
   };
 
   const handleForceLogout = useCallback((message = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!') => {
@@ -262,6 +262,22 @@ function AppContent() {
               // MATCH_FINISHED là nguồn kết quả/replay có thẩm quyền. MATCH_FOUND
               // chỉ là thông báo ghép trận, không được tạo replay hoặc ELO mô phỏng.
               if (data.mode === 'BOT' && data.matchPublicId) {
+                // Cập nhật ngay kết quả và ELO mới nhất vào selectedMatch nếu đang mở modal xem trực tiếp
+                setSelectedMatch((prev) => {
+                  if (!prev) return null;
+                  const prevId = prev.matchPublicId || prev.publicId || prev.id;
+                  if (String(prevId) !== String(data.matchPublicId)) return prev;
+                  return {
+                    ...prev,
+                    sideA: data.sideA || prev.sideA,
+                    sideB: data.sideB || prev.sideB,
+                    winner: data.winnerSide || prev.winner,
+                    winnerSide: data.winnerSide || prev.winnerSide,
+                    endReason: data.endReason || prev.endReason,
+                    totalTurns: data.totalTurns || prev.totalTurns,
+                  };
+                });
+
                 (async () => {
                   try {
                     const response = await api(`/api/matches/${data.matchPublicId}/replay`);
@@ -384,6 +400,7 @@ function AppContent() {
         targetOpponent: isHost ? matchInfo.sideB : matchInfo.sideA,
         initialTimeControl: matchInfo.timeControl,
         timeControl: matchInfo.timeControl,
+        playerToken: matchInfo.playerToken,
       });
     } else if (matchInfo.mode === 'BOT') {
       // MATCH_FOUND only confirms that the worker match was queued. The match result,
@@ -1284,6 +1301,7 @@ function AppContent() {
                 targetOpponent: target,
                 initialTimeControl: tc,
                 timeControl: tc,
+                playerToken: data.playerToken,
               });
               return;
             }
@@ -1300,6 +1318,7 @@ function AppContent() {
                   targetOpponent: target,
                   initialTimeControl: tc,
                   timeControl: tc,
+                  playerToken: data.playerToken,
                 });
               })
               .catch((err2) => {
@@ -1328,6 +1347,7 @@ function AppContent() {
             targetOpponent: target,
             initialTimeControl: tc,
             timeControl: tc,
+            playerToken: data.playerToken,
           });
         })
         .catch((err) => {

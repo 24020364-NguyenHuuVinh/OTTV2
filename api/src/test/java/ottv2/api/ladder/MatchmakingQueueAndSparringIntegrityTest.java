@@ -147,9 +147,15 @@ class MatchmakingQueueAndSparringIntegrityTest {
 
         // User 2 tham gia hàng đợi PvP -> Ghép trận thành công!
         Map<String, Object> join2 = queueService.join(2L, "student_b", "Trần Thị B", "PVP", null);
-        assertEquals("MATCHED", join2.get("status"), "User 2 vào hàng đợi có đối thủ phù hợp phải ở trạng thái MATCHED");
-        assertNotNull(join2.get("roomCode"), "Phải có roomCode");
-        assertEquals(5, join2.get("countdownSeconds"), "Phải có 5 giây đếm ngược cho màn hình VS");
+        assertEquals("QUEUED", join2.get("status"), "User 2 vừa vào hàng đợi chưa đủ 3s phải ở trạng thái QUEUED");
+
+        // Sau 4 giây, scheduler quét hàng đợi và ghép trận thành công
+        Instant after4s = Instant.now().plusSeconds(4);
+        List<MatchmakingQueueService.PvpMatchResult> matched = queueService.matchPvpQueue(after4s);
+        assertEquals(1, matched.size(), "Sau khi cả 2 chờ >= 3s, phải ghép thành công 1 trận");
+        MatchmakingQueueService.PvpMatchResult join2Match = matched.get(0);
+        assertNotNull(join2Match.roomCode(), "Phải có roomCode");
+        assertEquals(6, join2Match.roomCode().length(), "roomCode phải đúng 6 chữ số");
 
         // VERIFY: Bắn sự kiện MATCH_FOUND qua STOMP tới topic cá nhân của cả 2 user
         ArgumentCaptor<String> topicCaptor = ArgumentCaptor.forClass(String.class);
@@ -246,13 +252,18 @@ class MatchmakingQueueAndSparringIntegrityTest {
 
         // User 2 tham gia hàng đợi PVP_QUICK -> Ghép thành công ngay lập tức!
         Map<String, Object> join2 = queueService.join(20L, "student_quick_2", "Game Thủ 2", "PVP_QUICK", null);
-        assertEquals("MATCHED", join2.get("status"));
+        assertEquals("QUEUED", join2.get("status"));
         assertEquals("PVP_QUICK", join2.get("mode"));
-        assertNotNull(join2.get("roomCode"), "Phải có roomCode 6 số");
-        assertEquals(6, String.valueOf(join2.get("roomCode")).length(), "roomCode phải đúng 6 ký tự số");
-        assertEquals(5, join2.get("countdownSeconds"));
-        assertNotNull(join2.get("startsAt"));
-        assertNotNull(join2.get("opponent"));
+        // Sau 4s, scheduler quét và ghép trận thành công
+        Instant after4s = Instant.now().plusSeconds(4);
+        List<MatchmakingQueueService.PvpMatchResult> matched = queueService.matchPvpQueue(after4s);
+        assertEquals(1, matched.size());
+        MatchmakingQueueService.PvpMatchResult mRes = matched.get(0);
+        assertNotNull(mRes.roomCode(), "Phải có roomCode 6 số");
+        assertEquals(6, mRes.roomCode().length(), "roomCode phải đúng 6 ký tự số");
+
+
+
 
         // Verify broadcast qua WebSocket tới kênh cá nhân
         ArgumentCaptor<String> topicCaptor = ArgumentCaptor.forClass(String.class);
@@ -309,11 +320,18 @@ class MatchmakingQueueAndSparringIntegrityTest {
 
         // 3. User 103 vào hàng đợi với thể thức AUTO -> Ghép được với người đang chờ (ở đây gặp 101 là người đầu tiên thỏa mãn)
         Map<String, Object> res3 = queueService.join(103L, "user_auto", "Player Auto", "PVP", null, "auto");
-        assertEquals("MATCHED", res3.get("status"), "Người chọn Auto phải ghép được với người đang chờ");
-        assertEquals(5, res3.get("countdownSeconds"), "Đếm ngược phải là 5 giây");
+        assertEquals("QUEUED", res3.get("status"), "Vừa vào hàng đợi chưa đủ 3s phải ở trạng thái QUEUED");
+
+        // Sau 4 giây, scheduler quét hàng đợi và ghép 103 (Auto) với 101 (3+2) thành công
+        Instant after4s = Instant.now().plusSeconds(4);
+        List<MatchmakingQueueService.PvpMatchResult> matched = queueService.matchPvpQueue(after4s);
+        assertEquals(1, matched.size(), "Người chọn Auto phải ghép được với người đang chờ (101)");
+        MatchmakingQueueService.PvpMatchResult mRes = matched.get(0);
+        assertNotNull(mRes.roomCode(), "Phải có roomCode");
+
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> matchedTc = (Map<String, Object>) res3.get("timeControl");
+        Map<String, Object> matchedTc = mRes.timeControl();
         assertNotNull(matchedTc);
         assertEquals("3+2", matchedTc.get("id"), "Khi ghép Auto với người chọn 3+2, thể thức trận đấu phải là 3+2");
     }

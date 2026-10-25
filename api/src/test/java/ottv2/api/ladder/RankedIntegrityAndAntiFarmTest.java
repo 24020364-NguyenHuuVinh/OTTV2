@@ -266,19 +266,19 @@ class RankedIntegrityAndAntiFarmTest {
     // 7. Đánh dấu provisional = true chính xác khi < 10 trận hoặc < 5 đối thủ, chuyển thành false khi đủ điều kiện
     // =========================================================================
     @Test
-    @DisplayName("7. test7_provisionalStatusEvaluation: Provisional status evaluated correctly (< 10 matches or < 5 distinct opponents)")
+    @DisplayName("7. test7_provisionalStatusEvaluation: Provisional status evaluated correctly (< 10 matches and < 5 distinct opponents)")
     void test7_provisionalStatusEvaluation() {
-        // Less than 10 games
-        LadderController.RankingEntry entry1 = new LadderController.RankingEntry(1L, "Bot1", 10L, 1250, 9, 7, 2, 0, 5, 9 < 10 || 5 < 5);
-        assertTrue(entry1.provisional(), "Bot with 9 games (< 10) must be provisional");
+        // Less than 10 games AND less than 5 opponents -> Provisional
+        LadderController.RankingEntry entry1 = new LadderController.RankingEntry(1L, "Bot1", 10L, 1250, 9, 7, 2, 0, 3, 9 < 10 && 3 < 5);
+        assertTrue(entry1.provisional(), "Bot with 9 games (< 10) and 3 opponents (< 5) must be provisional");
 
-        // 10 games but only 3 distinct opponents (farmed against same opponents)
-        LadderController.RankingEntry entry2 = new LadderController.RankingEntry(2L, "Bot2", 20L, 1350, 10, 8, 2, 0, 3, 10 < 10 || 3 < 5);
-        assertTrue(entry2.provisional(), "Bot with 10 games but only 3 distinct opponents must be provisional");
+        // 10 games (even with 3 distinct opponents) -> Established because 10 matches reached
+        LadderController.RankingEntry entry2 = new LadderController.RankingEntry(2L, "Bot2", 20L, 1350, 10, 8, 2, 0, 3, 10 < 10 && 3 < 5);
+        assertFalse(entry2.provisional(), "Bot with 10 games (>= 10) is established");
 
-        // 10 games AND 5 distinct opponents -> Established!
-        LadderController.RankingEntry entry3 = new LadderController.RankingEntry(3L, "Bot3", 30L, 1400, 10, 8, 2, 0, 5, 10 < 10 || 5 < 5);
-        assertFalse(entry3.provisional(), "Bot with >= 10 games and >= 5 distinct opponents is established (non-provisional)");
+        // 5 distinct opponents (even with 4 games) -> Established because 5 opponents reached
+        LadderController.RankingEntry entry3 = new LadderController.RankingEntry(3L, "Bot3", 30L, 1400, 4, 3, 1, 0, 5, 4 < 10 && 5 < 5);
+        assertFalse(entry3.provisional(), "Bot with >= 5 distinct opponents is established");
     }
 
     // =========================================================================

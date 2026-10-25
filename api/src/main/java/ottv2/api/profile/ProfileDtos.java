@@ -18,18 +18,23 @@ public final class ProfileDtos {
             String timestamp,
             String replayId,
             boolean isRanked,
-            String winner
+            String winner,
+            String createdAt
     ) {
+        public EloHistoryItem(long id, String opponent, int opponentElo, String mode, boolean userWon, int change, int newElo, String timestamp, String replayId, boolean isRanked, String winner) {
+            this(id, opponent, opponentElo, mode, userWon, change, newElo, timestamp, replayId, isRanked, winner, null);
+        }
+
         public EloHistoryItem(long id, String opponent, int opponentElo, String mode, boolean userWon, int change, int newElo, String timestamp, String replayId, boolean isRanked) {
-            this(id, opponent, opponentElo, mode, userWon, change, newElo, timestamp, replayId, isRanked, userWon ? "A" : "B");
+            this(id, opponent, opponentElo, mode, userWon, change, newElo, timestamp, replayId, isRanked, userWon ? "A" : "B", null);
         }
 
         public EloHistoryItem(long id, String opponent, int opponentElo, String mode, boolean userWon, int change, int newElo, String timestamp, String replayId) {
-            this(id, opponent, opponentElo, mode, userWon, change, newElo, timestamp, replayId, true, userWon ? "A" : "B");
+            this(id, opponent, opponentElo, mode, userWon, change, newElo, timestamp, replayId, true, userWon ? "A" : "B", null);
         }
 
         public EloHistoryItem(long id, String opponent, int opponentElo, String mode, boolean userWon, int change, int newElo, String timestamp) {
-            this(id, opponent, opponentElo, mode, userWon, change, newElo, timestamp, null, true, userWon ? "A" : "B");
+            this(id, opponent, opponentElo, mode, userWon, change, newElo, timestamp, null, true, userWon ? "A" : "B", null);
         }
     }
 

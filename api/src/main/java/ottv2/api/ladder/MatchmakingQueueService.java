@@ -80,6 +80,14 @@ public class MatchmakingQueueService {
     private final Map<Long, BotQueueEntry> botQueue = new ConcurrentHashMap<>();
     private final Map<Long, PendingMatch> pendingMatches = new ConcurrentHashMap<>();
 
+    Map<Long, PvpQueueEntry> getPvpQueue() {
+        return pvpQueue;
+    }
+
+    void clearPvpQueue() {
+        pvpQueue.clear();
+    }
+
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transaction;
     private final StringRedisTemplate redis;
@@ -302,6 +310,7 @@ public class MatchmakingQueueService {
             res.put("sideB", matched.sideB());
             res.put("opponent", matched.sideB());
             res.put("isHost", true);
+            res.put("playerToken", matched.hostPlayerToken());
             res.put("isRanked", !"PVP_QUICK".equals(matched.mode()));
             res.put("message", "Đã tìm thấy đối thủ PvP!");
             return res;
@@ -316,55 +325,205 @@ public class MatchmakingQueueService {
         return res;
     }
 
+    /**
+     * Lấy danh sách ID đối thủ ở các trận gần nhất của người chơi (từ mới nhất đến cũ hơn).
+     */
+    public List<Long> getRecentPvpOpponents(long userId, int limit) {
+        if (jdbc == null || limit <= 0) return Collections.emptyList();
+        try {
+            String sql = """
+                    SELECT CASE WHEN user_a_id = ? THEN user_b_id ELSE user_a_id END AS opp_id
+                    FROM matches
+                    WHERE (user_a_id = ? OR user_b_id = ?)
+                      AND user_a_id IS NOT NULL
+                      AND user_b_id IS NOT NULL
+                      AND match_type IN ('PVP', 'FRIENDLY')
+                      AND status IN ('READY', 'RUNNING', 'FINISHED')
+                    ORDER BY id DESC
+                    LIMIT ?
+                    """;
+            return jdbc.query(sql, (rs, rowNum) -> rs.getLong("opp_id"), userId, userId, limit);
+        } catch (Exception e) {
+            log.warn("Lỗi truy vấn đối thủ gần đây của user {}: {}", userId, e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    private boolean isRecentOpponent(List<Long> recentList, long opponentUserId, int k) {
+        if (recentList == null || recentList.isEmpty() || k <= 0) return false;
+        int limit = Math.min(k, recentList.size());
+        for (int i = 0; i < limit; i++) {
+            if (recentList.get(i).equals(opponentUserId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isImmediateLastOpponent(List<Long> recentList, long opponentUserId) {
+        return recentList != null && !recentList.isEmpty() && recentList.get(0).equals(opponentUserId);
+    }
+
+    private boolean isCompatibleTimeControl(String tcA, String tcB) {
+        String selfTc = tcA != null ? tcA : "blitz_3_2";
+        String candTc = tcB != null ? tcB : "blitz_3_2";
+        return selfTc.equals(candTc) || "auto".equals(selfTc) || "auto".equals(candTc);
+    }
+
+    /**
+     * Đánh giá toàn bộ hàng đợi PvP và ghép cặp tối ưu (Fair Seniority-FIFO & Best-Fit Elo Matching).
+     * Áp dụng các quy tắc:
+     * - Dưới 3s: Không ghép.
+     * - Cả 2 người phải chờ ít nhất 3s.
+     * - Dùng maxWait = max(waitedA, waitedB) để xác định ngưỡng:
+     *   + 3s <= maxWait < 5s: maxEloDiff = 50, cấm 4 đối thủ gần nhất.
+     *   + 5s <= maxWait < 15s: maxEloDiff = 100, cấm 3 đối thủ gần nhất.
+     *   + 15s <= maxWait < 30s: maxEloDiff = 200, cấm 2 đối thủ gần nhất.
+     *   + maxWait >= 30s: maxEloDiff = 300, cấm 1 đối thủ gần nhất (trận vừa đấu).
+     *     Chỉ cho phép tái đấu với trận gần nhất khi maxWait >= 30s và không có đối thủ hợp lệ nào khác.
+     * - BẮT BUỘC HARD CAP: abs(eloA - eloB) <= 300 tại mọi bước.
+     */
+    public synchronized List<PvpMatchResult> matchPvpQueue(Instant now) {
+        if (pvpQueue.isEmpty()) return Collections.emptyList();
+
+        List<PvpQueueEntry> candidates = new ArrayList<>();
+        for (PvpQueueEntry entry : pvpQueue.values()) {
+            // Loại bỏ người chơi ma (mất kết nối quá 10s)
+            if (Duration.between(entry.lastSeenAt(), now).toSeconds() > 10) {
+                pvpQueue.remove(entry.userId());
+                continue;
+            }
+            candidates.add(entry);
+        }
+
+        if (candidates.size() < 2) return Collections.emptyList();
+
+        // 1. Sắp xếp candidates theo thời gian vào hàng đợi enqueuedAt tăng dần (FIFO: người chờ lâu nhất đứng trước)
+        candidates.sort(Comparator.comparing(PvpQueueEntry::enqueuedAt).thenComparingLong(PvpQueueEntry::userId));
+
+        // 2. Pre-fetch recent opponents cho các candidate
+        Map<Long, List<Long>> recentMap = new HashMap<>();
+        for (PvpQueueEntry c : candidates) {
+            recentMap.put(c.userId(), getRecentPvpOpponents(c.userId(), 4));
+        }
+
+        Set<Long> matchedInPass = new HashSet<>();
+        List<PvpMatchResult> results = new ArrayList<>();
+
+        for (int i = 0; i < candidates.size(); i++) {
+            PvpQueueEntry a = candidates.get(i);
+            if (matchedInPass.contains(a.userId())) continue;
+
+            long waitedA = Math.max(0, Duration.between(a.enqueuedAt(), now).toSeconds());
+            if (waitedA < 3) continue; // Phải chờ ít nhất 3 giây
+
+            List<Long> recentA = recentMap.getOrDefault(a.userId(), Collections.emptyList());
+
+            List<PvpQueueEntry> regularEligible = new ArrayList<>();
+            List<PvpQueueEntry> rematchEligible = new ArrayList<>();
+
+            for (int j = 0; j < candidates.size(); j++) {
+                if (i == j) continue;
+                PvpQueueEntry b = candidates.get(j);
+                if (matchedInPass.contains(b.userId())) continue;
+
+                long waitedB = Math.max(0, Duration.between(b.enqueuedAt(), now).toSeconds());
+                if (waitedB < 3) continue; // Cả hai phải chờ ít nhất 3s
+
+                if (!isCompatibleTimeControl(a.timeControlKey(), b.timeControlKey())) continue;
+
+                boolean isAQuick = "PVP_QUICK".equalsIgnoreCase(a.queueMode());
+                boolean isBQuick = "PVP_QUICK".equalsIgnoreCase(b.queueMode());
+                long maxWait = Math.max(waitedA, waitedB);
+                if (isAQuick != isBQuick && maxWait < 25) continue;
+
+                int diffElo = Math.abs(a.elo() - b.elo());
+                if (diffElo > 300) continue; // HARD CAP 300 ELO TUYỆT ĐỐI
+
+                int maxEloDiff;
+                int k;
+                if (maxWait < 5) {
+                    maxEloDiff = 50;
+                    k = 4;
+                } else if (maxWait < 15) {
+                    maxEloDiff = 100;
+                    k = 3;
+                } else if (maxWait < 30) {
+                    maxEloDiff = 200;
+                    k = 2;
+                } else {
+                    maxEloDiff = 300;
+                    k = 1;
+                }
+
+                if (diffElo > maxEloDiff) continue;
+
+                List<Long> recentB = recentMap.getOrDefault(b.userId(), Collections.emptyList());
+
+                if (maxWait < 30) {
+                    boolean inRecentK = isRecentOpponent(recentA, b.userId(), k) || isRecentOpponent(recentB, a.userId(), k);
+                    if (!inRecentK) {
+                        regularEligible.add(b);
+                    }
+                } else {
+                    // maxWait >= 30s: k = 1
+                    boolean isImmediate = isImmediateLastOpponent(recentA, b.userId()) || isImmediateLastOpponent(recentB, a.userId());
+                    if (!isImmediate) {
+                        regularEligible.add(b);
+                    } else {
+                        // Tái đấu với đối thủ gần nhất chỉ khi >= 30s
+                        rematchEligible.add(b);
+                    }
+                }
+            }
+
+            // Chọn đối thủ tối ưu nhất cho 'a':
+            // 1. Chênh lệch ELO nhỏ nhất: Math.abs(a.elo() - b.elo())
+            // 2. Đối thủ chờ lâu nhất: b.enqueuedAt() sớm nhất
+            // 3. userId nhỏ nhất để ổn định
+            Comparator<PvpQueueEntry> bestOpponentComparator = Comparator
+                    .comparingInt((PvpQueueEntry b) -> Math.abs(a.elo() - b.elo()))
+                    .thenComparing(PvpQueueEntry::enqueuedAt)
+                    .thenComparingLong(PvpQueueEntry::userId);
+
+            PvpQueueEntry chosenB = null;
+            if (!regularEligible.isEmpty()) {
+                regularEligible.sort(bestOpponentComparator);
+                chosenB = regularEligible.get(0);
+            } else if (!rematchEligible.isEmpty()) {
+                // Chỉ xem xét tái đấu khi KHÔNG có đối thủ khác đủ điều kiện
+                rematchEligible.sort(bestOpponentComparator);
+                chosenB = rematchEligible.get(0);
+            }
+
+            if (chosenB != null) {
+                // Kiểm tra lại ELO ngay trước khi tạo trận (HARD CAP 300 ELO TUYỆT ĐỐI)
+                if (Math.abs(a.elo() - chosenB.elo()) <= 300) {
+                    matchedInPass.add(a.userId());
+                    matchedInPass.add(chosenB.userId());
+                    pvpQueue.remove(a.userId());
+                    pvpQueue.remove(chosenB.userId());
+                    PvpMatchResult matchResult = executePvpMatch(a, chosenB);
+                    if (matchResult != null) {
+                        results.add(matchResult);
+                    }
+                }
+            }
+        }
+
+        return results;
+    }
+
     private synchronized PvpMatchResult tryMatchPvp(PvpQueueEntry self) {
         if (!pvpQueue.containsKey(self.userId())) return null;
-
-        boolean isSelfQuick = "PVP_QUICK".equalsIgnoreCase(self.queueMode());
-        long waitedSeconds = Math.max(0, Duration.between(self.enqueuedAt(), Instant.now()).toSeconds());
-
-        for (PvpQueueEntry candidate : pvpQueue.values()) {
-            if (candidate.userId() == self.userId()) continue;
-
-            // Kiểm tra tính tươi mới của đối thủ: Nếu quá 10s không có heartbeat thì xóa bỏ, không ghép
-            if (Duration.between(candidate.lastSeenAt(), Instant.now()).toSeconds() > 10) {
-                pvpQueue.remove(candidate.userId());
-                continue;
-            }
-
-            // Kiểm tra thể thức thời gian: Không được ghép chéo 3m với 5m hay 1m
-            String selfTc = self.timeControlKey() != null ? self.timeControlKey() : "blitz_3_2";
-            String candTc = candidate.timeControlKey() != null ? candidate.timeControlKey() : "blitz_3_2";
-            boolean isCompatibleTc = selfTc.equals(candTc) || "auto".equals(selfTc) || "auto".equals(candTc);
-            if (!isCompatibleTc) {
-                continue;
-            }
-
-            boolean isCandidateQuick = "PVP_QUICK".equalsIgnoreCase(candidate.queueMode());
-            boolean sameMode = isSelfQuick == isCandidateQuick;
-            if (!sameMode && waitedSeconds < 25) {
-                // Ưu tiên ghép đúng cùng mode nếu chưa chờ quá 25s
-                continue;
-            }
-
-            long candidateWaited = Math.max(0, Duration.between(candidate.enqueuedAt(), Instant.now()).toSeconds());
-            long maxWait = Math.max(waitedSeconds, candidateWaited);
-
-            // Cho PVP_QUICK: Cửa sổ ELO mở rộng nhanh: bắt đầu từ 250, sau 10s mở rộng mạnh, sau 15s không giới hạn ELO (ghép ngay)
-            long window;
-            if (isSelfQuick || isCandidateQuick) {
-                window = maxWait >= 15 ? 10000 : Math.min(600, 250 + (maxWait / 3) * 60);
-            } else {
-                // PVP Ranked: Cửa sổ mở rộng từ 150 tới tối đa 400
-                long maxWaitMinutes = maxWait / 60;
-                window = Math.min(400, 150 + maxWaitMinutes * 50);
-            }
-
-            if (Math.abs(self.elo() - candidate.elo()) <= window) {
-                // Ghép thành công!
-                pvpQueue.remove(self.userId());
-                pvpQueue.remove(candidate.userId());
-
-                return executePvpMatch(self, candidate);
+        long waited = Math.max(0, Duration.between(self.enqueuedAt(), Instant.now()).toSeconds());
+        if (waited < 3) return null;
+        List<PvpMatchResult> results = matchPvpQueue(Instant.now());
+        for (PvpMatchResult r : results) {
+            long aId = ((Number) r.sideA().get("userId")).longValue();
+            long bId = ((Number) r.sideB().get("userId")).longValue();
+            if (aId == self.userId() || bId == self.userId()) {
+                return r;
             }
         }
         return null;
@@ -381,7 +540,11 @@ public class MatchmakingQueueService {
         Map<String, Object> finalTc = createTimeControlMap(tcKey);
 
         RoomSession room = roomService.createRoom(a.displayName(), finalTc);
+        room.setHostUserId(a.userId());
+        room.setHostUsername(a.username());
         roomService.joinRoom(room.getCode(), b.displayName());
+        room.setGuestUserId(b.userId());
+        room.setGuestUsername(b.username());
 
         long seed = random.nextLong();
         boolean isQuick = "PVP_QUICK".equalsIgnoreCase(a.queueMode()) || "PVP_QUICK".equalsIgnoreCase(b.queueMode());
@@ -441,10 +604,12 @@ public class MatchmakingQueueService {
         Map<String, Object> eventForA = new HashMap<>(event);
         eventForA.put("opponent", sideB);
         eventForA.put("isHost", true);
+        eventForA.put("playerToken", room.getHostPlayerToken());
 
         Map<String, Object> eventForB = new HashMap<>(event);
         eventForB.put("opponent", sideA);
         eventForB.put("isHost", false);
+        eventForB.put("playerToken", room.getGuestPlayerToken());
 
         // Keep a short-lived copy so clients can recover MATCH_FOUND if STOMP was
         // disconnected or had not finished subscribing when the pair was made.
@@ -462,12 +627,13 @@ public class MatchmakingQueueService {
 
         log.info("PVP Match Found: {} vs {}, Mode={}, Room={}, MatchId={}", a.username(), b.username(), matchMode, room.getCode(), matchId);
         return new PvpMatchResult(matchId, publicId != null ? publicId.toString() : event.get("matchPublicId").toString(),
-                room.getCode(), startsAt, seed, finalTc, sideA, sideB, matchMode);
+                room.getCode(), startsAt, seed, finalTc, sideA, sideB, matchMode,
+                room.getHostPlayerToken(), room.getGuestPlayerToken());
     }
 
-    private record PvpMatchResult(long matchId, String matchPublicId, String roomCode, long startsAt, long seed,
+    public record PvpMatchResult(long matchId, String matchPublicId, String roomCode, long startsAt, long seed,
                                   Map<String, Object> timeControl, Map<String, Object> sideA, Map<String, Object> sideB,
-                                  String mode) {}
+                                  String mode, String hostPlayerToken, String guestPlayerToken) {}
     private record PendingMatch(Map<String, Object> event, Instant createdAt) {}
 
     // ==========================================
@@ -718,10 +884,7 @@ public class MatchmakingQueueService {
         cleanupStalePvpEntries();
 
         if (!pvpQueue.isEmpty()) {
-            List<PvpQueueEntry> candidates = new ArrayList<>(pvpQueue.values());
-            for (PvpQueueEntry entry : candidates) {
-                tryMatchPvp(entry);
-            }
+            matchPvpQueue(Instant.now());
         }
 
         if (!botQueue.isEmpty()) {

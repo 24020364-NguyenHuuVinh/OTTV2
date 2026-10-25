@@ -88,6 +88,7 @@ export default function Leaderboard({
               targetOpponent: data.opponent,
               initialTimeControl: data.timeControl,
               timeControl: data.timeControl,
+              playerToken: data.playerToken,
             });
             return;
           }
@@ -240,8 +241,8 @@ export default function Leaderboard({
       : (userStats.distinctOpponents || 0))
     : new Set(rankedMatchesList.map((m) => m.opponent).filter(Boolean)).size;
   const realIsProvisional = userStats
-    ? (userStats.provisional !== undefined ? userStats.provisional : (realMatches < 10 || realDistinctOpponents < 5))
-    : (realMatches < 10 || realDistinctOpponents < 5);
+    ? (userStats.provisional !== undefined ? userStats.provisional : (userStats.isProvisional !== undefined ? userStats.isProvisional : (realMatches < 10 && realDistinctOpponents < 5)))
+    : (realMatches < 10 && realDistinctOpponents < 5);
 
   // Helper tính trạng thái Online/Offline dựa vào timestamp truy cập cuối cùng từ DB
   const checkIsOnline = (u) => {
@@ -275,7 +276,7 @@ export default function Leaderboard({
     const userWinRate = userMatches > 0 ? Math.round((userWins / userMatches) * 100) : (u.winRate || 0);
     const userBotsCount = isThisMe ? (myBots.length || u.botsCount || 0) : (u.botsCount || 0);
     const userDistinctOpponents = isThisMe ? Math.max(u.distinctOpponents || 0, realDistinctOpponents) : (u.distinctOpponents || 0);
-    const isProvisional = (userMatches < 10) || (userDistinctOpponents < 5);
+    const isProvisional = (userMatches < 10) && (userDistinctOpponents < 5);
     const isOnline = isThisMe ? true : checkIsOnline(u);
 
     return {
@@ -390,8 +391,8 @@ export default function Leaderboard({
       losses: b.losses || 0,
       draws: b.draws || 0,
       distinctOpponents: b.distinctOpponents || 0,
-      isProvisional: b.isProvisional !== undefined ? b.isProvisional : (b.provisional !== undefined ? b.provisional : ((b.games || 0) < 10 || (b.distinctOpponents || 0) < 5)),
-      provisional: b.isProvisional !== undefined ? b.isProvisional : (b.provisional !== undefined ? b.provisional : ((b.games || 0) < 10 || (b.distinctOpponents || 0) < 5)),
+      isProvisional: b.isProvisional !== undefined ? b.isProvisional : (b.provisional !== undefined ? b.provisional : ((b.games || 0) < 10 && (b.distinctOpponents || 0) < 5)),
+      provisional: b.isProvisional !== undefined ? b.isProvisional : (b.provisional !== undefined ? b.provisional : ((b.games || 0) < 10 && (b.distinctOpponents || 0) < 5)),
       botsCount: 0,
       avatarSeed: b.botName || `Bot_${b.botId}`,
       isOnline: true,
@@ -416,7 +417,7 @@ export default function Leaderboard({
     const allPlayers = dedupedRealUsers.map((u) => {
       const isProv = u.provisional !== undefined
         ? u.provisional
-        : ((u.matchesCount || 0) < 10 || (u.distinctOpponents || 0) < 5);
+        : ((u.matchesCount || 0) < 10 && (u.distinctOpponents || 0) < 5);
       return {
         ...u,
         elo: u.pvpElo ?? u.elo ?? 1200,
@@ -564,7 +565,7 @@ export default function Leaderboard({
       ? item.isProvisional
       : (item?.provisional !== undefined
           ? item.provisional
-          : (((item?.matchesCount ?? item?.matches ?? 0) < 10) || ((item?.distinctOpponents ?? 0) < 5)));
+          : (((item?.matchesCount ?? item?.matches ?? 0) < 10) && ((item?.distinctOpponents ?? 0) < 5)));
 
     if (isProv) {
       return (
@@ -964,7 +965,7 @@ export default function Leaderboard({
                         ) : (
                           <span
                             className="text-xs font-bold text-amber-400/90 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30"
-                            title="Chưa Xếp Hạng: Cần tối thiểu 10 trận Ranked và 5 đối thủ riêng biệt để cấp thứ hạng chính thức"
+                            title="Chưa Xếp Hạng: Cần tối thiểu 10 trận Ranked hoặc 5 đối thủ riêng biệt để cấp thứ hạng chính thức"
                           >
                             -
                           </span>
@@ -1091,7 +1092,7 @@ export default function Leaderboard({
                     <div className="px-5 py-3 bg-gradient-to-r from-blue-950/40 via-zinc-900 to-blue-950/40 border-y border-blue-500/30 text-xs text-blue-300 font-mono font-bold flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span className="text-base">⏳</span>
-                        <span>HỒ SƠ CỦA BẠN ĐANG PHÂN HẠNG (Cần tối thiểu 10 trận Ranked & 5 đối thủ để vào BXH chính thức)</span>
+                        <span>HỒ SƠ CỦA BẠN ĐANG PHÂN HẠNG (Cần tối thiểu 10 trận Ranked hoặc 5 đối thủ để vào BXH chính thức)</span>
                       </div>
                       <span className="text-[10px] text-zinc-400 font-normal bg-zinc-900/80 px-2 py-0.5 rounded border border-zinc-700">Chỉ hiển thị cho bạn</span>
                     </div>
@@ -1120,7 +1121,7 @@ export default function Leaderboard({
                       ) : (
                         <span
                           className="text-xs font-bold text-amber-400/90 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30"
-                          title="Chưa Xếp Hạng: Cần tối thiểu 10 trận Ranked và 5 đối thủ riêng biệt để cấp thứ hạng chính thức"
+                          title="Chưa Xếp Hạng: Cần tối thiểu 10 trận Ranked hoặc 5 đối thủ riêng biệt để cấp thứ hạng chính thức"
                         >
                           -
                         </span>

@@ -238,7 +238,7 @@ public class BotService {
                 if (oppCount != null) distinctOpponents = oppCount;
             } catch (Exception ignored) {}
 
-            boolean provisional = games < 10 || distinctOpponents < 5;
+            boolean provisional = games < 10 && distinctOpponents < 5;
             double winRate = games > 0 ? Math.round(((double) wins / games) * 1000.0) / 10.0 : 0.0;
 
             // Fetch 10 recent matches
