@@ -557,7 +557,29 @@ export default function TournamentDetailModal({
                   </div>
 
                   {/* Key Tournament Parameters Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                    {/* Eligibility Condition */}
+                    <div className="bg-zinc-850/80 border border-zinc-800 p-4 rounded-2xl space-y-1.5">
+                      <p className="text-xs text-zinc-400 font-medium flex items-center gap-1.5">
+                        <span>⭐</span>
+                        <span>Điều Kiện Tham Gia</span>
+                      </p>
+                      <p className={`text-lg font-black font-mono ${rules?.minElo > 0 ? 'text-amber-300' : 'text-emerald-400'}`}>
+                        {rules?.minElo > 0 ? `ELO ≥ ${rules.minElo}` : 'Mọi ELO'}
+                      </p>
+                      <p className="text-[11px] text-zinc-500">
+                        {rules?.minElo > 0
+                          ? `Áp dụng: ${
+                              rules.eloRequirementType === 'BOT_ELO'
+                                ? 'ELO Bot thi đấu'
+                                : rules.eloRequirementType === 'PVP_ELO'
+                                ? 'ELO PvP Đội trưởng'
+                                : 'Bot hoặc Người chơi'
+                            }`
+                          : 'Tất cả sinh viên và bot đều được tham gia.'}
+                      </p>
+                    </div>
+
                     {/* Clock Config */}
                     <div className="bg-zinc-850/80 border border-zinc-800 p-4 rounded-2xl space-y-1.5">
                       <p className="text-xs text-zinc-400 font-medium flex items-center gap-1.5">
@@ -622,6 +644,24 @@ export default function TournamentDetailModal({
                       <span>Thể Lệ Phân Xử & Tiêu Chí Phụ (Tie-Break)</span>
                     </h4>
                     <div className="text-xs text-zinc-400 space-y-2 leading-relaxed">
+                      <p>
+                        • <strong>Điều Kiện Tham Gia (ELO):</strong>{' '}
+                        {rules?.minElo > 0 ? (
+                          <span className="text-amber-300 font-semibold">
+                            Yêu cầu tối thiểu từ {rules.minElo} ELO ({
+                              rules.eloRequirementType === 'BOT_ELO'
+                                ? 'theo ELO của Bot thi đấu'
+                                : rules.eloRequirementType === 'PVP_ELO'
+                                ? 'theo ELO PvP của Đội trưởng'
+                                : 'theo ELO của Bot hoặc Người chơi'
+                            }).
+                          </span>
+                        ) : (
+                          <span className="text-emerald-400 font-semibold">
+                            Tự do - Mọi sinh viên và cấp độ Bot đều có thể đăng ký tham gia.
+                          </span>
+                        )}
+                      </p>
                       <p>
                         • <strong>Bản Đồ Thi Đấu:</strong> Chiến trường 9x9 với địa hình cân xứng tâm đối xứng. Đội A xuất phát tại A9 [8,0], Đội B xuất phát tại I1 [0,8].
                       </p>

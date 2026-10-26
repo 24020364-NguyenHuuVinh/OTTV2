@@ -75,10 +75,17 @@ public final class TournamentDtos {
             Integer pointsPerWin,
             Integer pointsPerDraw,
             Integer pointsPerLoss,
-            Integer swissRounds
+            Integer swissRounds,
+            Integer minElo,
+            String eloRequirementType
     ) {
         public RulesConfig(int initialTimeSeconds, int incrementSeconds, int timeoutSeconds, int memoryLimitMb, String tieBreakRules) {
-            this(initialTimeSeconds, incrementSeconds, timeoutSeconds, memoryLimitMb, tieBreakRules, 3, 1, 0, null);
+            this(initialTimeSeconds, incrementSeconds, timeoutSeconds, memoryLimitMb, tieBreakRules, 3, 1, 0, null, null, null);
+        }
+
+        public RulesConfig(int initialTimeSeconds, int incrementSeconds, int timeoutSeconds, int memoryLimitMb, String tieBreakRules,
+                           Integer pointsPerWin, Integer pointsPerDraw, Integer pointsPerLoss, Integer swissRounds) {
+            this(initialTimeSeconds, incrementSeconds, timeoutSeconds, memoryLimitMb, tieBreakRules, pointsPerWin, pointsPerDraw, pointsPerLoss, swissRounds, null, null);
         }
 
         public int winPts() { return pointsPerWin != null ? pointsPerWin : 3; }
@@ -91,7 +98,7 @@ public final class TournamentDtos {
         }
 
         public static RulesConfig defaultBlitz() {
-            return new RulesConfig(180, 2, 3, 256, "BUCHHOLZ,DIRECT_ENCOUNTER", 3, 1, 0, 3);
+            return new RulesConfig(180, 2, 3, 256, "BUCHHOLZ,DIRECT_ENCOUNTER", 3, 1, 0, 3, null, null);
         }
     }
 

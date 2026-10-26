@@ -221,6 +221,77 @@ public class TournamentService {
                 }
             }
 
+            // Validate Tournament Participation Eligibility (Min ELO Condition)
+            RulesConfig rules = null;
+            try {
+                String rulesJson = jdbc.queryForObject("SELECT rules_config::text FROM tournaments WHERE id=?", String.class, tournamentId);
+                rules = readRulesConfig(rulesJson);
+            } catch (Exception ignored) {
+            }
+
+            if (rules != null && rules.minElo() != null && rules.minElo() > 0) {
+                int requiredElo = rules.minElo();
+                String type = rules.eloRequirementType() != null && !rules.eloRequirementType().isBlank()
+                        ? rules.eloRequirementType().trim().toUpperCase()
+                        : "ANY";
+
+                // 1. Captain user ELOs
+                int captainPvpElo = 1200;
+                int captainBotElo = 1200;
+                try {
+                    var userRow = jdbc.queryForMap(
+                            "SELECT COALESCE(pvp_elo, 1200) AS pvp_elo, COALESCE(bot_elo, 1200) AS bot_elo FROM users WHERE id=?",
+                            captainId);
+                    if (userRow.get("pvp_elo") instanceof Number n) captainPvpElo = n.intValue();
+                    if (userRow.get("bot_elo") instanceof Number n) captainBotElo = n.intValue();
+                } catch (Exception ignored) {
+                }
+
+                // 2. Selected Bot's rating in bot_ratings (default 1200)
+                int botElo = 1200;
+                try {
+                    List<Integer> botRatings = jdbc.query(
+                            "SELECT elo FROM bot_ratings WHERE bot_id = ? ORDER BY updated_at DESC LIMIT 1",
+                            (rs, r) -> rs.getInt(1), botSub.botId());
+                    if (!botRatings.isEmpty()) botElo = botRatings.getFirst();
+                } catch (Exception ignored) {
+                }
+
+                boolean qualified;
+                String typeDesc;
+                int currentScore;
+
+                switch (type) {
+                    case "BOT_ELO" -> {
+                        qualified = botElo >= requiredElo;
+                        typeDesc = "ELO của Bot thi đấu";
+                        currentScore = botElo;
+                    }
+                    case "PVP_ELO" -> {
+                        qualified = captainPvpElo >= requiredElo;
+                        typeDesc = "ELO PvP của Đội trưởng";
+                        currentScore = captainPvpElo;
+                    }
+                    case "USER_BOT_ELO" -> {
+                        qualified = captainBotElo >= requiredElo;
+                        typeDesc = "ELO Bot của Đội trưởng";
+                        currentScore = captainBotElo;
+                    }
+                    default -> {
+                        int maxAvailable = Math.max(botElo, Math.max(captainPvpElo, captainBotElo));
+                        qualified = maxAvailable >= requiredElo;
+                        typeDesc = "ELO Người chơi hoặc ELO Bot";
+                        currentScore = maxAvailable;
+                    }
+                }
+
+                if (!qualified) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Không đủ điều kiện tham gia: Giải đấu yêu cầu " + typeDesc +
+                            " tối thiểu từ " + requiredElo + " trở lên (Chỉ số hiện tại của bạn: " + currentScore + " ELO).");
+                }
+            }
+
             // Insert team with immutable snapshot of bot version
             Long teamId = jdbc.queryForObject("""
                     INSERT INTO tournament_teams (tournament_id, name, team_code, captain_id, bot_id,

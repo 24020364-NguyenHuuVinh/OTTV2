@@ -42,6 +42,8 @@ export default function Tournaments({
   const [newFormat, setNewFormat] = useState('SINGLE_ELIMINATION');
   const [newMaxTeams, setNewMaxTeams] = useState(16);
   const [newDescription, setNewDescription] = useState('');
+  const [newMinElo, setNewMinElo] = useState(0);
+  const [newEloRequirementType, setNewEloRequirementType] = useState('ANY'); // 'ANY' | 'BOT_ELO' | 'PVP_ELO'
   const [isCreating, setIsCreating] = useState(false);
 
   // Admin Quick Delete Tournament State
@@ -145,6 +147,38 @@ export default function Tournaments({
     setRegisterModalOpen(true);
   };
 
+  // Active Tournament Registration ELO Eligibility Check
+  const targetMinElo = targetTournament?.rulesConfig?.minElo || 0;
+  const targetEloType = targetTournament?.rulesConfig?.eloRequirementType || 'ANY';
+  const selectedBot = userBots?.find((b) => b.id === selectedBotId);
+  const selectedBotElo = selectedBot?.elo || 1200;
+  const userPvpElo = user?.pvpElo || 1200;
+  const userBotElo = user?.botElo || 1200;
+
+  let isEloQualified = true;
+  let currentEloScore = 0;
+  let eloTypeLabel = '';
+
+  if (targetMinElo > 0) {
+    if (targetEloType === 'BOT_ELO') {
+      eloTypeLabel = 'ELO của Bot thi đấu';
+      currentEloScore = selectedBotElo;
+      isEloQualified = selectedBotElo >= targetMinElo;
+    } else if (targetEloType === 'PVP_ELO') {
+      eloTypeLabel = 'ELO PvP của Đội trưởng';
+      currentEloScore = userPvpElo;
+      isEloQualified = userPvpElo >= targetMinElo;
+    } else if (targetEloType === 'USER_BOT_ELO') {
+      eloTypeLabel = 'ELO Bot của Đội trưởng';
+      currentEloScore = userBotElo;
+      isEloQualified = userBotElo >= targetMinElo;
+    } else {
+      eloTypeLabel = 'ELO Người chơi hoặc Bot';
+      currentEloScore = Math.max(selectedBotElo, userPvpElo, userBotElo);
+      isEloQualified = currentEloScore >= targetMinElo;
+    }
+  }
+
   // Handle submit registration
   const handleConfirmRegister = async (e) => {
     e?.preventDefault();
@@ -159,6 +193,12 @@ export default function Tournaments({
     }
     if (!latestCompiledSub) {
       setRegistrationError('Bot này chưa có bản nộp nào được biên dịch thành công.');
+      return;
+    }
+    if (!isEloQualified) {
+      setRegistrationError(
+        `Không đủ điều kiện tham gia: Giải đấu yêu cầu ${eloTypeLabel} tối thiểu từ ${targetMinElo} trở lên (Chỉ số hiện tại của bạn: ${currentEloScore} ELO).`
+      );
       return;
     }
 
@@ -224,6 +264,7 @@ export default function Tournaments({
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/^-|-$/g, '') + `-${Date.now().toString(36)}`;
 
+      const minEloNum = Number(newMinElo) > 0 ? Number(newMinElo) : null;
       const payload = {
         title: newTitle.trim(),
         slug: slugVal,
@@ -241,6 +282,8 @@ export default function Tournaments({
           pointsPerDraw: 1,
           pointsPerLoss: 0,
           swissRounds: newFormat === 'SWISS' ? 3 : null,
+          minElo: minEloNum,
+          eloRequirementType: minEloNum ? newEloRequirementType : null,
         },
       };
 
@@ -256,6 +299,8 @@ export default function Tournaments({
         setNewTitle('');
         setNewSlug('');
         setNewDescription('');
+        setNewMinElo(0);
+        setNewEloRequirementType('ANY');
         fetchTournaments();
       } else {
         const err = await res?.json().catch(() => null);
@@ -564,10 +609,32 @@ export default function Tournaments({
                 {/* Card Top: Badges & Title */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className={`px-2.5 py-0.5 rounded-lg text-[11px] font-bold border ${fmt.color} flex items-center gap-1`}>
-                      <span>{fmt.icon}</span>
-                      <span>{fmt.label}</span>
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className={`px-2.5 py-0.5 rounded-lg text-[11px] font-bold border ${fmt.color} flex items-center gap-1`}>
+                        <span>{fmt.icon}</span>
+                        <span>{fmt.label}</span>
+                      </span>
+                      {tourney?.rulesConfig?.minElo > 0 ? (
+                        <span
+                          className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1 shadow-sm"
+                          title={`Yêu cầu ELO tối thiểu: ${tourney.rulesConfig.minElo} (${
+                            tourney.rulesConfig.eloRequirementType === 'BOT_ELO'
+                              ? 'Bot thi đấu'
+                              : tourney.rulesConfig.eloRequirementType === 'PVP_ELO'
+                              ? 'PvP Đội trưởng'
+                              : 'Bot hoặc Người chơi'
+                          })`}
+                        >
+                          <span>⭐</span>
+                          <span>ELO ≥ {tourney.rulesConfig.minElo}</span>
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-lg text-[10px] font-medium bg-zinc-800 text-zinc-400 border border-zinc-700/60 flex items-center gap-1">
+                          <span>🌐</span>
+                          <span>Tự Do</span>
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1.5">
                       {isRegistered && (
                         <span className="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1 shadow-sm">
@@ -625,7 +692,15 @@ export default function Tournaments({
                         {tourney?.rulesConfig?.incrementSeconds || 2}s
                       </span>
                     </span>
-                    <span>{tourney?.teamSize || 1} Bot/Đội</span>
+                    <span className="flex items-center gap-1">
+                      {tourney?.rulesConfig?.minElo > 0 ? (
+                        <span className="text-amber-300 font-bold">
+                          ⭐ ELO ≥ {tourney.rulesConfig.minElo}
+                        </span>
+                      ) : (
+                        <span>{tourney?.teamSize || 1} Bot/Đội</span>
+                      )}
+                    </span>
                   </div>
                 </div>
 
@@ -701,6 +776,30 @@ export default function Tournaments({
               </p>
             </div>
 
+            {/* Tournament Eligibility Condition Banner */}
+            {targetMinElo > 0 && (
+              <div
+                className={`p-3.5 rounded-2xl border text-xs flex items-start gap-2.5 transition-all ${
+                  isEloQualified
+                    ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
+                    : 'bg-rose-950/40 border-rose-500/50 text-rose-300'
+                }`}
+              >
+                <span className="text-base">{isEloQualified ? '⭐' : '⚠️'}</span>
+                <div className="space-y-0.5">
+                  <p className="font-bold flex items-center gap-1.5">
+                    <span>Điều kiện giải:</span>
+                    <span className="text-white">Yêu cầu {eloTypeLabel} ≥ {targetMinElo} ELO</span>
+                  </p>
+                  <p className="text-[11px] opacity-90">
+                    {isEloQualified
+                      ? `✓ Bạn đủ điều kiện đăng ký giải (Chỉ số hiện tại: ${currentEloScore} ELO).`
+                      : `✗ Chưa đủ điều kiện (Chỉ số hiện tại: ${currentEloScore} ELO). Hãy chọn Bot khác hoặc tăng hạng ELO để tham gia.`}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {registrationError && (
               <div className="p-3 rounded-2xl bg-red-500/10 border border-red-500/30 text-xs text-red-300 flex items-start gap-2">
                 <span>⚠️</span>
@@ -750,6 +849,8 @@ export default function Tournaments({
                   <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
                     {userBots.map((b) => {
                       const isSelected = selectedBotId === b.id;
+                      const botRating = b.elo || 1200;
+                      const isBotEloPass = targetMinElo <= 0 || targetEloType !== 'BOT_ELO' || botRating >= targetMinElo;
                       return (
                         <div
                           key={b.id}
@@ -761,9 +862,22 @@ export default function Tournaments({
                           }`}
                         >
                           <div className="min-w-0">
-                            <p className="font-bold text-sm text-white truncate">{b.name}</p>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="font-bold text-sm text-white truncate">{b.name}</p>
+                              {targetMinElo > 0 && targetEloType === 'BOT_ELO' && (
+                                isBotEloPass ? (
+                                  <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                                    Đủ ELO
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] text-rose-400 font-bold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/30">
+                                    Thiếu ELO
+                                  </span>
+                                )
+                              )}
+                            </div>
                             <p className="text-[11px] text-zinc-400 font-mono">
-                              {b.language || 'Python'} · ELO: {b.elo || userElo}
+                              {b.language || 'Python'} · ELO: <strong className="text-zinc-200">{botRating}</strong>
                             </p>
                           </div>
                           <span className="text-base text-emerald-400 font-bold ml-2">
@@ -816,14 +930,20 @@ export default function Tournaments({
                 </button>
                 <button
                   type="submit"
-                  disabled={isRegistering || !latestCompiledSub || userBots.length === 0}
-                  className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-950/40 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                  disabled={isRegistering || !latestCompiledSub || userBots.length === 0 || !isEloQualified}
+                  className={`flex-1 py-3 rounded-xl font-bold text-xs shadow-lg flex items-center justify-center gap-1.5 transition-all ${
+                    !isEloQualified
+                      ? 'bg-rose-950/60 border border-rose-500/50 text-rose-300 cursor-not-allowed'
+                      : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950/40 disabled:opacity-50 disabled:cursor-not-allowed'
+                  }`}
                 >
                   {isRegistering ? (
                     <>
                       <span className="inline-block animate-spin">🔄</span>
                       <span>Đang Gửi...</span>
                     </>
+                  ) : !isEloQualified ? (
+                    <span>⚠️ Chưa Đạt ELO (Yêu Cầu ≥ {targetMinElo})</span>
                   ) : (
                     <span>Xác Nhận Đăng Ký</span>
                   )}
@@ -887,6 +1007,75 @@ export default function Tournaments({
                     <option value={16}>16 Đội</option>
                     <option value={32}>32 Đội</option>
                   </select>
+                </div>
+              </div>
+
+              {/* ELO Requirement Configuration */}
+              <div className="bg-zinc-850/80 p-3.5 rounded-2xl border border-zinc-750/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                    <span>⭐</span>
+                    <span>Điều Kiện Tham Gia (Yêu Cầu ELO)</span>
+                  </label>
+                  <span className="text-[11px] font-mono text-zinc-400">
+                    {Number(newMinElo) > 0 ? `Yêu cầu: ≥ ${newMinElo} ELO` : 'Mở tự do (0 ELO)'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[11px] text-zinc-400 block font-medium">Mức ELO Tối Thiểu</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={3000}
+                      step={50}
+                      value={newMinElo}
+                      onChange={(e) => setNewMinElo(Math.max(0, Number(e.target.value) || 0))}
+                      placeholder="0 = Không yêu cầu"
+                      className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 font-mono focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] text-zinc-400 block font-medium">Phạm Vi Áp Dụng ELO</label>
+                    <select
+                      value={newEloRequirementType}
+                      disabled={Number(newMinElo) <= 0}
+                      onChange={(e) => setNewEloRequirementType(e.target.value)}
+                      className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                    >
+                      <option value="ANY">Linh hoạt (Bot hoặc Người chơi)</option>
+                      <option value="BOT_ELO">ELO của Bot thi đấu</option>
+                      <option value="PVP_ELO">ELO PvP của Đội trưởng</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-[10px] text-zinc-500">Mốc nhanh:</span>
+                  {[
+                    { label: 'Tự Do (0)', val: 0 },
+                    { label: '≥ 1300', val: 1300 },
+                    { label: '≥ 1400', val: 1400 },
+                    { label: '≥ 1500', val: 1500 },
+                    { label: '≥ 1600', val: 1600 },
+                    { label: '≥ 1800', val: 1800 },
+                  ].map((p) => (
+                    <button
+                      key={p.val}
+                      type="button"
+                      onClick={() => setNewMinElo(p.val)}
+                      className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                        Number(newMinElo) === p.val
+                          ? 'bg-amber-500 text-zinc-950 shadow-sm'
+                          : 'bg-zinc-800 hover:bg-zinc-750 text-zinc-300 border border-zinc-700/60'
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 

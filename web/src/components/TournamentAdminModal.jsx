@@ -34,6 +34,11 @@ export default function TournamentAdminModal({
   // Delete confirmation state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // ELO Requirement Configuration state
+  const [isEditingElo, setIsEditingElo] = useState(false);
+  const [adminMinElo, setAdminMinElo] = useState(tournament?.rulesConfig?.minElo || 0);
+  const [adminEloType, setAdminEloType] = useState(tournament?.rulesConfig?.eloRequirementType || 'ANY');
+
   // Dispute resolution state
   const [disputeMatch, setDisputeMatch] = useState(null);
   const [disputeWinnerTeamId, setDisputeWinnerTeamId] = useState('');
@@ -244,6 +249,38 @@ export default function TournamentAdminModal({
     }
   };
 
+  // Dedicated Save ELO Condition Handler
+  const handleSaveEloCondition = async () => {
+    if (!tournamentId) return;
+    setIsSubmitting(true);
+    try {
+      const minEloNum = Number(adminMinElo) > 0 ? Number(adminMinElo) : null;
+      const payload = {
+        title: tournament?.title || tournament?.name,
+        description: tournament?.description,
+        maxTeams: tournament?.maxTeams || 16,
+        teamSize: tournament?.teamSize || 1,
+        rulesConfig: {
+          ...(tournament?.rulesConfig || {}),
+          minElo: minEloNum,
+          eloRequirementType: minEloNum ? adminEloType : null,
+        },
+      };
+      await api(`/api/tournaments/${tournamentId}`, {
+        method: 'PUT',
+        headers: await csrfHeaders(),
+        body: JSON.stringify(payload),
+      });
+      onToast?.({ type: 'WIN', text: '⭐ Đã cập nhật điều kiện ELO giải đấu thành công!' });
+      setIsEditingElo(false);
+      triggerRefresh();
+    } catch (err) {
+      showToastError(err, 'Lỗi khi cập nhật điều kiện ELO giải đấu.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // 4. Retry match
   const handleRetryMatch = async (matchId) => {
     setIsSubmitting(true);
@@ -365,6 +402,117 @@ export default function TournamentAdminModal({
                 <p className="text-xs text-zinc-400 leading-relaxed">
                   Trạng thái hiện tại: <strong className="text-emerald-400">{tournament?.status}</strong>. Ban tổ chức thực hiện các bước theo thứ tự: Mở đăng ký &rarr; Khóa đăng ký &rarr; Khởi tranh giải.
                 </p>
+              </div>
+
+              {/* ELO Requirement Card */}
+              <div className="bg-zinc-850/80 p-4 rounded-2xl border border-zinc-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-amber-400 text-base">⭐</span>
+                    <h4 className="text-xs font-bold text-white">Điều Kiện Tham Gia (Yêu Cầu ELO)</h4>
+                  </div>
+                  {(tournament?.status === 'DRAFT' || tournament?.status === 'REGISTRATION_OPEN' || tournament?.status === 'REGISTRATION_CLOSED') && (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingElo(!isEditingElo)}
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-zinc-800 hover:bg-zinc-750 text-amber-300 border border-amber-500/30 transition-colors"
+                    >
+                      {isEditingElo ? 'Đóng Chỉnh Sửa' : '✏️ Thay Đổi Điều Kiện'}
+                    </button>
+                  )}
+                </div>
+
+                {!isEditingElo ? (
+                  <div className="flex items-center justify-between text-xs text-zinc-300 bg-zinc-900/60 p-3 rounded-xl border border-zinc-800">
+                    <span>Mức ELO áp dụng hiện tại:</span>
+                    <span className="font-mono font-bold text-amber-300">
+                      {tournament?.rulesConfig?.minElo > 0
+                        ? `≥ ${tournament.rulesConfig.minElo} ELO (${
+                            tournament.rulesConfig.eloRequirementType === 'BOT_ELO'
+                              ? 'Bot thi đấu'
+                              : tournament.rulesConfig.eloRequirementType === 'PVP_ELO'
+                              ? 'PvP Đội trưởng'
+                              : 'Bot hoặc Người chơi'
+                          })`
+                        : 'Không yêu cầu (Mở tự do cho mọi ELO)'}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="bg-zinc-900/90 p-3.5 rounded-xl border border-amber-500/30 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[11px] text-zinc-400 font-medium block">Mức ELO Tối Thiểu</label>
+                        <input
+                          type="number"
+                          min={0}
+                          max={3000}
+                          step={50}
+                          value={adminMinElo}
+                          onChange={(e) => setAdminMinElo(Math.max(0, Number(e.target.value) || 0))}
+                          className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] text-zinc-400 font-medium block">Phạm Vi Áp Dụng</label>
+                        <select
+                          value={adminEloType}
+                          disabled={Number(adminMinElo) <= 0}
+                          onChange={(e) => setAdminEloType(e.target.value)}
+                          className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                        >
+                          <option value="ANY">Linh hoạt (Bot hoặc Người chơi)</option>
+                          <option value="BOT_ELO">ELO của Bot thi đấu</option>
+                          <option value="PVP_ELO">ELO PvP của Đội trưởng</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Quick Presets */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[10px] text-zinc-500">Mốc nhanh:</span>
+                      {[
+                        { label: 'Tự Do (0)', val: 0 },
+                        { label: '≥ 1300', val: 1300 },
+                        { label: '≥ 1400', val: 1400 },
+                        { label: '≥ 1500', val: 1500 },
+                        { label: '≥ 1600', val: 1600 },
+                        { label: '≥ 1800', val: 1800 },
+                      ].map((p) => (
+                        <button
+                          key={p.val}
+                          type="button"
+                          onClick={() => setAdminMinElo(p.val)}
+                          className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                            Number(adminMinElo) === p.val
+                              ? 'bg-amber-500 text-zinc-950 shadow-sm'
+                              : 'bg-zinc-800 hover:bg-zinc-750 text-zinc-300 border border-zinc-700/60'
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingElo(false)}
+                        className="px-3 py-1.5 rounded-xl bg-zinc-800 text-zinc-400 text-xs font-bold hover:text-white"
+                      >
+                        Hủy
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={handleSaveEloCondition}
+                        className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-md shadow-amber-950/40 flex items-center gap-1.5"
+                      >
+                        <span>💾</span>
+                        <span>{isSubmitting ? 'Đang Lưu...' : 'Lưu Thay Đổi'}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Ready Teams Strip */}

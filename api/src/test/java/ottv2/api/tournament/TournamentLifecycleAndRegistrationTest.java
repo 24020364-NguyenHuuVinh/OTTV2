@@ -325,4 +325,56 @@ class TournamentLifecycleAndRegistrationTest {
         assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
         assertTrue(ex.getReason().contains("requires at least 2 checked-in teams"));
     }
+
+    // =========================================================================
+    // 9. Kiểm tra điều kiện ELO tối thiểu khi đăng ký giải đấu
+    // =========================================================================
+    @Test
+    @DisplayName("Scenario 9: Registration rejects team if ELO requirement is not met")
+    void test9_registrationRejectsTeamWhenEloRequirementNotMet() throws Exception {
+        long tourneyId = 800L;
+        long captainId = 99L;
+
+        when(jdbc.queryForObject(contains("SELECT id, status, max_teams, team_size FROM tournaments WHERE id=? FOR UPDATE"),
+                ArgumentMatchers.<RowMapper<Object>>any(), eq(tourneyId)))
+                .thenAnswer(inv -> {
+                    var c = Class.forName("ottv2.api.tournament.TournamentService$TournamentStateRow").getDeclaredConstructors()[0];
+                    c.setAccessible(true);
+                    return c.newInstance(tourneyId, "REGISTRATION_OPEN", 16, 1);
+                });
+
+        when(jdbc.queryForObject(contains("SELECT COUNT(*) FROM tournament_teams WHERE tournament_id=? AND status NOT IN"),
+                eq(Integer.class), eq(tourneyId))).thenReturn(0);
+        when(jdbc.queryForObject(contains("SELECT COUNT(*) FROM tournament_teams WHERE tournament_id=? AND captain_id=?"),
+                eq(Integer.class), eq(tourneyId), eq(captainId))).thenReturn(0);
+        when(jdbc.queryForObject(contains("SELECT COUNT(*) FROM tournament_teams WHERE tournament_id=? AND name=?"),
+                eq(Integer.class), eq(tourneyId), eq("Team Elite"))).thenReturn(0);
+
+        when(jdbc.query(contains("FROM bots b JOIN submissions s"), ArgumentMatchers.<RowMapper<Object>>any(), eq(20L), eq(200L)))
+                .thenAnswer(inv -> {
+                    var c = Class.forName("ottv2.api.tournament.TournamentService$BotSubRow").getDeclaredConstructors()[0];
+                    c.setAccessible(true);
+                    return List.of(c.newInstance(20L, "EliteBot", captainId, 200L, "sha_elite", 1, "COMPILED", "art.tar"));
+                });
+
+        when(jdbc.queryForObject(contains("SELECT COUNT(*) FROM tournament_members WHERE tournament_id=? AND user_id=?"),
+                eq(Integer.class), eq(tourneyId), eq(captainId))).thenReturn(0);
+
+        // Rules require minElo = 1500 with BOT_ELO
+        when(jdbc.queryForObject(contains("SELECT rules_config::text FROM tournaments WHERE id=?"),
+                eq(String.class), eq(tourneyId)))
+                .thenReturn("{\"minElo\":1500,\"eloRequirementType\":\"BOT_ELO\"}");
+
+        // Bot has only 1200 ELO
+        when(jdbc.query(contains("SELECT elo FROM bot_ratings WHERE bot_id"), ArgumentMatchers.<RowMapper<Integer>>any(), eq(20L)))
+                .thenReturn(List.of(1200));
+
+        RegisterTeamRequest req = new RegisterTeamRequest("Team Elite", "ELITE", 20L, 200L, List.of());
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> service.registerTeam(tourneyId, captainId, req));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertTrue(ex.getReason().contains("Không đủ điều kiện tham gia"));
+        assertTrue(ex.getReason().contains("1500"));
+    }
 }
