@@ -44,6 +44,10 @@ export default function Tournaments({
   const [newDescription, setNewDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
+  // Admin Quick Delete Tournament State
+  const [deletingTournament, setDeletingTournament] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Fetch Tournaments list from API
   const fetchTournaments = useCallback(async () => {
     setIsLoading(true);
@@ -261,6 +265,26 @@ export default function Tournaments({
       onToast?.({ type: 'LOSE', text: extractErrorMessage(err, 'Lỗi kết nối khi tạo giải.') });
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingTournament) return;
+    const tourneyToDelete = deletingTournament;
+    setIsDeleting(true);
+    try {
+      await api(`/api/admin/tournaments/${tourneyToDelete.id}`, {
+        method: 'DELETE',
+        headers: await csrfHeaders(),
+      });
+      onToast?.({ type: 'WIN', text: `🗑️ Đã xóa vĩnh viễn giải đấu "${tourneyToDelete.title}" thành công!` });
+      setDeletingTournament(null);
+      setTournaments((prev) => prev ? prev.filter((t) => t.id !== tourneyToDelete.id) : []);
+      fetchTournaments();
+    } catch (err) {
+      onToast?.({ type: 'LOSE', text: extractErrorMessage(err, 'Lỗi khi xóa giải đấu.') });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -616,6 +640,21 @@ export default function Tournaments({
                     <span>Xem Chi Tiết</span>
                   </button>
 
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingTournament(tourney);
+                      }}
+                      className="px-3 py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 font-bold text-xs border border-rose-500/40 transition-colors flex items-center justify-center gap-1.5 shadow-sm hover:border-rose-400"
+                      title="Xóa vĩnh viễn giải đấu này (Dành cho Admin)"
+                    >
+                      <span>🗑️</span>
+                      <span className="hidden sm:inline">Xóa</span>
+                    </button>
+                  )}
+
                   {isRegOpen && (
                     isRegistered ? (
                       <div
@@ -879,6 +918,42 @@ export default function Tournaments({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ADMIN QUICK DELETE TOURNAMENT CONFIRMATION MODAL */}
+      {deletingTournament && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-zinc-900 border border-zinc-750 p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-400">
+              <span className="text-2xl">⚠️</span>
+              <h3 className="font-bold text-base text-white">Xác Nhận Xóa Giải Đấu</h3>
+            </div>
+            <p className="text-xs text-zinc-300 leading-relaxed">
+              Bạn có chắc chắn muốn xóa vĩnh viễn giải đấu{' '}
+              <strong className="text-white">"{deletingTournament.title}"</strong> (ID: {deletingTournament.id})?
+              Toàn bộ dữ liệu trận đấu, danh sách đội và bảng xếp hạng của giải này sẽ bị xóa khỏi hệ thống.
+            </p>
+            <div className="flex gap-2 justify-end pt-2">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setDeletingTournament(null)}
+                className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-750 text-zinc-300 text-xs font-bold transition-colors"
+              >
+                Hủy Bỏ
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-colors shadow-lg shadow-rose-950/50 flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <span>🗑️</span>
+                <span>{isDeleting ? 'Đang Xóa...' : 'Xác Nhận Xóa'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

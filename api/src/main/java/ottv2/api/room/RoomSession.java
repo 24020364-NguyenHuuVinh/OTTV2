@@ -30,6 +30,11 @@ public class RoomSession {
     private volatile String hostUsername;
     private volatile String guestUsername;
 
+    private volatile Long matchId;
+    private volatile UUID matchPublicId;
+    private volatile String matchType;
+    private volatile Boolean isRanked;
+
     public RoomSession(String code, String hostName, Object timeControl) {
         this.code = code;
         this.hostName = hostName != null && !hostName.isBlank() ? hostName : "Chủ Phòng";
@@ -103,6 +108,38 @@ public class RoomSession {
 
     public void setGuestUsername(String guestUsername) {
         this.guestUsername = guestUsername;
+    }
+
+    public Long getMatchId() {
+        return matchId;
+    }
+
+    public void setMatchId(Long matchId) {
+        this.matchId = matchId;
+    }
+
+    public UUID getMatchPublicId() {
+        return matchPublicId;
+    }
+
+    public void setMatchPublicId(UUID matchPublicId) {
+        this.matchPublicId = matchPublicId;
+    }
+
+    public String getMatchType() {
+        return matchType;
+    }
+
+    public void setMatchType(String matchType) {
+        this.matchType = matchType;
+    }
+
+    public Boolean getIsRanked() {
+        return isRanked;
+    }
+
+    public void setIsRanked(Boolean isRanked) {
+        this.isRanked = isRanked;
     }
 
     /**

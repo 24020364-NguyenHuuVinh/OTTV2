@@ -39,6 +39,13 @@ public class TournamentExecutionService {
                     "Tournament can only be started from CHECK_IN or REGISTRATION_CLOSED stage (current: " + tourney.status() + ")");
         }
 
+        // Tự động chuyển toàn bộ đội REGISTERED và APPROVED sang CHECKED_IN để sẵn sàng thi đấu (bỏ thủ tục điểm danh thủ công)
+        jdbc.update("""
+                UPDATE tournament_teams
+                SET status = 'CHECKED_IN', updated_at = now()
+                WHERE tournament_id = ? AND status IN ('REGISTERED', 'APPROVED')
+                """, tournamentId);
+
         int checkedIn = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM tournament_teams WHERE tournament_id = ? AND status = 'CHECKED_IN'",
                 Integer.class, tournamentId);

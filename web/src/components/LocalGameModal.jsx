@@ -178,31 +178,51 @@ export default function LocalGameModal({
     }
   };
 
-  // Countdown timer for active player (runs every 100ms)
+  // Countdown timer for active player (runs every 100ms) with wall-clock delta to prevent tab-throttling desync
   useEffect(() => {
     if (winner) return undefined;
+    let lastTick = Date.now();
 
-    const timer = setInterval(() => {
+    const updateTimer = () => {
+      const now = Date.now();
+      const delta = now - lastTick;
+      lastTick = now;
+      if (delta <= 0) return;
+
       if (currentTurn === 'A') {
         setTimeLeftA((prev) => {
-          if (prev <= 100) {
+          if (prev <= delta) {
             handleFinishLocalGame('B', 'TIMEOUT');
             return 0;
           }
-          return prev - 100;
+          return prev - delta;
         });
       } else {
         setTimeLeftB((prev) => {
-          if (prev <= 100) {
+          if (prev <= delta) {
             handleFinishLocalGame('A', 'TIMEOUT');
             return 0;
           }
-          return prev - 100;
+          return prev - delta;
         });
       }
-    }, 100);
+    };
 
-    return () => clearInterval(timer);
+    const timer = setInterval(updateTimer, 100);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        updateTimer();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleVisibility);
+
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleVisibility);
+    };
   }, [currentTurn, winner]);
 
   // Handle piece selection

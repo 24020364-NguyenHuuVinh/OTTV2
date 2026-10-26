@@ -4,10 +4,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 class RoomServiceTest {
 
@@ -123,5 +127,48 @@ class RoomServiceTest {
                 "playerToken", "wrong-token"
         );
         assertNull(roomController.handleAction(code, unauthorizedAction));
+    }
+
+    @Test
+    void testJoinRoomCreatesMatchesRecordWhenJdbcPresent() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        RoomController controllerWithJdbc = new RoomController(roomService, null, null, jdbc);
+
+        UUID publicId = UUID.randomUUID();
+        when(jdbc.queryForObject(contains("INSERT INTO matches"), eq(Long.class), any(), any(), any(), any(), any(), any()))
+                .thenReturn(12345L);
+        when(jdbc.queryForObject(contains("SELECT public_id FROM matches WHERE id = ?"), eq(UUID.class), eq(12345L)))
+                .thenReturn(publicId);
+
+        ResponseEntity<?> createRes = controllerWithJdbc.createRoom(Map.of(
+                "hostName", "HostGamer",
+                "userId", 10L,
+                "username", "host10",
+                "isRanked", true
+        ));
+        assertEquals(HttpStatus.CREATED, createRes.getStatusCode());
+        String code = String.valueOf(((Map<?, ?>) createRes.getBody()).get("code"));
+
+        ResponseEntity<?> joinRes = controllerWithJdbc.joinRoom(code, Map.of(
+                "guestName", "GuestChallenger",
+                "userId", 20L,
+                "username", "guest20"
+        ));
+        assertEquals(HttpStatus.OK, joinRes.getStatusCode());
+        Map<?, ?> joinBody = (Map<?, ?>) joinRes.getBody();
+        assertNotNull(joinBody);
+        assertEquals(12345L, joinBody.get("matchId"));
+        assertEquals(publicId.toString(), joinBody.get("matchPublicId"));
+
+        // Verify matches row was created with match_type = 'PVP' (2 distinct users)
+        verify(jdbc).queryForObject(contains("INSERT INTO matches"), eq(Long.class),
+                eq("PVP"), anyLong(), anyString(), eq(10L), eq(20L), eq(code));
+
+        // Verify getRoom also returns matchId and matchPublicId
+        ResponseEntity<?> getRes = controllerWithJdbc.getRoom(code);
+        assertEquals(HttpStatus.OK, getRes.getStatusCode());
+        Map<?, ?> getBody = (Map<?, ?>) getRes.getBody();
+        assertEquals(12345L, getBody.get("matchId"));
+        assertEquals(publicId.toString(), getBody.get("matchPublicId"));
     }
 }

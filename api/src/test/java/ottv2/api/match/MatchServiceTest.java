@@ -19,13 +19,16 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -379,5 +382,228 @@ class MatchServiceTest {
         assertEquals(1100, response.newElo(), "Elo floor of 1100 must be enforced");
         assertEquals(-5, response.eloChange(), "Actual delta must be clamped to -5");
         verify(jdbc).update("UPDATE users SET pvp_elo = ? WHERE id = ?", 1100, 100L);
+    }
+
+    @Test
+    void finishPvpMatchCreatesRecordOnTheFlyForCustomRoomIfMissing() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        TransactionTemplate transaction = mock(TransactionTemplate.class);
+        doAnswer(invocation -> invocation.<TransactionCallback<?>>getArgument(0)
+                .doInTransaction(mock(TransactionStatus.class)))
+                .when(transaction).execute(any(TransactionCallback.class));
+
+        ottv2.api.room.RoomService roomService = new ottv2.api.room.RoomService();
+        ottv2.api.room.RoomSession room = roomService.createRoom("HostMaster", null);
+        room.setHostUserId(100L);
+        roomService.joinRoom(room.getCode(), "GuestChallenger");
+        room.setGuestUserId(200L);
+        String roomCode = room.getCode();
+
+        UUID publicId = UUID.randomUUID();
+        Map<String, Object> newlyCreatedRow = new java.util.HashMap<>();
+        newlyCreatedRow.put("id", 888L);
+        newlyCreatedRow.put("public_id", publicId);
+        newlyCreatedRow.put("match_type", "PVP");
+        newlyCreatedRow.put("status", "READY");
+        newlyCreatedRow.put("user_a_id", 100L);
+        newlyCreatedRow.put("user_b_id", 200L);
+        newlyCreatedRow.put("room_code", roomCode);
+        newlyCreatedRow.put("winner_side", null);
+        newlyCreatedRow.put("end_reason", null);
+
+        // First query by roomCode returns empty list, then after INSERT query by id=888 returns newlyCreatedRow
+        when(jdbc.queryForList(contains("SELECT id, public_id, match_type"), any(Object[].class)))
+                .thenReturn(List.of())
+                .thenReturn(List.of(newlyCreatedRow));
+
+        when(jdbc.queryForObject(contains("INSERT INTO matches"), eq(Long.class), any(), any(), any(), any(), any()))
+                .thenReturn(888L);
+
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(100L)))
+                .thenReturn(Map.of("id", 100L, "display_name", "HostMaster", "pvp_elo", 1200));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(200L)))
+                .thenReturn(Map.of("id", 200L, "display_name", "GuestChallenger", "pvp_elo", 1200));
+        when(jdbc.queryForObject(contains("SELECT created_month FROM matches"), any(RowMapper.class), eq(888L)))
+                .thenReturn(LocalDate.now());
+
+        MatchService service = new MatchService(jdbc, transaction, new ObjectMapper(), null, null, roomService);
+
+        var response = service.finishPvpMatch(100L, roomCode,
+                new MatchDtos.FinishPvpMatchRequest("A", "TARGET_REACHED",
+                        Map.of("moves", List.of(Map.of("team", "A", "from", List.of(1, 8), "to", List.of(0, 8))))));
+
+        assertNotNull(response);
+        assertEquals("FINISHED", response.status());
+        assertEquals("A", response.winnerSide());
+        assertEquals(true, response.isRanked());
+
+        // Verify matches row was created on the fly
+        verify(jdbc).queryForObject(contains("INSERT INTO matches"), eq(Long.class), any(), any(), any(), any(), any());
+        // Verify user_matches were saved for both users
+        verify(jdbc, atLeast(2)).update(contains("INSERT INTO user_matches"), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void finishPvpMatchAllowsGracefulFinishWhenOneParticipantIsAnonymous() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        TransactionTemplate transaction = mock(TransactionTemplate.class);
+        doAnswer(invocation -> invocation.<TransactionCallback<?>>getArgument(0)
+                .doInTransaction(mock(TransactionStatus.class)))
+                .when(transaction).execute(any(TransactionCallback.class));
+
+        UUID publicId = UUID.randomUUID();
+        Map<String, Object> matchRow = new java.util.HashMap<>();
+        matchRow.put("id", 999L);
+        matchRow.put("public_id", publicId);
+        matchRow.put("match_type", "FRIENDLY");
+        matchRow.put("status", "READY");
+        matchRow.put("user_a_id", 100L);
+        matchRow.put("user_b_id", null); // Anonymous guest
+        matchRow.put("room_code", "654321");
+        matchRow.put("winner_side", null);
+        matchRow.put("end_reason", null);
+
+        when(jdbc.queryForList(contains("SELECT id, public_id, match_type"), any(Object[].class)))
+                .thenReturn(List.of(matchRow));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(100L)))
+                .thenReturn(Map.of("id", 100L, "display_name", "HostSolo", "pvp_elo", 1250));
+        when(jdbc.queryForObject(contains("SELECT created_month FROM matches"), any(RowMapper.class), eq(999L)))
+                .thenReturn(LocalDate.now());
+
+        MatchService service = new MatchService(jdbc, transaction, new ObjectMapper());
+
+        var response = service.finishPvpMatch(100L, "654321",
+                new MatchDtos.FinishPvpMatchRequest("A", "TARGET_REACHED",
+                        Map.of("moves", List.of(Map.of("team", "A", "from", List.of(1, 8), "to", List.of(0, 8))))));
+
+        assertNotNull(response);
+        assertEquals("FINISHED", response.status());
+        assertEquals("A", response.winnerSide());
+        assertEquals(false, response.isRanked(), "Match with anonymous player must be unranked friendly");
+        assertEquals(0, response.eloChange(), "Friendly match yields 0 elo change");
+        assertEquals(1250, response.newElo());
+
+        // Verify only user_a received user_matches record
+        verify(jdbc, times(1)).update(contains("INSERT INTO user_matches"), eq(100L), any(), any(), any(), any(), any(), any(), any(), eq(0), eq(1250), eq(false), eq("FRIENDLY"), any(), any());
+    }
+
+    @Test
+    void finishPvpMatchRejectsOpponentLeftWhenOpponentHasNotLeft() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        TransactionTemplate transaction = mock(TransactionTemplate.class);
+        doAnswer(invocation -> invocation.<TransactionCallback<?>>getArgument(0)
+                .doInTransaction(mock(TransactionStatus.class)))
+                .when(transaction).execute(any(TransactionCallback.class));
+
+        ottv2.api.room.RoomService roomService = new ottv2.api.room.RoomService();
+        ottv2.api.room.RoomSession room = roomService.createRoom("HostMaster", null);
+        room.setHostUserId(100L);
+        roomService.joinRoom(room.getCode(), "GuestChallenger");
+        room.setGuestUserId(200L);
+        // Note: room.getPlayerLeft() is null (Guest has NOT left)
+
+        Map<String, Object> matchRow = new java.util.HashMap<>();
+        matchRow.put("id", 101L);
+        matchRow.put("public_id", UUID.randomUUID());
+        matchRow.put("match_type", "PVP");
+        matchRow.put("status", "READY");
+        matchRow.put("user_a_id", 100L);
+        matchRow.put("user_b_id", 200L);
+        matchRow.put("room_code", room.getCode());
+
+        when(jdbc.queryForList(contains("SELECT id, public_id, match_type"), any(Object[].class)))
+                .thenReturn(List.of(matchRow));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(100L)))
+                .thenReturn(Map.of("id", 100L, "pvp_elo", 1200));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(200L)))
+                .thenReturn(Map.of("id", 200L, "pvp_elo", 1200));
+
+        MatchService service = new MatchService(jdbc, transaction, new ObjectMapper(), null, null, roomService);
+
+        // Player A tries to cheat and claim OPPONENT_LEFT while player B is still in room
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> service.finishPvpMatch(100L, room.getCode(),
+                        new MatchDtos.FinishPvpMatchRequest("A", "OPPONENT_LEFT", null)));
+        assertEquals(400, ex.getStatusCode().value());
+        org.junit.jupiter.api.Assertions.assertTrue(ex.getReason().contains("chưa rời phòng"));
+    }
+
+    @Test
+    void finishPvpMatchAllowsOpponentLeftWhenOpponentActuallyLeft() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        TransactionTemplate transaction = mock(TransactionTemplate.class);
+        doAnswer(invocation -> invocation.<TransactionCallback<?>>getArgument(0)
+                .doInTransaction(mock(TransactionStatus.class)))
+                .when(transaction).execute(any(TransactionCallback.class));
+
+        ottv2.api.room.RoomService roomService = new ottv2.api.room.RoomService();
+        ottv2.api.room.RoomSession room = roomService.createRoom("HostMaster", null);
+        room.setHostUserId(100L);
+        roomService.joinRoom(room.getCode(), "GuestChallenger");
+        room.setGuestUserId(200L);
+        // Opponent B actually leaves
+        room.setPlayerLeft("B");
+
+        Map<String, Object> matchRow = new java.util.HashMap<>();
+        matchRow.put("id", 102L);
+        matchRow.put("public_id", UUID.randomUUID());
+        matchRow.put("match_type", "PVP");
+        matchRow.put("status", "READY");
+        matchRow.put("user_a_id", 100L);
+        matchRow.put("user_b_id", 200L);
+        matchRow.put("room_code", room.getCode());
+
+        when(jdbc.queryForList(contains("SELECT id, public_id, match_type"), any(Object[].class)))
+                .thenReturn(List.of(matchRow));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(100L)))
+                .thenReturn(Map.of("id", 100L, "pvp_elo", 1200));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(200L)))
+                .thenReturn(Map.of("id", 200L, "pvp_elo", 1200));
+        when(jdbc.queryForObject(contains("SELECT created_month FROM matches"), any(RowMapper.class), eq(102L)))
+                .thenReturn(LocalDate.now());
+
+        MatchService service = new MatchService(jdbc, transaction, new ObjectMapper(), null, null, roomService);
+
+        var response = service.finishPvpMatch(100L, room.getCode(),
+                new MatchDtos.FinishPvpMatchRequest("A", "OPPONENT_LEFT", null));
+        assertNotNull(response);
+        assertEquals("A", response.winnerSide());
+        assertEquals("OPPONENT_LEFT", response.reason());
+    }
+
+    @Test
+    void finishPvpMatchRejectsPrematureTimeoutClaim() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        TransactionTemplate transaction = mock(TransactionTemplate.class);
+        doAnswer(invocation -> invocation.<TransactionCallback<?>>getArgument(0)
+                .doInTransaction(mock(TransactionStatus.class)))
+                .when(transaction).execute(any(TransactionCallback.class));
+
+        Map<String, Object> matchRow = new java.util.HashMap<>();
+        matchRow.put("id", 103L);
+        matchRow.put("public_id", UUID.randomUUID());
+        matchRow.put("match_type", "PVP");
+        matchRow.put("status", "READY");
+        matchRow.put("user_a_id", 100L);
+        matchRow.put("user_b_id", 200L);
+        matchRow.put("room_code", "ROOM_TIMEOUT");
+        // Queued 5 seconds ago
+        matchRow.put("queued_at", Timestamp.from(Instant.now().minusSeconds(5)));
+
+        when(jdbc.queryForList(contains("SELECT id, public_id, match_type"), any(Object[].class)))
+                .thenReturn(List.of(matchRow));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(100L)))
+                .thenReturn(Map.of("id", 100L, "pvp_elo", 1200));
+        when(jdbc.queryForMap(contains("FROM users WHERE id = ? FOR UPDATE"), eq(200L)))
+                .thenReturn(Map.of("id", 200L, "pvp_elo", 1200));
+
+        MatchService service = new MatchService(jdbc, transaction, new ObjectMapper());
+
+        // Player A claims TIMEOUT only 5s into the game
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> service.finishPvpMatch(100L, "ROOM_TIMEOUT",
+                        new MatchDtos.FinishPvpMatchRequest("A", "TIMEOUT", null)));
+        assertEquals(400, ex.getStatusCode().value());
+        org.junit.jupiter.api.Assertions.assertTrue(ex.getReason().contains("chưa đủ để xảy ra TIMEOUT"));
     }
 }

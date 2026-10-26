@@ -39,6 +39,22 @@ public class PvpMatchValidator {
             String claimedReason,
             Object replayData
     ) {
+        return validate(currentUserId, userAId, userBId, claimedWinner, claimedReason, replayData, null, null);
+    }
+
+    /**
+     * Thẩm định kết quả ván cờ trên Server với kiểm tra anti-cheat đầy đủ (playerLeft, elapsedSeconds).
+     */
+    public ValidatedMatchResult validate(
+            long currentUserId,
+            long userAId,
+            long userBId,
+            String claimedWinner,
+            String claimedReason,
+            Object replayData,
+            String playerLeft,
+            Long elapsedSeconds
+    ) {
         String reason = claimedReason != null ? claimedReason.trim().toUpperCase() : "FINISHED";
         String normalizedClaimedWinner = claimedWinner != null ? claimedWinner.trim().toUpperCase() : "DRAW";
 
@@ -58,6 +74,16 @@ public class PvpMatchValidator {
 
         // 1b. Trường hợp ĐỐI THỦ THOÁT PHÒNG (OPPONENT_LEFT / DISCONNECT)
         if ("OPPONENT_LEFT".equalsIgnoreCase(reason) || "DISCONNECTED".equalsIgnoreCase(reason)) {
+            // Anti-cheat: Nếu có dữ liệu người rời phòng từ room, bắt buộc đối thủ phải là người rời
+            if (playerLeft != null) {
+                String expectedOpponent = (currentUserId == userAId) ? "B" : "A";
+                if (!expectedOpponent.equalsIgnoreCase(playerLeft)) {
+                    log.warn("[ANTI-CHEAT] User {} đòi thắng {} phe {} nhưng đối thủ rời phòng ghi nhận là '{}'",
+                            currentUserId, reason, normalizedClaimedWinner, playerLeft);
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Đối thủ chưa rời phòng, không thể xác nhận chiến thắng " + reason + "!");
+                }
+            }
             // Người còn lại trong phòng được công nhận chiến thắng do đối thủ bỏ cuộc
             if (currentUserId == userAId && "A".equalsIgnoreCase(normalizedClaimedWinner)) {
                 return new ValidatedMatchResult("A", "OPPONENT_LEFT", "SERVER_OPPONENT_LEFT_RULE");
@@ -100,6 +126,13 @@ public class PvpMatchValidator {
 
         // 3. Trường hợp HẾT GIỜ (TIMEOUT)
         if ("TIMEOUT".equalsIgnoreCase(reason)) {
+            // Anti-cheat: Không thể kết thúc TIMEOUT nếu trận đấu mới diễn ra dưới 30 giây (kể cả Bullet 1m)
+            if (elapsedSeconds != null && elapsedSeconds < 30) {
+                log.warn("[ANTI-CHEAT] User {} đòi thắng TIMEOUT nhưng thời gian trận đấu mới trôi qua {}s",
+                        currentUserId, elapsedSeconds);
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Thời gian trận đấu chưa đủ để xảy ra TIMEOUT (mới bắt đầu " + elapsedSeconds + "s)!");
+            }
             // Bên hết giờ bị xử thua, bên còn lại thắng
             if ("A".equals(normalizedClaimedWinner) || "B".equals(normalizedClaimedWinner)) {
                 return new ValidatedMatchResult(normalizedClaimedWinner, "TIMEOUT", "SERVER_TIMEOUT_RULE");

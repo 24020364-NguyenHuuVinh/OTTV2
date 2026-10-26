@@ -13,6 +13,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import ottv2.api.security.ApiPrincipal;
@@ -20,6 +21,7 @@ import ottv2.api.security.ApiPrincipal;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 public class RoomController {
@@ -29,18 +31,21 @@ public class RoomController {
     private final RoomService roomService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper;
+    private final JdbcTemplate jdbc;
 
     @Autowired
     public RoomController(RoomService roomService,
                           @Autowired(required = false) SimpMessagingTemplate messagingTemplate,
-                          @Autowired(required = false) ObjectMapper objectMapper) {
+                          @Autowired(required = false) ObjectMapper objectMapper,
+                          @Autowired(required = false) JdbcTemplate jdbc) {
         this.roomService = roomService;
         this.messagingTemplate = messagingTemplate;
         this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
+        this.jdbc = jdbc;
     }
 
     public RoomController(RoomService roomService) {
-        this(roomService, null, null);
+        this(roomService, null, null, null);
     }
 
     public ResponseEntity<?> createRoom(Map<String, ?> body) {
@@ -60,6 +65,19 @@ public class RoomController {
             if ("Chủ Phòng".equals(hostName) && principal.username() != null) {
                 room.setHostName(principal.username());
             }
+        } else if (body != null && body.get("userId") != null) {
+            try {
+                room.setHostUserId(Long.valueOf(body.get("userId").toString()));
+            } catch (Exception ignored) {}
+        }
+        if (room.getHostUsername() == null && body != null && body.get("username") != null) {
+            room.setHostUsername(String.valueOf(body.get("username")));
+        }
+        if (body != null && body.get("isRanked") != null) {
+            room.setIsRanked(Boolean.TRUE.equals(body.get("isRanked")) || "true".equalsIgnoreCase(String.valueOf(body.get("isRanked"))));
+        }
+        if (body != null && body.get("matchType") != null) {
+            room.setMatchType(String.valueOf(body.get("matchType")));
         }
 
         Map<String, Object> response = new HashMap<>();
@@ -72,6 +90,12 @@ public class RoomController {
         response.put("createdAt", room.getCreatedAt().toString());
         if (room.getTimeControl() != null) {
             response.put("timeControl", room.getTimeControl());
+        }
+        if (room.getMatchId() != null) {
+            response.put("matchId", room.getMatchId());
+        }
+        if (room.getMatchPublicId() != null) {
+            response.put("matchPublicId", room.getMatchPublicId().toString());
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -93,6 +117,46 @@ public class RoomController {
                 if ("Khách".equals(guestName) && principal.username() != null) {
                     room.setGuestName(principal.username());
                 }
+            } else if (body != null && body.get("userId") != null) {
+                try {
+                    room.setGuestUserId(Long.valueOf(body.get("userId").toString()));
+                } catch (Exception ignored) {}
+            }
+            if (room.getGuestUsername() == null && body != null && body.get("username") != null) {
+                room.setGuestUsername(String.valueOf(body.get("username")));
+            }
+
+            // Ghi nhận trận đấu Authoritative vào bảng matches trong database
+            if (jdbc != null) {
+                try {
+                    Long hostUserId = room.getHostUserId();
+                    Long guestUserId = room.getGuestUserId();
+
+                    boolean isFriendly = "FRIENDLY".equalsIgnoreCase(room.getMatchType())
+                            || Boolean.FALSE.equals(room.getIsRanked())
+                            || hostUserId == null
+                            || guestUserId == null
+                            || (hostUserId.equals(guestUserId));
+
+                    String matchType = isFriendly ? "FRIENDLY" : "PVP";
+                    long seed = java.util.concurrent.ThreadLocalRandom.current().nextLong();
+                    String mapConfig = "{}";
+
+                    Long matchId = jdbc.queryForObject("""
+                            INSERT INTO matches(match_type, seed, map_config, engine_ver, status, user_a_id, user_b_id, room_code)
+                            VALUES (?, ?, ?::jsonb, '1', 'READY', ?, ?, ?)
+                            RETURNING id
+                            """, Long.class, matchType, seed, mapConfig, hostUserId, guestUserId, room.getCode());
+
+                    if (matchId != null) {
+                        UUID publicId = jdbc.queryForObject("SELECT public_id FROM matches WHERE id = ?", UUID.class, matchId);
+                        room.setMatchId(matchId);
+                        room.setMatchPublicId(publicId);
+                        log.info("Đã tạo bản ghi matches id={}, publicId={} cho phòng {}", matchId, publicId, room.getCode());
+                    }
+                } catch (Exception e) {
+                    log.error("Lỗi khi tạo bản ghi matches cho phòng {}: {}", code, e.getMessage(), e);
+                }
             }
 
             // Bắn (broadcast) sự kiện MATCH_START vào topic /topic/room/{code}
@@ -106,6 +170,12 @@ public class RoomController {
                 wsEvent.put("guestName", room.getGuestName());
                 wsEvent.put("sender", "SERVER");
                 wsEvent.put("ready", true);
+                if (room.getMatchId() != null) {
+                    wsEvent.put("matchId", room.getMatchId());
+                }
+                if (room.getMatchPublicId() != null) {
+                    wsEvent.put("matchPublicId", room.getMatchPublicId().toString());
+                }
                 if (room.getTimeControl() != null) {
                     wsEvent.put("timeControl", room.getTimeControl());
                 }
@@ -120,6 +190,12 @@ public class RoomController {
             response.put("hostName", room.getHostName());
             response.put("guestName", room.getGuestName());
             response.put("playerToken", room.getGuestPlayerToken());
+            if (room.getMatchId() != null) {
+                response.put("matchId", room.getMatchId());
+            }
+            if (room.getMatchPublicId() != null) {
+                response.put("matchPublicId", room.getMatchPublicId().toString());
+            }
             if (room.getTimeControl() != null) {
                 response.put("timeControl", room.getTimeControl());
             }
@@ -161,6 +237,12 @@ public class RoomController {
         response.put("guestName", room.getGuestName() != null ? room.getGuestName() : "");
         if (room.getTimeControl() != null) {
             response.put("timeControl", room.getTimeControl());
+        }
+        if (room.getMatchId() != null) {
+            response.put("matchId", room.getMatchId());
+        }
+        if (room.getMatchPublicId() != null) {
+            response.put("matchPublicId", room.getMatchPublicId().toString());
         }
 
         // Kiểm tra quyền hạn của người gọi (qua Principal hoặc userId/username) để trả về playerToken tương ứng

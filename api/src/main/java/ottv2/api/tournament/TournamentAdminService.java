@@ -147,6 +147,13 @@ public class TournamentAdminService {
                     "Registration can only be locked when in REGISTRATION_OPEN state");
         }
 
+        // Tự động chuyển toàn bộ đội REGISTERED sang CHECKED_IN
+        jdbc.update("""
+                UPDATE tournament_teams
+                SET status = 'CHECKED_IN', updated_at = now()
+                WHERE tournament_id = ? AND status IN ('REGISTERED', 'APPROVED')
+                """, tournamentId);
+
         recordAuditLog(tournamentId, operatorId, "REGISTRATION_LOCKED",
                 "Registration closed and moved to CHECK_IN by operator " + operatorId,
                 Map.of("status", "CHECK_IN"));
@@ -248,10 +255,15 @@ public class TournamentAdminService {
         }
 
         String currentStatus = statuses.getFirst();
-        // 2. Guard: Only DRAFT or CANCELLED allowed
-        if (!"DRAFT".equalsIgnoreCase(currentStatus) && !"CANCELLED".equalsIgnoreCase(currentStatus)) {
+        // 2. Guard: DRAFT, CANCELLED, COMPLETED, FINISHED, REGISTRATION_OPEN, REGISTRATION_CLOSED are allowed to be deleted
+        if (!"DRAFT".equalsIgnoreCase(currentStatus)
+                && !"CANCELLED".equalsIgnoreCase(currentStatus)
+                && !"COMPLETED".equalsIgnoreCase(currentStatus)
+                && !"FINISHED".equalsIgnoreCase(currentStatus)
+                && !"REGISTRATION_OPEN".equalsIgnoreCase(currentStatus)
+                && !"REGISTRATION_CLOSED".equalsIgnoreCase(currentStatus)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Chỉ có thể xóa giải đấu ở trạng thái Bản Nháp (DRAFT) hoặc Đã Hủy (CANCELLED). Không thể xóa giải đấu đang ở trạng thái: " + currentStatus);
+                    "Chỉ có thể xóa giải đấu ở trạng thái Bản Nháp (DRAFT), Đã Hủy (CANCELLED), Mở Đăng Ký hoặc Đã Kết Thúc (COMPLETED). Không thể xóa giải đấu đang ở trạng thái: " + currentStatus);
         }
 
         // 3. Clean up legacy bracket tables first (if any)

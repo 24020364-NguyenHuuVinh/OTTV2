@@ -261,8 +261,20 @@ export default function GameModes({
     try {
       setIsCreating(true);
       setErrorNotice('');
-      const data = await createRoomApi('Chủ Phòng');
-      onStartRoomGame?.({ roomCode: data.code, isHost: true, isQuickMatch: false, playerToken: data.playerToken });
+      const hostDisplayName = user?.displayName || user?.studentCode || 'Chủ Phòng';
+      const data = await createRoomApi(hostDisplayName, null, {
+        userId: user?.id,
+        username: user?.studentCode || user?.username || user?.email,
+        isRanked: true,
+      });
+      onStartRoomGame?.({
+        roomCode: data.code,
+        matchId: data.matchId,
+        matchPublicId: data.matchPublicId,
+        isHost: true,
+        isQuickMatch: false,
+        playerToken: data.playerToken,
+      });
     } catch (err) {
       console.error('Lỗi tạo phòng:', err);
       alert('Không thể tạo phòng lúc này. Vui lòng kiểm tra kết nối mạng!');
@@ -277,9 +289,15 @@ export default function GameModes({
     try {
       setIsJoining(true);
       setErrorNotice('');
-      const data = await joinRoomApi(trimmed, 'Khách');
+      const guestDisplayName = user?.displayName || user?.studentCode || 'Khách';
+      const data = await joinRoomApi(trimmed, guestDisplayName, {
+        userId: user?.id,
+        username: user?.studentCode || user?.username || user?.email,
+      });
       onStartRoomGame?.({
         roomCode: data.code,
+        matchId: data.matchId,
+        matchPublicId: data.matchPublicId,
         isHost: false,
         isQuickMatch: false,
         timeControl: data.timeControl,

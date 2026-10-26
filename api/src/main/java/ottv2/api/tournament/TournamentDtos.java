@@ -34,7 +34,7 @@ public final class TournamentDtos {
             return switch (this) {
                 case DRAFT -> next == REGISTRATION_OPEN || next == CANCELLED;
                 case REGISTRATION_OPEN -> next == REGISTRATION_CLOSED || next == CANCELLED;
-                case REGISTRATION_CLOSED -> next == CHECK_IN || next == REGISTRATION_OPEN || next == CANCELLED;
+                case REGISTRATION_CLOSED -> next == CHECK_IN || next == RUNNING || next == REGISTRATION_OPEN || next == CANCELLED;
                 case CHECK_IN -> next == RUNNING || next == REGISTRATION_CLOSED || next == CANCELLED;
                 case RUNNING -> next == COMPLETED || next == SUSPENDED || next == CANCELLED;
                 case SUSPENDED -> next == RUNNING || next == CANCELLED;

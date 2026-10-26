@@ -53,9 +53,10 @@ async function getCsrfHeaders() {
  * Create a new PvP room on backend
  * @param {string} hostName
  * @param {object|null} timeControl
- * @returns {Promise<{code: string, roomCode: string, isHost: boolean, status: string}>}
+ * @param {object} [extra]
+ * @returns {Promise<{code: string, roomCode: string, isHost: boolean, status: string, matchId?: number, matchPublicId?: string}>}
  */
-export async function createRoomApi(hostName = 'Chủ Phòng', timeControl = null) {
+export async function createRoomApi(hostName = 'Chủ Phòng', timeControl = null, extra = {}) {
   const csrf = await getCsrfHeaders();
   const response = await fetchWithTimeout('/api/rooms/create', {
     method: 'POST',
@@ -63,7 +64,7 @@ export async function createRoomApi(hostName = 'Chủ Phòng', timeControl = nul
       ...DEFAULT_HEADERS,
       ...csrf,
     },
-    body: JSON.stringify({ hostName, timeControl }),
+    body: JSON.stringify({ hostName, timeControl, ...(extra || {}) }),
   });
 
   if (!response.ok) {
@@ -75,6 +76,8 @@ export async function createRoomApi(hostName = 'Chủ Phòng', timeControl = nul
   return {
     code: data.code || data.roomCode,
     roomCode: data.code || data.roomCode,
+    matchId: data.matchId,
+    matchPublicId: data.matchPublicId,
     isHost: true,
     status: data.status || 'WAITING',
     timeControl: data.timeControl || timeControl,
@@ -86,9 +89,10 @@ export async function createRoomApi(hostName = 'Chủ Phòng', timeControl = nul
  * Join an existing PvP room by 6-digit code
  * @param {string} code
  * @param {string} guestName
- * @returns {Promise<{code: string, roomCode: string, isHost: boolean, status: string, timeControl: any, playerToken?: string}>}
+ * @param {object} [extra]
+ * @returns {Promise<{code: string, roomCode: string, isHost: boolean, status: string, timeControl: any, playerToken?: string, matchId?: number, matchPublicId?: string}>}
  */
-export async function joinRoomApi(code, guestName = 'Khách') {
+export async function joinRoomApi(code, guestName = 'Khách', extra = {}) {
   const cleanCode = (code || '').trim().toUpperCase();
   if (!cleanCode) {
     throw new Error('Vui lòng nhập mã phòng!');
@@ -101,7 +105,7 @@ export async function joinRoomApi(code, guestName = 'Khách') {
       ...DEFAULT_HEADERS,
       ...csrf,
     },
-    body: JSON.stringify({ guestName }),
+    body: JSON.stringify({ guestName, ...(extra || {}) }),
   });
 
   if (!response.ok) {
@@ -119,6 +123,8 @@ export async function joinRoomApi(code, guestName = 'Khách') {
   return {
     code: data.code || data.roomCode || cleanCode,
     roomCode: data.code || data.roomCode || cleanCode,
+    matchId: data.matchId,
+    matchPublicId: data.matchPublicId,
     isHost: false,
     status: data.status || 'PLAYING',
     hostName: data.hostName,

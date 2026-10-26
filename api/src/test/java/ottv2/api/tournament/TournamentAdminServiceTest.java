@@ -134,6 +134,23 @@ class TournamentAdminServiceTest {
         verify(broadcaster).publishBracketChanged(tourneyId);
     }
 
+
+    @Test
+    @DisplayName("deleteTournament successfully deletes tournament in COMPLETED status")
+    void testDeleteTournament_success_completed() {
+        long tourneyId = 25L;
+        Long operatorId = 1L;
+
+        when(jdbc.query(contains("SELECT status FROM tournaments WHERE id = ?"),
+                ArgumentMatchers.<RowMapper<String>>any(), eq(tourneyId)))
+                .thenReturn(java.util.List.of("COMPLETED"));
+        when(jdbc.update(anyString(), eq(tourneyId))).thenReturn(1);
+
+        assertDoesNotThrow(() -> adminService.deleteTournament(tourneyId, operatorId));
+
+        verify(jdbc).update(contains("DELETE FROM tournaments WHERE id = ?"), eq(tourneyId));
+        verify(broadcaster).publishBracketChanged(tourneyId);
+    }
     @Test
     @DisplayName("deleteTournament throws 409 CONFLICT if tournament is in RUNNING status")
     void testDeleteTournament_conflict_when_running() {

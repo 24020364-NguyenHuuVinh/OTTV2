@@ -3,9 +3,9 @@ import { filterActiveBots, getBotSource, saveBotSource } from '../utils/botStora
 import { api, buildApiUrl } from '../utils/api.js';
 
 const STARTER_CODE = {
-  PYTHON: `import json\nimport sys\n\ndef decide(state):\n    # Return {"pieceId": int, "to": [row, col]} for a legal move.\n    pieces = state.get("yourPieces", [])\n    if not pieces:\n        return None\n    piece = pieces[0]\n    r, c = piece["r"], piece["c"]\n    # Replace this example with your strategy and legal-move checks.\n    target = state.get("targets", [[0, 8]])[0]\n    nr = r + (1 if target[0] > r else -1 if target[0] < r else 0)\n    nc = c + (1 if target[1] > c else -1 if target[1] < c else 0)\n    return {"pieceId": piece["id"], "to": [nr, nc]}\n\nfor line in sys.stdin:\n    try:\n        print(json.dumps(decide(json.loads(line))), flush=True)\n    except Exception as error:\n        print(str(error), file=sys.stderr, flush=True)\n        print("null", flush=True)`,
-  CPP: `#include <iostream>\n#include <string>\n#include <nlohmann/json.hpp>\nusing json = nlohmann::json;\n\nint main() {\n    std::string line;\n    while (std::getline(std::cin, line)) {\n        try {\n            const json state = json::parse(line);\n            const auto pieces = state.value("yourPieces", json::array());\n            if (pieces.empty()) { std::cout << "null\\n" << std::flush; continue; }\n            const auto piece = pieces[0];\n            const int r = piece.at("r").get<int>();\n            const int c = piece.at("c").get<int>();\n            const auto targets = state.value("targets", json::array({json::array({0, 8})}));\n            const int tr = targets[0][0].get<int>(), tc = targets[0][1].get<int>();\n            const int nr = r + (tr > r ? 1 : tr < r ? -1 : 0);\n            const int nc = c + (tc > c ? 1 : tc < c ? -1 : 0);\n            json move = {{"pieceId", piece.at("id")}, {"to", {nr, nc}}};\n            std::cout << move.dump() << '\\n' << std::flush;\n        } catch (const std::exception& e) {\n            std::cerr << e.what() << std::endl;\n            std::cout << "null\\n" << std::flush;\n        }\n    }\n    return 0;\n}`,
-  JAVA: `import com.fasterxml.jackson.databind.JsonNode;\nimport com.fasterxml.jackson.databind.ObjectMapper;\nimport com.fasterxml.jackson.databind.node.ObjectNode;\nimport java.io.BufferedReader;\nimport java.io.InputStreamReader;\n\npublic final class Bot {\n    private static final ObjectMapper JSON = new ObjectMapper();\n    private static JsonNode decide(JsonNode state) {\n        JsonNode pieces = state.path("yourPieces");\n        if (!pieces.isArray() || pieces.isEmpty()) return JSON.getNodeFactory().nullNode();\n        JsonNode piece = pieces.get(0);\n        int r = piece.path("r").asInt(), c = piece.path("c").asInt();\n        JsonNode target = state.path("targets").path(0);\n        int tr = target.path(0).asInt(0), tc = target.path(1).asInt(8);\n        ObjectNode move = JSON.createObjectNode();\n        move.put("pieceId", piece.path("id").asInt());\n        move.putArray("to").add(r + Integer.compare(tr, r)).add(c + Integer.compare(tc, c));\n        return move;\n    }\n    public static void main(String[] args) throws Exception {\n        try (var in = new BufferedReader(new InputStreamReader(System.in))) {\n            String line;\n            while ((line = in.readLine()) != null) {\n                try { System.out.println(JSON.writeValueAsString(decide(JSON.readTree(line)))); }\n                catch (Exception e) { System.err.println(e.getMessage()); System.out.println("null"); }\n                System.out.flush();\n            }\n        }\n    }\n}`,
+  PYTHON: `import json\nimport sys\n\ndef decide(state):\n    # Return {"pieceId": int, "to": [row, col]} for a legal move.\n    pieces = state.get("yourPieces", [])\n    if not pieces:\n        return None\n    piece = pieces[0]\n    r, c = piece["r"], piece["c"]\n    # Di chuyển trực giao 1 ô (orthogonal 1-step): ưu tiên đi hàng trước, khi cùng hàng mới đi cột\n    target = state.get("targets", [[0, 8]])[0]\n    if target[0] != r:\n        nr, nc = r + (1 if target[0] > r else -1), c\n    elif target[1] != c:\n        nr, nc = r, c + (1 if target[1] > c else -1)\n    else:\n        nr, nc = r, c\n    return {"pieceId": piece["id"], "to": [nr, nc]}\n\nfor line in sys.stdin:\n    try:\n        print(json.dumps(decide(json.loads(line))), flush=True)\n    except Exception as error:\n        print(str(error), file=sys.stderr, flush=True)\n        print("null", flush=True)`,
+  CPP: `#include <iostream>\n#include <string>\n#include <nlohmann/json.hpp>\nusing json = nlohmann::json;\n\nint main() {\n    std::string line;\n    while (std::getline(std::cin, line)) {\n        try {\n            const json state = json::parse(line);\n            const auto pieces = state.value("yourPieces", json::array());\n            if (pieces.empty()) { std::cout << "null\\n" << std::flush; continue; }\n            const auto piece = pieces[0];\n            const int r = piece.at("r").get<int>();\n            const int c = piece.at("c").get<int>();\n            const auto targets = state.value("targets", json::array({json::array({0, 8})}));\n            const int tr = targets[0][0].get<int>(), tc = targets[0][1].get<int>();\n            // Di chuyển trực giao 1 ô (orthogonal 1-step): ưu tiên hàng trước, sau đó tới cột\n            int nr = r, nc = c;\n            if (tr != r) {\n                nr += (tr > r ? 1 : -1);\n            } else if (tc != c) {\n                nc += (tc > c ? 1 : -1);\n            }\n            json move = {{"pieceId", piece.at("id")}, {"to", {nr, nc}}};\n            std::cout << move.dump() << '\\n' << std::flush;\n        } catch (const std::exception& e) {\n            std::cerr << e.what() << std::endl;\n            std::cout << "null\\n" << std::flush;\n        }\n    }\n    return 0;\n}`,
+  JAVA: `import com.fasterxml.jackson.databind.JsonNode;\nimport com.fasterxml.jackson.databind.ObjectMapper;\nimport com.fasterxml.jackson.databind.node.ObjectNode;\nimport java.io.BufferedReader;\nimport java.io.InputStreamReader;\n\npublic final class Bot {\n    private static final ObjectMapper JSON = new ObjectMapper();\n    private static JsonNode decide(JsonNode state) {\n        JsonNode pieces = state.path("yourPieces");\n        if (!pieces.isArray() || pieces.isEmpty()) return JSON.getNodeFactory().nullNode();\n        JsonNode piece = pieces.get(0);\n        int r = piece.path("r").asInt(), c = piece.path("c").asInt();\n        JsonNode target = state.path("targets").path(0);\n        int tr = target.path(0).asInt(0), tc = target.path(1).asInt(8);\n        // Di chuyển trực giao 1 ô (orthogonal 1-step): ưu tiên hàng trước, sau đó tới cột\n        int nr = (tr != r) ? r + Integer.compare(tr, r) : r;\n        int nc = (tr == r && tc != c) ? c + Integer.compare(tc, c) : c;\n        ObjectNode move = JSON.createObjectNode();\n        move.put("pieceId", piece.path("id").asInt());\n        move.putArray("to").add(nr).add(nc);\n        return move;\n    }\n    public static void main(String[] args) throws Exception {\n        try (var in = new BufferedReader(new InputStreamReader(System.in))) {\n            String line;\n            while ((line = in.readLine()) != null) {\n                try { System.out.println(JSON.writeValueAsString(decide(JSON.readTree(line)))); }\n                catch (Exception e) { System.err.println(e.getMessage()); System.out.println("null"); }\n                System.out.flush();\n            }\n        }\n    }\n}`,
 };
 
 function syntaxWarnings(language, source) {
@@ -89,15 +89,18 @@ public final class Bot {
     private static final ObjectMapper JSON = new ObjectMapper();
 
     static JsonNode decide(JsonNode state) {
-        JsonNode piece = state.path("yourPieces").path(0);
-        if (piece.isMissingNode()) return null;
-        
+        JsonNode pieces = state.path("yourPieces");
+        if (!pieces.isArray() || pieces.isEmpty()) return null;
+        JsonNode piece = pieces.get(0);
         int r = piece.path("r").asInt();
         int c = piece.path("c").asInt();
-        
+        JsonNode target = state.path("targets").path(0);
+        int tr = target.path(0).asInt(0), tc = target.path(1).asInt(8);
+        int nr = (tr != r) ? r + Integer.compare(tr, r) : r;
+        int nc = (tr == r && tc != c) ? c + Integer.compare(tc, c) : c;
         ObjectNode move = JSON.createObjectNode();
         move.put("pieceId", piece.path("id").asInt());
-        move.putArray("to").add(r > 0 ? r - 1 : r + 1).add(c);
+        move.putArray("to").add(nr).add(nc);
         return move;
     }
 
@@ -122,20 +125,29 @@ int main() {
         if (line.empty()) continue;
         try {
             json state = json::parse(line);
-            // Ví dụ: Đọc thời gian còn lại
-            // int timeLeftMs = state.value("timeLeftMs", 180000);
-            
             auto myPieces = state["yourPieces"];
             if (myPieces.empty()) {
-                std::cout << "{\"pieceId\": -1, \"to\": [0,0]}\n";
+                std::cout << "null\\n";
             } else {
                 int pId = myPieces[0]["id"];
                 int r = myPieces[0]["r"];
                 int c = myPieces[0]["c"];
-                std::cout << "{\"pieceId\": " << pId << ", \"to\": [" << r << "," << c+1 << "]}\n";
+                int tr = 0, tc = 8;
+                if (state.contains("targets") && state["targets"].is_array() && !state["targets"].empty()) {
+                    tr = state["targets"][0][0];
+                    tc = state["targets"][0][1];
+                }
+                int nr = r, nc = c;
+                if (tr != r) {
+                    nr += (tr > r ? 1 : -1);
+                } else if (tc != c) {
+                    nc += (tc > c ? 1 : -1);
+                }
+                json move = {{"pieceId", pId}, {"to", {nr, nc}}};
+                std::cout << move.dump() << "\\n";
             }
         } catch (...) {
-            std::cout << "{\"pieceId\": -1, \"to\": [0,0]}\n";
+            std::cout << "null\\n";
         }
         std::cout << std::flush;
     }

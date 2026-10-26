@@ -367,20 +367,17 @@ export default function TournamentAdminModal({
                 </p>
               </div>
 
-              {/* Check-In Stage Guidelines & Alert for Admin */}
-              {(tournament?.status === 'CHECK_IN' || tournament?.status === 'REGISTRATION_CLOSED') && (
-                <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl space-y-2 animate-fadeIn">
+              {/* Ready Teams Strip */}
+              {(tournament?.status === 'CHECK_IN' || tournament?.status === 'REGISTRATION_CLOSED' || tournament?.status === 'REGISTRATION_OPEN') && (
+                <div className="bg-zinc-800/60 border border-zinc-700/60 p-4 rounded-2xl space-y-2 animate-fadeIn">
                   <div className="flex items-center gap-2">
-                    <span className="text-amber-400 text-sm">⏱️</span>
-                    <h5 className="text-xs font-bold text-amber-300">
-                      Giai đoạn Điểm Danh (Check-in) trước giờ thi đấu
+                    <span className="text-emerald-400 text-sm">👥</span>
+                    <h5 className="text-xs font-bold text-white">
+                      Danh Sách Đội Sẵn Sàng Thi Đấu
                     </h5>
                   </div>
-                  <p className="text-xs text-amber-200/90 leading-relaxed">
-                    <em>Lưu ý: Chỉ những đội đã Điểm Danh (Checked-in) mới được đưa vào lịch thi đấu.</em>
-                  </p>
-                  <p className="text-[11px] text-zinc-400">
-                    Số đội đã điểm danh: <strong className="text-emerald-400 font-mono">{teams.filter((t) => t.status === 'CHECKED_IN').length}</strong> / <span className="font-mono">{teams.length}</span> (Cần tối thiểu 2 đội checked-in để bắt đầu giải)
+                  <p className="text-xs text-zinc-300 leading-relaxed">
+                    Số đội đã đăng ký: <strong className="text-emerald-400 font-mono">{teams.filter((t) => t.status !== 'DISQUALIFIED' && t.status !== 'ELIMINATED').length}</strong> / <span className="font-mono">{teams.length}</span> (Cần tối thiểu 2 đội để bắt đầu giải)
                   </p>
                 </div>
               )}
@@ -418,13 +415,13 @@ export default function TournamentAdminModal({
                       <span>Khóa Đăng Ký</span>
                     </p>
                     <p className="text-xs text-zinc-400 mt-1">
-                      Đóng cổng đăng ký để chuyển sang giai đoạn Điểm Danh (Check-in) trước giờ đấu.
+                      Đóng cổng đăng ký để chốt danh sách đội tham gia.
                     </p>
                   </button>
                 )}
 
                 {/* Start Tournament */}
-                {(tournament?.status === 'REGISTRATION_CLOSED' || tournament?.status === 'CHECK_IN') && (
+                {(tournament?.status === 'REGISTRATION_OPEN' || tournament?.status === 'REGISTRATION_CLOSED' || tournament?.status === 'CHECK_IN') && (
                   <button
                     type="button"
                     disabled={isSubmitting}
@@ -436,10 +433,7 @@ export default function TournamentAdminModal({
                       <span>Bắt Đầu Giải Đấu</span>
                     </p>
                     <p className="text-xs text-zinc-300 mt-1">
-                      Hệ thống tự động xếp hạt giống, sinh nhánh đấu/lịch đấu và kích hoạt trận đầu tiên.
-                    </p>
-                    <p className="text-[11px] text-amber-300/90 mt-1.5 italic">
-                      Lưu ý: Chỉ những đội đã Điểm Danh (Checked-in) mới được đưa vào lịch thi đấu.
+                      Hệ thống tự động xếp hạt giống, sinh nhánh đấu/lịch đấu và kích hoạt trận đầu tiên cho các đội tham gia.
                     </p>
                   </button>
                 )}
@@ -503,8 +497,8 @@ export default function TournamentAdminModal({
                   </button>
                 )}
 
-                {/* Delete Tournament (Only DRAFT or CANCELLED) */}
-                {(tournament?.status === 'DRAFT' || tournament?.status === 'CANCELLED') && (
+                {/* Delete Tournament (Admin can delete finished, draft, cancelled, or open tournaments) */}
+                {tournament?.status !== 'RUNNING' && (
                   <button
                     type="button"
                     disabled={isSubmitting}
@@ -513,15 +507,15 @@ export default function TournamentAdminModal({
                       setShowDeleteConfirm(true);
                     }}
                     className={`p-4 rounded-2xl bg-rose-950/30 hover:bg-rose-900/50 text-left border border-rose-500/60 transition-all group shadow-lg shadow-rose-950/30 ${
-                      tournament?.status === 'CANCELLED' ? 'sm:col-span-2' : ''
+                      tournament?.status === 'CANCELLED' || tournament?.status === 'COMPLETED' ? 'sm:col-span-2' : ''
                     }`}
                   >
                     <p className="font-bold text-sm text-rose-400 flex items-center gap-1.5">
                       <span>🗑️</span>
-                      <span>Xóa Vĩnh Viễn</span>
+                      <span>Xóa Vĩnh Viễn Giải Đấu</span>
                     </p>
                     <p className="text-xs text-zinc-300 mt-1">
-                      Xóa hoàn toàn dữ liệu giải đấu khỏi hệ thống. Thao tác này không thể hoàn tác.
+                      Xóa hoàn toàn dữ liệu giải đấu (kể cả giải đã kết thúc) khỏi hệ thống. Thao tác này không thể hoàn tác.
                     </p>
                   </button>
                 )}

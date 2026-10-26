@@ -58,6 +58,11 @@ public class TournamentAdminController {
     public TournamentResponse startTournament(@AuthenticationPrincipal ApiPrincipal principal,
                                               @PathVariable long tournamentId) {
         checkAdminOrOrganizer(principal, tournamentId);
+        List<String> statuses = jdbc.query("SELECT status FROM tournaments WHERE id = ?",
+                (rs, row) -> rs.getString("status"), tournamentId);
+        if (!statuses.isEmpty() && "REGISTRATION_OPEN".equalsIgnoreCase(statuses.getFirst())) {
+            adminService.lockRegistration(tournamentId, principal.id());
+        }
         return adminService.startTournament(tournamentId, principal.id());
     }
 

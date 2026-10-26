@@ -731,9 +731,9 @@ export default function TournamentDetailModal({
 
                               {/* Status Badge */}
                               <div>
-                                {t.status === 'CHECKED_IN' ? (
+                                {t.status === 'CHECKED_IN' || t.status === 'REGISTERED' || t.status === 'APPROVED' ? (
                                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                                    ✓ Đã Điểm Danh
+                                    ✓ Sẵn Sàng Thi Đấu
                                   </span>
                                 ) : t.status === 'DISQUALIFIED' ? (
                                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40">
@@ -774,18 +774,6 @@ export default function TournamentDetailModal({
                                   Phiên bản: <strong className="text-zinc-400">v{t.versionNo || 1}</strong> · SHA: <span className="text-emerald-400">{t.sourceSha256?.substring(0, 8) || 'N/A'}</span>
                                 </p>
                               </div>
-
-                              {/* Check-in button if applicable */}
-                              {canCheckIn && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleCheckIn(t.id)}
-                                  disabled={checkingInTeamId === t.id}
-                                  className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs shadow disabled:opacity-50 animate-pulse"
-                                >
-                                  {checkingInTeamId === t.id ? 'Đang gửi...' : 'Điểm Danh Ngay'}
-                                </button>
-                              )}
                             </div>
                           </div>
                         );

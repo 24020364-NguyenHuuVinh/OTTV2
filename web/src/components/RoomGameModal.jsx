@@ -150,6 +150,12 @@ export default function RoomGameModal({
   const [moveHistory, setMoveHistory] = useState([]);
   const [timeLeftA, setTimeLeftA] = useState(baseMs);
   const [timeLeftB, setTimeLeftB] = useState(baseMs);
+  const timeLeftARef = useRef(timeLeftA);
+  timeLeftARef.current = timeLeftA;
+  const timeLeftBRef = useRef(timeLeftB);
+  timeLeftBRef.current = timeLeftB;
+  const currentTurnRef = useRef(currentTurn);
+  currentTurnRef.current = currentTurn;
   const [winner, setWinner] = useState(null);
   const [winReason, setWinReason] = useState(null);
   const [showWinModal, setShowWinModal] = useState(false);
@@ -164,6 +170,7 @@ export default function RoomGameModal({
   const [myReady, setMyReady] = useState(true);
   const recordedTurnsRef = useRef([]);
   const matchIdRef = useRef(matchId || `pvp-${roomCode || 'match'}-${Date.now()}`);
+  const matchPublicIdRef = useRef(null);
   const notifiedRef = useRef(false);
 
   useEffect(() => {
@@ -367,6 +374,7 @@ export default function RoomGameModal({
       onMatchFinished({
         roomCode,
         matchId: matchId || matchIdRef.current || replay.matchId,
+        matchPublicId: matchPublicIdRef.current,
         replayId: matchId || matchIdRef.current || replay.matchId,
         opponentType: isSparring ? 'SPARRING' : opponentType,
         opponentName: resolvedOpponentName,
@@ -489,6 +497,12 @@ export default function RoomGameModal({
                   setRoomState('PLAYING');
                   setIsSearching(false);
                   setOpponentReady(true);
+                  if (data.matchId) {
+                    matchIdRef.current = data.matchId;
+                  }
+                  if (data.matchPublicId) {
+                    matchPublicIdRef.current = data.matchPublicId;
+                  }
                   if (data.senderName || data.username || data.displayName) {
                     setRemoteOpponentName(data.senderName || data.displayName || data.username);
                   }
@@ -608,8 +622,24 @@ export default function RoomGameModal({
                 break;
 
               case 'CLOCK_SYNC':
-                if (typeof data.timeLeftA === 'number') setTimeLeftA(data.timeLeftA);
-                if (typeof data.timeLeftB === 'number') setTimeLeftB(data.timeLeftB);
+                if (typeof data.timeLeftA === 'number') {
+                  setTimeLeftA((prev) => {
+                    // Chống rubberbanding: trong lượt của A không chấp nhận thời gian nhảy vọt tăng mà không có nước đi
+                    if (currentTurnRef.current === 'A' && data.timeLeftA > prev + 500) {
+                      return prev;
+                    }
+                    return data.timeLeftA;
+                  });
+                }
+                if (typeof data.timeLeftB === 'number') {
+                  setTimeLeftB((prev) => {
+                    // Chống rubberbanding: trong lượt của B không chấp nhận thời gian nhảy vọt tăng mà không có nước đi
+                    if (currentTurnRef.current === 'B' && data.timeLeftB > prev + 500) {
+                      return prev;
+                    }
+                    return data.timeLeftB;
+                  });
+                }
                 if (data.currentTurn) setCurrentTurn(data.currentTurn);
                 break;
 
@@ -849,37 +879,60 @@ export default function RoomGameModal({
     return () => clearTimeout(botTimer);
   }, [currentTurn, opponentType, winner, roomState, pieces, isSparring, sparringLevel]);
 
-  // Fischer Chess Clock Timer: Runs every 100ms for active player / bot
+  // Fischer Chess Clock Timer: Runs every 100ms for active player / bot using wall-clock delta
+  // để tránh lệch giờ do trình duyệt bóp nghẹt timer khi chuyển tab (tab throttling)
   useEffect(() => {
     if (roomState !== 'PLAYING' || winner) return undefined;
 
-    const timer = setInterval(() => {
+    let lastTick = Date.now();
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const delta = now - lastTick;
+      lastTick = now;
+      if (delta <= 0) return;
+
       if (currentTurn === 'A') {
         setTimeLeftA((prev) => {
-          if (prev <= 100) {
+          if (prev <= delta) {
             if (!isSpectator) {
               handleFinishGame('B', 'TIMEOUT');
               playDefeatSound();
             }
             return 0;
           }
-          return prev - 100;
+          return prev - delta;
         });
       } else {
         setTimeLeftB((prev) => {
-          if (prev <= 100) {
+          if (prev <= delta) {
             if (!isSpectator) {
               handleFinishGame('A', 'TIMEOUT');
               playVictorySound();
             }
             return 0;
           }
-          return prev - 100;
+          return prev - delta;
         });
       }
-    }, 100);
+    };
 
-    return () => clearInterval(timer);
+    const timer = setInterval(updateTimer, 100);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        updateTimer();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleVisibility);
+
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleVisibility);
+    };
   }, [currentTurn, roomState, winner, isSpectator]);
 
   // Handler to start match immediately with fallback Bot
@@ -1051,6 +1104,7 @@ export default function RoomGameModal({
   };
 
   // Periodic Fischer Clock sync over WebSocket every 5s for the active player
+  // Sử dụng timeLeftARef/timeLeftBRef để tránh reset timer mỗi 100ms khi render
   useEffect(() => {
     if (roomState !== 'PLAYING' || winner || isSparring || opponentType !== 'HUMAN') return undefined;
     if (currentTurn !== mySide) return undefined;
@@ -1066,8 +1120,8 @@ export default function RoomGameModal({
               roomCode,
               sender: mySide,
               playerToken: playerTokenRef.current,
-              timeLeftA,
-              timeLeftB,
+              timeLeftA: timeLeftARef.current,
+              timeLeftB: timeLeftBRef.current,
               currentTurn,
             }),
           });
@@ -1078,7 +1132,7 @@ export default function RoomGameModal({
     }, 5000);
 
     return () => clearInterval(syncTimer);
-  }, [roomState, winner, isSparring, opponentType, currentTurn, mySide, timeLeftA, timeLeftB, roomCode]);
+  }, [roomState, winner, isSparring, opponentType, currentTurn, mySide, roomCode]);
 
   const handleSearchNewMatch = () => {
     setPieces(INITIAL_PIECES.map((p) => ({ ...p, alive: true, kills: 0 })));
