@@ -388,8 +388,8 @@ public class MatchmakingQueueService {
 
         List<PvpQueueEntry> candidates = new ArrayList<>();
         for (PvpQueueEntry entry : pvpQueue.values()) {
-            // Loại bỏ người chơi ma (mất kết nối quá 10s)
-            if (Duration.between(entry.lastSeenAt(), now).toSeconds() > 10) {
+            // Loại bỏ người chơi ma (mất kết nối quá 20s)
+            if (Duration.between(entry.lastSeenAt(), now).toSeconds() > 20) {
                 pvpQueue.remove(entry.userId());
                 continue;
             }
@@ -851,7 +851,7 @@ public class MatchmakingQueueService {
 
     /**
      * Dọn dẹp các "bóng ma" trong hàng đợi PvP:
-     * 1. Quá 10 giây không có tín hiệu heartbeat (mất mạng, đóng tab, crash).
+     * 1. Quá 20 giây không có tín hiệu heartbeat (mất mạng, đóng tab, crash).
      * 2. Thời gian chờ vượt quá TTL 180 giây (3 phút timeout).
      */
     public void cleanupStalePvpEntries() {
@@ -862,7 +862,7 @@ public class MatchmakingQueueService {
             long lastSeenAgeSeconds = Duration.between(pvp.lastSeenAt(), now).toSeconds();
             long waitAgeSeconds = Duration.between(pvp.enqueuedAt(), now).toSeconds();
 
-            if (lastSeenAgeSeconds > 10) {
+            if (lastSeenAgeSeconds > 20) {
                 if (pvpQueue.remove(entry.getKey(), pvp)) {
                     log.info("Kick 'bóng ma' PvP khỏi hàng đợi: user={} (ID={}), mất tín hiệu heartbeat {}s",
                             pvp.username(), pvp.userId(), lastSeenAgeSeconds);

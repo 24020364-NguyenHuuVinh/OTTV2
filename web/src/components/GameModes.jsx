@@ -125,7 +125,7 @@ export default function GameModes({
       }
     };
 
-    const intervalId = window.setInterval(sendHeartbeat, 3000);
+    const intervalId = window.setInterval(sendHeartbeat, 5000);
 
     const handleBeforeUnload = () => {
       try {

@@ -185,7 +185,7 @@ export default function SignIn({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="nhap.email@sinhvien.edu.vn"
+              placeholder="email@vnu.edu.vn"
               className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500"
             />
           </div>

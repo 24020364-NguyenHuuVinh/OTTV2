@@ -125,7 +125,7 @@ export default function MatchmakingModal({
       }
     };
 
-    const intervalId = window.setInterval(sendHeartbeat, 3000);
+    const intervalId = window.setInterval(sendHeartbeat, 5000);
 
     // Bắt sự kiện thoát tab/mất kết nối đột ngột để giải phóng hàng đợi tức thì
     const handleBeforeUnload = () => {

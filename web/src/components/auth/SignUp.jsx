@@ -142,7 +142,7 @@ export default function SignUp({ onRegistered, onShowLogin }) {
               value={studentCode}
               onChange={(e) => setStudentCode(e.target.value)}
               required
-              placeholder="VD: B22DCCN001"
+              placeholder="VD: 24020001"
               className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500"
             />
           </div>
@@ -165,7 +165,7 @@ export default function SignUp({ onRegistered, onShowLogin }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="email@ptit.edu.vn"
+              placeholder="email@vnu.edu.vn"
               className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500"
             />
           </div>

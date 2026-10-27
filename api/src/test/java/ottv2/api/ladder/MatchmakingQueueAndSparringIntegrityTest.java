@@ -340,7 +340,7 @@ class MatchmakingQueueAndSparringIntegrityTest {
     // 6. Chống "Bóng ma" trong hàng đợi PvP (Heartbeat & Queue TTL 180s)
     // =========================================================================
     @Test
-    @DisplayName("Heartbeat & Queue TTL: Tự động loại bỏ bóng ma mất mạng (>10s) và timeout hàng đợi (>=180s)")
+    @DisplayName("Heartbeat & Queue TTL: Tự động loại bỏ bóng ma mất mạng (>20s) và timeout hàng đợi (>=180s)")
     void testGhostEvictionAndQueueTtl() throws Exception {
         RoomService roomService = new RoomService();
         MatchmakingQueueService queueService = new MatchmakingQueueService(
@@ -370,7 +370,7 @@ class MatchmakingQueueAndSparringIntegrityTest {
         boolean hbResult = queueService.heartbeat(203L);
         assertTrue(hbResult, "Heartbeat cho user đang ở trong hàng đợi phải trả về true");
 
-        // 3. Giả lập: User 201 bị mất mạng (lastSeenAt cách đây 15 giây > 10s)
+        // 3. Giả lập: User 201 bị mất mạng (lastSeenAt cách đây 25 giây > 20s)
         java.lang.reflect.Field pvpQueueField = MatchmakingQueueService.class.getDeclaredField("pvpQueue");
         pvpQueueField.setAccessible(true);
         @SuppressWarnings("unchecked")
@@ -379,7 +379,7 @@ class MatchmakingQueueAndSparringIntegrityTest {
         pvpQueue.computeIfPresent(201L, (id, e) -> new MatchmakingQueueService.PvpQueueEntry(
                 e.userId(), e.username(), e.studentCode(), e.email(), e.displayName(),
                 e.elo(), e.avatar(), e.enqueuedAt(), e.queueMode(), e.timeControlKey(),
-                Instant.now().minusSeconds(15)
+                Instant.now().minusSeconds(25)
         ));
 
         // 4. Giả lập: User 202 bị timeout chờ quá lâu (enqueuedAt cách đây 200 giây >= 180s)
@@ -394,7 +394,7 @@ class MatchmakingQueueAndSparringIntegrityTest {
 
         // 6. Kiểm tra kết quả:
         // - Ghost user 201 phải bị xóa khỏi RAM
-        assertFalse((Boolean) queueService.getStatus(201L).get("inPvpQueue"), "User mất mạng >10s phải bị xóa khỏi pvpQueue");
+        assertFalse((Boolean) queueService.getStatus(201L).get("inPvpQueue"), "User mất mạng >20s phải bị xóa khỏi pvpQueue");
         // - Timeout user 202 phải bị xóa khỏi RAM
         assertFalse((Boolean) queueService.getStatus(202L).get("inPvpQueue"), "User chờ quá 180s phải bị xóa do timeout");
         // - Active user 203 vẫn phải còn trong hàng đợi

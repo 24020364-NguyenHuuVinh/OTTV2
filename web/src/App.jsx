@@ -38,9 +38,9 @@ function getMatchCacheKey(u) {
 }
 
 const DEFAULT_OFFLINE_USER = {
-  studentCode: 'B22DCCN000',
+  studentCode: '24020000',
   displayName: 'Kỹ Sư Ngoại Tuyến (Offline)',
-  email: 'offline.engineer@ptit.edu.vn',
+  email: 'offline.engineer@vnu.edu.vn',
   role: 'STUDENT',
   pvpElo: 1200,
   botElo: 1200,

@@ -31,3 +31,17 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Logs & Temp files ###
+*.log
+*.log.*
+api.log
+compile_worker.log
+match_worker.log
+
+### Node / Web ###
+web/node_modules/
+node_modules/
+web/dist/
+.env.local
+.env.*.local
