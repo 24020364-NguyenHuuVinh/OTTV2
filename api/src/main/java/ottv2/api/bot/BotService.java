@@ -221,6 +221,18 @@ public class BotService {
                 draws = ratingStats.getFirst()[4];
             }
 
+            try {
+                Integer actualGames = jdbc.queryForObject("""
+                        SELECT COUNT(DISTINCT self.match_id)
+                        FROM match_participants self
+                        JOIN matches m ON m.id = self.match_id AND m.created_month = self.created_month
+                        WHERE self.bot_id = ? AND m.status = 'FINISHED' AND m.match_type = 'LADDER'
+                        """, Integer.class, id);
+                if (actualGames != null && actualGames > games) {
+                    games = actualGames;
+                }
+            } catch (Exception ignored) {}
+
             int distinctOpponents = 0;
             try {
                 Integer oppCount = jdbc.queryForObject("""
@@ -231,7 +243,7 @@ public class BotService {
                                     WHERE self.bot_id = ?), 0),
                             (SELECT COUNT(DISTINCT CASE WHEN ls.bot_a_id = ? THEN ls.bot_b_id ELSE ls.bot_a_id END)
                              FROM ladder_series ls
-                             WHERE (ls.bot_a_id = ? OR ls.bot_b_id = ?) AND ls.finished_at IS NOT NULL),
+                             WHERE (ls.bot_a_id = ? OR ls.bot_b_id = ?)),
                             0
                         )
                         """, Integer.class, id, id, id, id);

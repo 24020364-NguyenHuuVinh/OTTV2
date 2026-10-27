@@ -18,7 +18,16 @@ const hasReplayContent = (data) => {
   return turns.length > 0 || (Array.isArray(data.initialPieces) && data.initialPieces.length > 0 && Boolean(data.result));
 };
 
-export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
+export default function ReplayModal({ match, replay, user, onClose, onDownloadLog }) {
+  const currentUser = useMemo(() => {
+    if (user && (user.username || user.email || user.displayName)) return user;
+    try {
+      const uStr = localStorage.getItem('ottv2_last_active_user');
+      if (uStr) return JSON.parse(uStr);
+    } catch {}
+    return null;
+  }, [user]);
+
   // 1. Resolve replay in priority order:
   // Prop replay (in-memory) -> match.replayData -> async API fetch from Backend
   // Tuyệt đối không fallback về localStorage cache để tránh lệch pha giữa các trình duyệt
@@ -278,11 +287,20 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
 
   // 1. Phân định kết quả và lý do kết thúc (Khai báo trên đầu khối để tránh TDZ / ReferenceError)
   const winnerCode = useMemo(() => {
+    // 1. Ưu tiên cao nhất: Nếu match đã ghi nhận rõ kết quả người dùng (match.userWon) và phe (match.userSide / side)
+    const knownUserSide = match?.userSide || match?.side;
+    if (match?.userWon !== undefined && knownUserSide) {
+      if (match.userWon === true) return knownUserSide;
+      if (match.userWon === false) return knownUserSide === 'A' ? 'B' : 'A';
+    }
+
     if (activeReplay?.result?.winner) {
       const w = String(activeReplay.result.winner).toUpperCase();
       if (w === 'A' || w === 'B' || w === 'DRAW') return w;
-      if (w === 'USER') return 'A';
-      if (w === 'OPPONENT') return 'B';
+      const uSide = knownUserSide || 'A';
+      const oSide = uSide === 'A' ? 'B' : 'A';
+      if (w === 'USER') return uSide;
+      if (w === 'OPPONENT') return oSide;
     }
     if (matchDetailsData?.winnerSide) {
       const w = String(matchDetailsData.winnerSide).toUpperCase();
@@ -291,15 +309,17 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
     if (match?.winner) {
       const w = String(match.winner).toUpperCase();
       if (w === 'A' || w === 'B' || w === 'DRAW') return w;
-      if (w === 'USER') return 'A';
-      if (w === 'OPPONENT') return 'B';
+      const uSide = knownUserSide || 'A';
+      const oSide = uSide === 'A' ? 'B' : 'A';
+      if (w === 'USER') return uSide;
+      if (w === 'OPPONENT') return oSide;
     }
     if (match?.winnerSide) {
       const w = String(match.winnerSide).toUpperCase();
       if (w === 'A' || w === 'B' || w === 'DRAW') return w;
     }
-    if (match?.userWon === true) return (match?.userSide === 'B' || match?.side === 'B') ? 'B' : 'A';
-    if (match?.userWon === false) return (match?.userSide === 'B' || match?.side === 'B') ? 'A' : 'B';
+    if (match?.userWon === true) return (knownUserSide === 'B') ? 'B' : 'A';
+    if (match?.userWon === false) return (knownUserSide === 'B') ? 'A' : 'B';
     if (match?.winnerId) {
       if (match.sideA?.id && match.winnerId === match.sideA.id) return 'A';
       if (match.sideB?.id && match.winnerId === match.sideB.id) return 'B';
@@ -341,8 +361,16 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
 
   const replayMode = String(match?.mode || match?.matchType || activeReplay?.mode || activeReplay?.matchType || '').toUpperCase();
   const isBotReplay = replayMode === 'BOT' || replayMode === 'LADDER';
-  const sideAElo = match?.sideA?.eloBefore ?? match?.sideA?.elo ?? (isBotReplay ? null : activeReplay?.sideA?.eloBefore ?? activeReplay?.sideA?.elo ?? match?.userElo ?? 1200);
-  const sideBElo = match?.sideB?.eloBefore ?? match?.sideB?.elo ?? (isBotReplay ? null : activeReplay?.sideB?.eloBefore ?? activeReplay?.sideB?.elo ?? match?.opponentElo ?? 1200);
+
+  // Xác định ELO người dùng và đối thủ một cách an toàn
+  const userEloFromMatch = match?.userElo ?? match?.oldElo ?? (match?.newElo != null && match?.change != null ? (match.newElo - match.change) : match?.newElo);
+  const oppEloFromMatch = match?.opponentElo;
+  const isUserSideB = match?.userSide === 'B' || match?.side === 'B';
+  const defaultEloA = isUserSideB ? oppEloFromMatch : userEloFromMatch;
+  const defaultEloB = isUserSideB ? userEloFromMatch : oppEloFromMatch;
+
+  const sideAElo = match?.sideA?.eloBefore ?? match?.sideA?.elo ?? (isBotReplay ? null : activeReplay?.sideA?.eloBefore ?? activeReplay?.sideA?.elo ?? defaultEloA ?? 1200);
+  const sideBElo = match?.sideB?.eloBefore ?? match?.sideB?.elo ?? (isBotReplay ? null : activeReplay?.sideB?.eloBefore ?? activeReplay?.sideB?.elo ?? defaultEloB ?? 1200);
 
   const isTournament =
     match?.matchType === 'TOURNAMENT' ||
@@ -480,15 +508,28 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
     }
 
     const isSideA = viewerSide === 'A';
-    const oldElo = isSideA ? sideAElo : sideBElo;
-    const delta = isSideA ? deltaEloA : deltaEloB;
-    const newElo = oldElo + delta;
-    const opponentName = isSideA ? sideBName : sideAName;
-    const isWin = winnerCode === viewerSide;
+
+    // Nếu match đã cung cấp trực tiếp newElo và change của người xem (từ Profile / History)
+    const hasDirectMatchRating = match?.newElo != null && (match?.change != null || match?.eloChange != null);
+    let oldElo, delta, newElo;
+    if (hasDirectMatchRating) {
+      delta = Number(match.change ?? match.eloChange);
+      newElo = Number(match.newElo);
+      oldElo = match.oldElo != null ? Number(match.oldElo) : (match.userElo != null ? Number(match.userElo) : (newElo - delta));
+    } else {
+      oldElo = isSideA ? sideAElo : sideBElo;
+      delta = isSideA ? deltaEloA : deltaEloB;
+      newElo = oldElo + delta;
+    }
+
+    const opponentName = match?.opponent || (isSideA ? sideBName : sideAName);
+    const viewerName = match?.userName || (isSideA ? sideAName : sideBName) || currentUser?.displayName || currentUser?.username || 'Bạn';
+    const isWin = match?.userWon !== undefined ? Boolean(match.userWon) : (winnerCode === viewerSide);
     const isDraw = winnerCode === 'DRAW';
 
     return {
       viewerSide,
+      viewerName,
       oldElo,
       delta,
       newElo,
@@ -496,7 +537,7 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
       isWin,
       isDraw,
     };
-  }, [isRankedPvP, activeReplay, match, sideAElo, sideBElo, deltaEloA, deltaEloB, sideAName, sideBName, winnerCode]);
+  }, [isRankedPvP, activeReplay, match, sideAElo, sideBElo, deltaEloA, deltaEloB, sideAName, sideBName, winnerCode, currentUser]);
 
   const botViewerMatchData = useMemo(() => {
     if (!isRankedBot) return null;
@@ -592,8 +633,8 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
   }, [isRankedBot, match, activeReplay, matchDetailsData, winnerCode, sideAName, sideBName]);
 
   const activeUserViewerSide = botViewerMatchData?.viewerSide || viewerMatchData?.viewerSide || match?.userSide || null;
-  const isUserWin = Boolean(activeUserViewerSide && winnerCode === activeUserViewerSide);
-  const isUserLoss = Boolean(activeUserViewerSide && winnerCode !== 'DRAW' && winnerCode !== activeUserViewerSide);
+  const isUserWin = match?.userWon !== undefined ? Boolean(match.userWon) : Boolean(activeUserViewerSide && winnerCode === activeUserViewerSide);
+  const isUserLoss = match?.userWon !== undefined ? (!match.userWon && winnerCode !== 'DRAW') : Boolean(activeUserViewerSide && winnerCode !== 'DRAW' && winnerCode !== activeUserViewerSide);
   const isMatchDraw = winnerCode === 'DRAW';
 
   const getReasonLabel = (reason) => {
@@ -1488,7 +1529,8 @@ export default function ReplayModal({ match, replay, onClose, onDownloadLog }) {
                             </span>
                           </div>
                           <p className="text-[11px] text-zinc-400 font-medium">
-                            Đối đầu với: <strong className="text-zinc-200">{viewerMatchData.opponentName}</strong>
+                            Tài khoản: <strong className="text-zinc-200">{viewerMatchData.viewerName}</strong>
+                            {' · '}Đối đầu với: <strong className="text-zinc-200">{viewerMatchData.opponentName}</strong>
                           </p>
                         </div>
 

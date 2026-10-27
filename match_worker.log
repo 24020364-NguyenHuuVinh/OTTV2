@@ -30,3 +30,5 @@ Progress (1): 1.2 kB                    Downloaded from central: https://repo.
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- exec:3.6.4:java (default-cli) @ worker ---
+Interrupted
+Interrupted

@@ -121,6 +121,7 @@ export default function Layout({
           <ReplayModal
             match={selectedMatch}
             replay={replayData}
+            user={user}
             onClose={() => setSelectedMatch(null)}
             onDownloadLog={handleDownloadLog}
           />

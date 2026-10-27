@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { filterActiveBots, getBotSource, saveBotSource } from '../utils/botStorage.js';
-import { api, buildApiUrl } from '../utils/api.js';
+import { api, buildApiUrl, fetchWithTimeout } from '../utils/api.js';
 
 const STARTER_CODE = {
   PYTHON: `import json\nimport sys\n\ndef decide(state):\n    # Return {"pieceId": int, "to": [row, col]} for a legal move.\n    pieces = state.get("yourPieces", [])\n    if not pieces:\n        return None\n    piece = pieces[0]\n    r, c = piece["r"], piece["c"]\n    # Di chuyển trực giao 1 ô (orthogonal 1-step): ưu tiên đi hàng trước, khi cùng hàng mới đi cột\n    target = state.get("targets", [[0, 8]])[0]\n    if target[0] != r:\n        nr, nc = r + (1 if target[0] > r else -1), c\n    elif target[1] != c:\n        nr, nc = r, c + (1 if target[1] > c else -1)\n    else:\n        nr, nc = r, c\n    return {"pieceId": piece["id"], "to": [nr, nc]}\n\nfor line in sys.stdin:\n    try:\n        print(json.dumps(decide(json.loads(line))), flush=True)\n    except Exception as error:\n        print(str(error), file=sys.stderr, flush=True)\n        print("null", flush=True)`,
@@ -188,11 +188,10 @@ export default function BattleCode({
     let isMounted = true;
     const loadRankings = async () => {
       try {
-        const response = await fetch(buildApiUrl('/api/ladder/rankings?limit=500'), {
+        const response = await fetchWithTimeout('/api/ladder/rankings?limit=500', {
           credentials: 'include',
           cache: 'no-store',
-          headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-        });
+        }, 5000);
         if (!response.ok) return;
         const rows = await response.json();
         if (isMounted && Array.isArray(rows)) setLadderRankings(rows);
@@ -272,12 +271,35 @@ export default function BattleCode({
     ? officialRankings.find((row) => row.rank === selectedOfficialRank.rank - 1)
     : officialRankings[officialRankings.length - 1];
   const ownOfficialRank = selectedOfficialRank?.rank ?? null;
-  const miniRankings = [
-    ...officialRankings.slice(0, 5),
-    ...(adjacentOfficialBot && !officialRankings.slice(0, 5).some((row) => String(row.botId) === String(adjacentOfficialBot.botId))
-      ? [adjacentOfficialBot]
-      : []),
-  ].map((row) => ({ ...row, key: `ranked-${row.botId}` }));
+  const displaySourceBots = officialRankings.length > 0
+    ? [
+        ...officialRankings.slice(0, 5),
+        ...(adjacentOfficialBot && !officialRankings.slice(0, 5).some((row) => String(row.botId) === String(adjacentOfficialBot.botId))
+          ? [adjacentOfficialBot]
+          : []),
+      ]
+    : ladderRankings
+        .slice()
+        .sort((a, b) => (b.botElo ?? b.elo ?? 1200) - (a.botElo ?? a.elo ?? 1200))
+        .slice(0, 5)
+        .map((row) => ({
+          rank: null,
+          isProvisional: true,
+          botId: row.botId,
+          ownerId: row.ownerId,
+          ownerName: row.ownerDisplayName || row.ownerUsername || `Chủ bot ${row.ownerId}`,
+          name: row.ownerDisplayName || row.ownerUsername || `Chủ bot ${row.ownerId}`,
+          botName: row.botName || `Bot #${row.botId}`,
+          bot: row.botName || `Bot #${row.botId}`,
+          language: row.language,
+          elo: row.botElo ?? row.elo ?? 1200,
+          avatarSeed: row.botName || `Bot_${row.botId}`,
+          isMine: (selectedRankedBot && String(row.botId) === String(selectedRankedBot.id))
+            || activeBots.some((b) => String(b.id) === String(row.botId))
+            || (user?.id && row.ownerId === user.id),
+        }));
+
+  const miniRankings = displaySourceBots.map((row) => ({ ...row, key: `ranked-${row.botId}` }));
   const ownRankedBot = selectedRankedBot;
   const isOwnBotInMiniList = ownRankedBot && miniRankings.some(
     (row) => String(row.botId) === String(ownRankedBot.id) || row.isMine

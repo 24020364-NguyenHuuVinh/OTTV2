@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { isOpponentUnlocked } from '../utils/gameRules.js';
-import { buildApiUrl } from '../utils/api.js';
+import { buildApiUrl, fetchWithTimeout } from '../utils/api.js';
 import BotDetailModal from './BotDetailModal.jsx';
 import MatchmakingModal from './MatchmakingModal.jsx';
 
@@ -162,14 +162,10 @@ export default function Leaderboard({
 
       // Lấy danh sách bot thật từ PostgreSQL/Ladder Service
       try {
-        const botRes = await fetch(buildApiUrl('/api/ladder/rankings'), {
+        const botRes = await fetchWithTimeout('/api/ladder/rankings', {
           credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': 'true',
-          },
           signal: controller.signal,
-        });
+        }, 4000);
         if (botRes.ok) {
           const botData = await botRes.json();
           if (isMounted && Array.isArray(botData)) {

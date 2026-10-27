@@ -200,8 +200,39 @@ export default function Profile({
                   ? Boolean(localMatch.isRanked)
                   : (item.change !== 0 && item.eloChange !== 0 && item.mode !== 'PRACTICE' && item.mode !== 'CASUAL'));
 
-            const sideA = cachedReplay?.sideA || localMatch?.sideA || (userSide === 'A' ? { botName: myName, userId: user?.id } : (userSide === 'B' ? { botName: oppName } : { botName: 'Đội Xanh' }));
-            const sideB = cachedReplay?.sideB || localMatch?.sideB || (userSide === 'B' ? { botName: myName, userId: user?.id } : (userSide === 'A' ? { botName: oppName } : { botName: 'Đội Đỏ' }));
+            const deltaElo = isRanked ? (item.change ?? item.eloChange ?? 0) : 0;
+            const myNewElo = item.newElo ?? user?.pvpElo ?? 1200;
+            const myOldElo = myNewElo - deltaElo;
+            const oppElo = item.opponentElo ?? 1200;
+
+            const resolvedSideAElo = userSide === 'A' ? myOldElo : oppElo;
+            const resolvedSideBElo = userSide === 'B' ? myOldElo : oppElo;
+            const resolvedSideAEloAfter = userSide === 'A' ? myNewElo : (oppElo - deltaElo);
+            const resolvedSideBEloAfter = userSide === 'B' ? myNewElo : (oppElo - deltaElo);
+            const resolvedSideAChange = userSide === 'A' ? deltaElo : -deltaElo;
+            const resolvedSideBChange = userSide === 'B' ? deltaElo : -deltaElo;
+
+            const sideA = {
+              ...(cachedReplay?.sideA || {}),
+              ...(localMatch?.sideA || {}),
+              botName: cachedReplay?.sideA?.botName || localMatch?.sideA?.botName || (userSide === 'A' ? myName : oppName),
+              userId: userSide === 'A' ? user?.id : (localMatch?.sideA?.userId || null),
+              eloBefore: resolvedSideAElo,
+              elo: resolvedSideAElo,
+              eloAfter: resolvedSideAEloAfter,
+              eloChange: resolvedSideAChange,
+            };
+
+            const sideB = {
+              ...(cachedReplay?.sideB || {}),
+              ...(localMatch?.sideB || {}),
+              botName: cachedReplay?.sideB?.botName || localMatch?.sideB?.botName || (userSide === 'B' ? myName : oppName),
+              userId: userSide === 'B' ? user?.id : (localMatch?.sideB?.userId || null),
+              eloBefore: resolvedSideBElo,
+              elo: resolvedSideBElo,
+              eloAfter: resolvedSideBEloAfter,
+              eloChange: resolvedSideBChange,
+            };
 
             let winnerSide = localMatch?.winnerSide || cachedReplay?.result?.winner || localMatch?.winner || (item.winner && item.winner !== 'USER' && item.winner !== 'OPPONENT' ? item.winner : null);
             if (!winnerSide || winnerSide === 'USER' || winnerSide === 'OPPONENT') {
@@ -224,8 +255,12 @@ export default function Profile({
               opponent: item.opponent,
               opponentElo: item.opponentElo,
               userWon: item.userWon,
-              change: isRanked ? (item.change ?? item.eloChange) : 0,
-              newElo: item.newElo,
+              change: deltaElo,
+              eloChange: deltaElo,
+              newElo: myNewElo,
+              oldElo: myOldElo,
+              userElo: myOldElo,
+              userName: myName,
               timestamp: item.timestamp,
               createdAt: (() => {
                 let resolved = item.createdAt || localMatch?.createdAt;

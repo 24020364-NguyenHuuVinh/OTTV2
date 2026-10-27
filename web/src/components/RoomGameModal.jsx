@@ -1820,7 +1820,8 @@ export default function RoomGameModal({
                         </span>
                       </div>
                       <p className="text-[11px] text-zinc-400 font-medium">
-                        Đối đầu với: <strong className="text-zinc-200">{serverEloResult.opponentName}</strong>
+                        Tài khoản: <strong className="text-zinc-200">{userName || 'Bạn'}</strong>
+                        {' · '}Đối đầu với: <strong className="text-zinc-200">{serverEloResult.opponentName}</strong>
                       </p>
                     </div>
 

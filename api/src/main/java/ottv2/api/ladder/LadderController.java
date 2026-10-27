@@ -78,7 +78,15 @@ public class LadderController {
                        u.student_code AS owner_username,
                        COALESCE(u.display_name, u.student_code) AS owner_display_name,
                        s.language,
-                       r.elo, r.games, r.wins, r.losses, r.draws,
+                       r.elo,
+                       COALESCE(
+                           NULLIF((SELECT COUNT(DISTINCT self.match_id)
+                                   FROM match_participants self
+                                   JOIN matches m ON m.id = self.match_id AND m.created_month = self.created_month
+                                   WHERE self.bot_id = r.bot_id AND m.status = 'FINISHED' AND m.match_type = 'LADDER'), 0),
+                           r.games
+                       ) AS games,
+                       r.wins, r.losses, r.draws,
                        COALESCE(
                            NULLIF((SELECT COUNT(DISTINCT opp.bot_id)
                             FROM match_participants self
@@ -86,8 +94,7 @@ public class LadderController {
                             WHERE self.bot_id = r.bot_id), 0),
                            (SELECT COUNT(DISTINCT CASE WHEN ls.bot_a_id = r.bot_id THEN ls.bot_b_id ELSE ls.bot_a_id END)
                             FROM ladder_series ls
-                            WHERE (ls.bot_a_id = r.bot_id OR ls.bot_b_id = r.bot_id)
-                              AND ls.finished_at IS NOT NULL),
+                            WHERE (ls.bot_a_id = r.bot_id OR ls.bot_b_id = r.bot_id)),
                            0
                        ) AS distinct_opponents
                 FROM bot_ratings r
